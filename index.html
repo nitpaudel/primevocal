@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRIME VOCAL · AI voice receptionists for service businesses</title>
+<meta name="description" content="PRIME VOCAL installs an AI voice receptionist on your existing line. It answers in two rings, books the job, and rings your leads back in under a minute.">
+<script>try{var t=localStorage.getItem('pv-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css?v=26">
+</head>
+<body>
+
+<!-- PRIME VOCAL mark · defined once, reused in the header, the SMS avatar and
+     the phone avatar. fill="currentColor" is what lets it flip between light
+     and dark mode without a second asset. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="pvMark" viewBox="20 18 66 64" fill="currentColor">
+    <path d="M45.5 20.5 L62 20.5 A21.5 21.5 0 0 1 62 63.5
+             C55.5 69.5 48.5 74.5 41.8 79.6
+             L41.8 56
+             C48.5 55.8 55.5 55.2 62 54.5
+             A12.5 12.5 0 0 0 62 29.5
+             L45.5 29.5
+             A4.5 4.5 0 0 1 45.5 20.5 Z"/>
+    <rect x="21.9" y="45.8" width="3.6" height="6.7"  rx="1.8"/>
+    <rect x="28.3" y="40.4" width="4.7" height="16.8" rx="2.35"/>
+    <rect x="35.0" y="30.3" width="4.8" height="40.2" rx="2.4"/>
+    <rect x="42.0" y="33.8" width="5.0" height="26.3" rx="2.5"/>
+    <rect x="49.4" y="38.1" width="4.6" height="14.0" rx="2.3"/>
+  </symbol>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="shell nav-row">
+    <a class="wordmark" href="#top" aria-label="Prime Vocal home">
+      <svg class="mark" viewBox="20 18 66 64" role="img" aria-hidden="true"><use href="#pvMark"/></svg>
+    </a>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" aria-label="Switch color theme">
+        <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M18.8 5.2l-1.7 1.7M6.9 17.1l-1.7 1.7"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></svg>
+      </button>
+      <a class="btn btn-sm" href="https://cal.com/paudel" target="_blank" rel="noopener">Book a call</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="shell hero-grid">
+    <div class="hero-copy">
+      <p class="kicker rv">AI voice receptionists for service businesses</p>
+      <h1 class="display rv">Answer every call. <em>Chase every lead.</em></h1>
+      <p class="standfirst rv">
+        PRIME VOCAL installs an AI voice receptionist on your existing line.
+        It picks up in two rings, books the job into your calendar, and rings
+        new leads back in under a minute.
+      </p>
+      <div class="hero-actions rv">
+        <a class="btn" href="https://cal.com/paudel" target="_blank" rel="noopener">Book a call</a>
+        <a class="btn btn-outline" href="#hear">Hear it in action</a>
+      </div>
+    </div>
+
+    <!-- dark demo card -->
+    <div class="voice-card rv" id="voiceCard">
+
+      <div class="vc-switch" role="tablist" aria-label="Demo channel">
+        <span class="vc-thumb" aria-hidden="true"></span>
+        <button class="vc-tab on" role="tab" aria-selected="true" aria-controls="modeVoice" data-mode="voice">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4" stroke-linecap="round"/></svg>
+          Voice AI
+        </button>
+        <button class="vc-tab" role="tab" aria-selected="false" aria-controls="modeSms" data-mode="sms">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.5 11.5c0 4-3.8 7.2-8.5 7.2-1 0-2-.15-2.9-.42L4 20l1.4-3.6A6.9 6.9 0 013.5 11.5c0-4 3.8-7.2 8.5-7.2s8.5 3.2 8.5 7.2z" stroke-linejoin="round"/></svg>
+          SMS AI
+        </button>
+      </div>
+
+      <!-- VOICE -->
+      <div class="vc-pane on" id="modeVoice" data-pane="voice" role="tabpanel">
+        <div class="vc-wave" id="vcWave" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+
+        <div class="vc-list">
+          <button class="sample" data-src="assets/audio/dental.mp3" data-dur="34">
+            <span class="s-play" aria-hidden="true"><i></i></span>
+            <span class="s-name">Dental clinic <span class="s-sub">new patient booking</span></span>
+            <span class="s-meta">
+              <svg class="s-wave" viewBox="0 0 44 16" aria-hidden="true"><path d="M1 8h2l2-5 2 10 2-7 2 4 2-8 2 11 2-6 2 3 2-5 2 7 2-4h13" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="mono s-dur">0:34</span>
+            </span>
+          </button>
+          <button class="sample" data-src="assets/audio/realestate.mp3" data-dur="41">
+            <span class="s-play" aria-hidden="true"><i></i></span>
+            <span class="s-name">Real estate office <span class="s-sub">inspection enquiry</span></span>
+            <span class="s-meta">
+              <svg class="s-wave" viewBox="0 0 44 16" aria-hidden="true"><path d="M1 8h2l2-6 2 11 2-8 2 5 2-9 2 12 2-7 2 4 2-6 2 8 2-5h13" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="mono s-dur">0:41</span>
+            </span>
+          </button>
+          <button class="sample" data-src="assets/audio/hvac.mp3" data-dur="28">
+            <span class="s-play" aria-hidden="true"><i></i></span>
+            <span class="s-name">HVAC emergency <span class="s-sub">2am, no heating</span></span>
+            <span class="s-meta">
+              <svg class="s-wave" viewBox="0 0 44 16" aria-hidden="true"><path d="M1 8h2l2-4 2 9 2-6 2 3 2-7 2 10 2-5 2 2 2-4 2 6 2-3h13" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="mono s-dur">0:28</span>
+            </span>
+          </button>
+        </div>
+
+        <p class="mono vc-status" id="vcStatus">Pick a call to hear it</p>
+      </div>
+
+      <!-- SMS -->
+      <div class="vc-pane" id="modeSms" data-pane="sms" role="tabpanel" hidden>
+        <div class="chat" id="chat">
+          <div class="chat-head">
+            <span class="chat-av"><img src="./lara-avatar.png" alt="Lara" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"><svg class="mark" viewBox="20 18 66 64" aria-hidden="true"><use href="#pvMark"/></svg></span>
+            <span class="chat-who">Lara <span class="mono">· active now</span></span>
+          </div>
+          <div class="chat-body" id="chatBody">
+            <div class="bub them">Hi, my hot water system is leaking everywhere. Can someone come out?</div>
+            <div class="bub us">That's not a fun morning. I can get a plumber to you today, what suburb are you in?</div>
+            <div class="bub them">Northcote, 3070.</div>
+            <div class="bub us">Covered. I've got 11:30am or 2:15pm free. Which one works?</div>
+            <div class="bub them">2:15 please.</div>
+            <div class="bub us">Done, Tuesday 2:15pm, Dave's on it. Call-out is $89 and comes off the job if you go ahead. You'll get a text when he's 30 minutes away.</div>
+            <div class="bub typing" aria-hidden="true"><i></i><i></i><i></i></div>
+          </div>
+          <p class="mono chat-foot">Replies in 3 seconds · books straight into your calendar</p>
+        </div>
+      </div>
+
+      <div class="vc-actions">
+        <button class="btn btn-block" type="button" id="talkToAi">Talk to AI</button>
+        <a class="btn btn-ghost btn-block" href="https://cal.com/paudel" target="_blank" rel="noopener">Book a call</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="shell">
+    <div class="badges rv">
+      <span class="badge mono"><span class="live-dot" aria-hidden="true"></span>Response &lt;30 sec</span>
+      <span class="badge mono">24/7 · 365</span>
+      <span class="badge mono">Sounds human</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 01 · JAMES ON THE STREET (scroll-driven 3D) ============ -->
+<section class="street" id="problem">
+  <div class="street-stage">
+    <canvas class="street-canvas" id="streetCanvas"></canvas>
+
+    <div class="street-grade" aria-hidden="true"></div>
+
+    <div class="rec mono" aria-hidden="true">
+      <span class="rec-dot"></span>REC <span id="recTime">09:00 PM</span>
+    </div>
+    <div class="street-label mono" aria-hidden="true"><span>01</span><span>The problem</span></div>
+
+    <div class="beats" aria-hidden="true">
+      <p class="beat" data-beat="1">9PM. James has a toothache.<br>He can't sleep.</p>
+      <p class="beat" data-beat="2">Closed. No one picks up.</p>
+      <p class="beat" data-beat="3">Open. Busy. Ignored.</p>
+      <p class="beat" data-beat="4">One last try.</p>
+      <p class="beat" data-beat="5">Answered in 2 rings.</p>
+      <p class="beat" data-beat="6">Booked. Pain sorted. Done.</p>
+      <p class="beat beat-final" data-beat="7">Every unanswered call walks straight <em>to your competitor.</em></p>
+    </div>
+
+    <p class="street-hint mono" id="streetHint" aria-hidden="true">Scroll</p>
+
+    <!-- readable equivalent for assistive tech and no-JS -->
+    <div class="sr-only">
+      <h2>Every unanswered call walks straight to your competitor.</h2>
+      <p>9PM. James has a toothache and can't sleep. He calls Bright Smile Dental, which is closed, and no one picks up.
+      He walks to City Dental Care, open and busy, where the receptionist glances at the ringing phone and goes back
+      to paperwork. One last try: he calls Parkview Dental, where Prime Vocal answers in two rings and books him
+      in for Thursday 9 January at 9:00AM.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ALWAYS ON · 24H CLOCK ============ -->
+<section class="sec" id="always">
+  <div class="shell">
+    <div class="sec-label mono rv"><span>02</span><span>Always on</span></div>
+    <h2 class="h2 rv">While you sleep, <em>your phone still answers.</em></h2>
+
+    <div class="clock-wrap rv">
+      <svg class="clock-svg" viewBox="0 0 420 420" aria-hidden="true">
+        <circle class="clk-halo" cx="210" cy="210" r="196"/>
+        <circle class="clk-face" cx="210" cy="210" r="196"/>
+        <circle class="clk-inner" cx="210" cy="210" r="176"/>
+        <g class="clk-ticks">
+          <line class="tq" x1="210" y1="22" x2="210" y2="42"/>
+          <line x1="210" y1="24" x2="210" y2="34" transform="rotate(30 210 210)"/>
+          <line x1="210" y1="24" x2="210" y2="34" transform="rotate(60 210 210)"/>
+          <line class="tq" x1="210" y1="22" x2="210" y2="42" transform="rotate(90 210 210)"/>
+          <line x1="210" y1="24" x2="210" y2="34" transform="rotate(120 210 210)"/>
+          <line x1="210" y1="24" x2="210" y2="34" transform="rotate(150 210 210)"/>
+          <line class="tq" x1="210" y1="22" x2="210" y2="42" transform="rotate(180 210 210)"/>
+          <line x1="210" y1="24" x2="210" y2="34" transform="rotate(210 210 210)"/>
+          <line x1="210" y1="24" x2="210" y2="34" transform="rotate(240 210 210)"/>
+          <line class="tq" x1="210" y1="22" x2="210" y2="42" transform="rotate(270 210 210)"/>
+          <line x1="210" y1="24" x2="210" y2="34" transform="rotate(300 210 210)"/>
+          <line x1="210" y1="24" x2="210" y2="34" transform="rotate(330 210 210)"/>
+        </g>
+        <line class="clk-hand hand-h" id="handH" x1="210" y1="232" x2="210" y2="122"/>
+        <line class="clk-hand hand-m" id="handM" x1="210" y1="238" x2="210" y2="78"/>
+        <line class="clk-hand hand-s" id="handS" x1="210" y1="246" x2="210" y2="60"/>
+        <circle class="clk-pin" cx="210" cy="210" r="6.5"/>
+        <circle class="clk-pin-in" cx="210" cy="210" r="2.2"/>
+        <text class="clk-dig" id="clkDig" x="210" y="300" text-anchor="middle">2:00 AM</text>
+      </svg>
+
+      <!-- booking cards are injected here, random slot + random order -->
+      <div class="clk-cards" id="clkCards"></div>
+    </div>
+
+    <p class="clock-line rv">Every call that comes in after hours, during lunch, or while your team is with a patient, <em>gets answered, handled, and booked. Automatically.</em></p>
+  </div>
+</section>
+
+<!-- ============ HEAR IT / PHONE ============ -->
+<section class="sec sec-night" id="hear">
+  <div class="shell">
+    <div class="sec-label mono rv"><span>03</span><span>Hear it</span></div>
+    <h2 class="h2 rv">Hear it handle <em>a real call.</em></h2>
+
+    <div class="hear-grid">
+      <div class="hear-phone rv" aria-label="Demo call preview">
+        <div class="phone" id="phone" data-state="idle">
+          <div class="phone-side side-l" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="phone-side side-r" aria-hidden="true"><i></i></div>
+          <div class="phone-screen">
+            <div class="island" aria-hidden="true"><span class="island-cam"></span></div>
+            <div class="status-bar mono" aria-hidden="true">
+              <span id="phClock">9:41</span>
+              <span class="sb-right">
+                <svg viewBox="0 0 20 12" aria-hidden="true"><rect x="0" y="8" width="2.6" height="4" rx=".6"/><rect x="4" y="6" width="2.6" height="6" rx=".6"/><rect x="8" y="3.5" width="2.6" height="8.5" rx=".6"/><rect x="12" y="1" width="2.6" height="11" rx=".6"/></svg>
+                <svg viewBox="0 0 16 12" aria-hidden="true"><path d="M8 10.4l1.9-2.1a2.6 2.6 0 00-3.8 0L8 10.4zM8 6.1c1.4 0 2.7.55 3.6 1.5l1.5-1.7A7.4 7.4 0 008 3.9a7.4 7.4 0 00-5.1 2L4.4 7.6A5 5 0 018 6.1z"/></svg>
+                <svg viewBox="0 0 26 12" aria-hidden="true"><rect x="0.6" y="0.6" width="21" height="10.8" rx="3" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".45"/><rect x="2.4" y="2.4" width="15" height="7.2" rx="1.6"/><path d="M23.4 4.2v3.6a2 2 0 000-3.6z" opacity=".45"/></svg>
+              </span>
+            </div>
+
+            <p class="mono ph-status" id="phStatus">Incoming call</p>
+
+            <div class="ph-rings" id="phRings" aria-hidden="true">
+              <i></i><i></i><i></i>
+              <span class="ph-avatar"><img src="./lara-avatar.png" alt="Lara" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"><svg class="mark" viewBox="20 18 66 64" aria-hidden="true"><use href="#pvMark"/></svg></span>
+            </div>
+
+            <p class="ph-name" id="phName">Lara</p>
+            <p class="mono ph-sub" id="phSub">Waiting for your request</p>
+
+            <div class="ph-actions">
+              <button class="ph-btn decline" type="button" id="phDecline" aria-label="Decline call"></button>
+              <button class="ph-btn accept" type="button" id="phAccept" aria-label="Answer call"></button>
+              <button class="ph-btn end" type="button" id="phEnd" aria-label="End call"></button>
+            </div>
+            <span class="home-bar" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-box rv">
+        <div class="demo-head">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span class="mono demo-label">Live</span>
+        </div>
+
+        <form id="demoForm" novalidate>
+          <div class="f">
+            <label for="dName">Your name</label>
+            <input id="dName" name="name" type="text" autocomplete="name" placeholder="Sam Carter" required>
+          </div>
+          <div class="f">
+            <label for="dPhone">Phone number</label>
+            <input id="dPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+61 400 000 000" required>
+          </div>
+          <div class="f">
+            <label for="dInd">Industry</label>
+            <select id="dInd" name="industry">
+              <option>Dental</option>
+              <option>HVAC</option>
+              <option>Plumbing</option>
+              <option>Real estate</option>
+              <option>Legal</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-block">Call me now</button>
+          <p class="fine mono">We call you within 60 seconds.</p>
+        </form>
+
+        <div class="demo-success" id="demoSuccess" hidden>
+          <p class="demo-success-h">Your phone is about to ring.</p>
+          <p class="demo-success-p">Pick up. It's your future receptionist.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ROI ============ -->
+<section class="sec sec-tight" id="roi">
+  <div class="shell">
+    <div class="sec-label mono rv"><span>04</span><span>The maths</span></div>
+    <h2 class="h2 rv">What are missed calls <em>costing you?</em></h2>
+
+    <div class="roi rv">
+      <div class="roi-inputs">
+        <div class="ri">
+          <div class="ri-top">
+            <label class="mono" for="rCalls">Calls per week</label>
+            <span class="mono ri-val" id="rCallsVal">80</span>
+          </div>
+          <input type="range" id="rCalls" min="20" max="200" step="5" value="80">
+        </div>
+        <div class="ri">
+          <div class="ri-top">
+            <label class="mono" for="rMiss">Share you miss</label>
+            <span class="mono ri-val" id="rMissVal">40%</span>
+          </div>
+          <input type="range" id="rMiss" min="10" max="80" step="5" value="40">
+        </div>
+        <div class="ri">
+          <div class="ri-top">
+            <label class="mono" for="rValue">Value of a new customer</label>
+            <span class="mono ri-val" id="rValueVal">$200</span>
+          </div>
+          <input type="range" id="rValue" min="50" max="1000" step="25" value="200">
+        </div>
+        <p class="fine mono roi-note">Assumes half of missed callers would have booked.</p>
+      </div>
+
+      <div class="roi-out">
+        <div class="ro">
+          <span class="ro-n" id="roiM">$0</span>
+          <span class="ro-c mono">walking out every month</span>
+        </div>
+        <div class="ro">
+          <span class="ro-n" id="roiY">$0</span>
+          <span class="ro-c mono">every year</span>
+        </div>
+        <a class="btn" href="https://cal.com/paudel" target="_blank" rel="noopener">Stop the leak by Booking a call.</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="sec" id="faq">
+  <div class="shell">
+    <div class="sec-label mono rv"><span>05</span><span>Questions</span></div>
+
+    <div class="faq rv">
+      <details>
+        <summary>Will customers know it's AI?<span class="plus" aria-hidden="true">+</span></summary>
+        <p>Mostly no. The voice is natural, it interrupts and recovers like a person, and it never runs a phone-tree menu. We disclose it where the law requires, and it costs nothing in bookings.</p>
+      </details>
+      <details>
+        <summary>What if it doesn't know the answer?<span class="plus" aria-hidden="true">+</span></summary>
+        <p>It says so, takes a message, or warm-transfers the call to a human on the spot. It never invents an answer and never quotes a price you didn't approve.</p>
+      </details>
+      <details>
+        <summary>Do I need a new number?<span class="plus" aria-hidden="true">+</span></summary>
+        <p>No. We forward your existing line, or set the agent to pick up only when your team doesn't. Your number, your caller ID, nothing to reprint.</p>
+      </details>
+      <details>
+        <summary>What does it plug into?<span class="plus" aria-hidden="true">+</span></summary>
+        <p>Google Calendar, Calendly, GoHighLevel, Jobber, ServiceTitan, Housecall Pro, HubSpot, and anything else with an API. Bookings, notes and transcripts land where your team already works.</p>
+      </details>
+      <details>
+        <summary>How much of my time does setup take?<span class="plus" aria-hidden="true">+</span></summary>
+        <p>One thirty-minute call and about an hour of testing before launch. We write the scripts, build the integrations and tune the voice. You're live in a week.</p>
+      </details>
+      <details>
+        <summary>Can I cancel?<span class="plus" aria-hidden="true">+</span></summary>
+        <p>Month to month, thirty days' notice. Your number forwards back the same day and you keep every recording and transcript.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA (dark) ============ -->
+<section class="close">
+  <div class="shell">
+    <h2 class="display close-h rv">The next call is coming.<br><em>Someone should answer it.</em></h2>
+    <div class="close-actions rv">
+      <a class="btn" href="https://cal.com/paudel" target="_blank" rel="noopener">Book a call</a>
+      <div class="socials">
+        <a class="social" href="https://instagram.com/primevocal.ai" target="_blank" rel="noopener" aria-label="PRIME VOCAL on Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a class="social" href="https://linkedin.com/company/primevocal" target="_blank" rel="noopener" aria-label="PRIME VOCAL on LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.4 8.6H3.2V20.5h3.2V8.6zM4.8 7.2a1.9 1.9 0 100-3.7 1.9 1.9 0 000 3.7zM20.8 13.9c0-3.1-1.7-4.6-3.9-4.6-1.8 0-2.6 1-3 1.7V8.6h-3.2c.05.9 0 11.9 0 11.9h3.2v-6.6c0-.4 0-.7.1-1 .2-.6.8-1.2 1.7-1.2 1.2 0 1.9.9 1.9 2.4v6.4h3.2v-6.6z"/></svg>
+        </a>
+        <a class="social" href="mailto:primevocal.ai@gmail.com" aria-label="Email PRIME VOCAL">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.6" y="5" width="18.8" height="14" rx="2.6"/><path d="M3.4 7l7.5 5.6a2 2 0 002.2 0L20.6 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="shell foot-row">
+    <span class="mono">PRIME VOCAL © <span id="year">2026</span> · The phone is always on.</span>
+    <a class="foot-mail" href="mailto:primevocal.ai@gmail.com">primevocal.ai@gmail.com</a>
+  </div>
+</footer>
+
+<script src="assets/main.js?v=26"></script>
+
+<!-- Section 01's 3D street. Loads as an ES module, so the page must be served
+     over http(s) — opening index.html straight off disk blocks module imports.
+     If Three.js can't be reached the section still runs: main.js drives the
+     story text and the CCTV clock on its own. -->
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module" src="assets/scene.js?v=26"></script>
+</body>
+</html>

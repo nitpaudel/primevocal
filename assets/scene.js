@@ -18,7 +18,11 @@ const GLOW   = 0x4E9A6E;   /* lifted green — #1E5B3F alone reads black on #0F0
 const NIGHT  = 0x0B140D;
 
 const canvas = document.getElementById('streetCanvas');
-if (canvas) boot();
+
+/* Phones get the real 3D street, same as desktop — the camera adapts to the
+   viewport rather than the scene being swapped out. The only guard left is
+   whether something has already claimed the canvas. */
+if (canvas && !window.pvStreet) boot();
 
 function boot() {
   let renderer;
@@ -575,9 +579,19 @@ function boot() {
   let progress = 0, target = 0, walked = 0, time = 0;
   let camZ = 27;
 
-  /* Hold roughly this much street in frame whatever the viewport shape —
-     on tall/narrow screens the camera pulls back instead of cropping. */
-  const FRAME_WIDTH = 44;
+  /* How much street to hold in frame, in world units.
+     A phone in portrait is ~0.46 aspect: fitting the desktop's 44 units there
+     would shove the camera ~125 units back and shrink the whole scene to
+     nothing. Narrow screens instead frame tighter and let the camera track
+     James, which reads far better on a small display. */
+  function frameWidth(aspect) {
+    if (aspect >= 1.4) return 44;          /* desktop / landscape */
+    if (aspect <= 0.65) return 21;         /* phone portrait */
+    /* tablets and in-between: ease between the two */
+    const t = (aspect - 0.65) / (1.4 - 0.65);
+    return 21 + t * (44 - 21);
+  }
+  const isPortrait = () => camera.aspect < 0.9;
 
   function resize() {
     const w = canvas.clientWidth || window.innerWidth;
@@ -588,7 +602,7 @@ function boot() {
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       const halfFov = THREE.MathUtils.degToRad(camera.fov) / 2;
-      camZ = Math.max(24, (FRAME_WIDTH / 2) / (Math.tan(halfFov) * camera.aspect));
+      camZ = Math.max(20, (frameWidth(camera.aspect) / 2) / (Math.tan(halfFov) * camera.aspect));
       camera.updateProjectionMatrix();
     }
   }
@@ -631,11 +645,16 @@ function boot() {
     /* ---- camera follows horizontally ----
        clamped at the end so Parkview stays in shot for the closing line
        while James carries on walking out of frame */
-    const camX = Math.min(x + 3, 29);
-    camera.position.x += (camX - camera.position.x) * 0.06;
-    camera.position.y += ((p > 0.87 ? 8.8 : 7.5) - camera.position.y) * 0.05;
+    /* Portrait frames tighter, so it tracks James almost exactly and sits a
+       little lower and closer to him; the wide desktop frame leads him
+       instead and stops before it runs past Parkview. */
+    const port = isPortrait();
+    const camX = port ? x + 0.5 : Math.min(x + 3, 29);
+    camera.position.x += (camX - camera.position.x) * (port ? 0.09 : 0.06);
+    const camY = port ? (p > 0.87 ? 7.4 : 6.4) : (p > 0.87 ? 8.8 : 7.5);
+    camera.position.y += (camY - camera.position.y) * 0.05;
     camera.position.z += (camZ - camera.position.z) * 0.08;
-    camera.lookAt(camera.position.x - 2.4, 5.2, 0);
+    camera.lookAt(camera.position.x - (port ? 0.5 : 2.4), port ? 4.6 : 5.2, 0);
 
     /* parallax: skyline drifts at 0.3x the camera */
     far.position.x = camera.position.x * 0.7;
@@ -734,6 +753,11 @@ function boot() {
   window.addEventListener('resize', resize);
   window.addEventListener('orientationchange', function () { setTimeout(resize, 150); });
   window.addEventListener('load', resize);
+  /* A deferred module can evaluate after load has already fired, in which case
+     that listener never runs; and at boot the sticky stage may not have laid
+     out yet, so the first resize() finds a zero-width canvas. Retry off timers
+     so sizing never depends on rAF or on event ordering. */
+  [60, 250, 800, 2000].forEach(function (ms) { setTimeout(resize, ms); });
 
   requestAnimationFrame(frame);
 

@@ -3,13 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRIME VOCAL · AI voice receptionists for service businesses</title>
-<meta name="description" content="PRIME VOCAL installs an AI voice receptionist on your existing line. It answers in two rings, books the job, and rings your leads back in under a minute.">
+<title>Primevocal — AI Agent That Sounds Human</title>
+<meta name="description" content="Prime Vocal installs an AI voice receptionist on your existing phone line. It answers every call, books appointments, and chases leads — 24/7, automatically.">
+<meta name="keywords" content="AI voice receptionist, AI receptionist for dental clinics, Prime Vocal, primevocal, AI phone answering service, AI receptionist, AI agents that sound human, 24/7 call answering, AI appointment booking, missed call recovery, AI receptionist for HVAC, AI receptionist for plumbers, AI receptionist for real estate">
+<meta name="author" content="Prime Vocal">
+
+<!-- Open Graph / Facebook / LinkedIn.
+     og:url and og:image are left off until the live domain is known — a wrong
+     canonical URL or a 404 image hurts the share card more than none at all.
+     Once the site has a domain, add:
+       <meta property="og:url"   content="https://YOURDOMAIN/">
+       <meta property="og:image" content="https://YOURDOMAIN/assets/og-image.png">
+       <link  rel="canonical"    href="https://YOURDOMAIN/">                     -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Primevocal">
+<meta property="og:title" content="Primevocal — AI Agent That Sounds Human">
+<meta property="og:description" content="Prime Vocal installs an AI voice receptionist on your existing phone line. It answers every call, books appointments, and chases leads — 24/7, automatically.">
+<meta property="og:locale" content="en_AU">
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Primevocal — AI Agent That Sounds Human">
+<meta name="twitter:description" content="Prime Vocal installs an AI voice receptionist on your existing phone line. It answers every call, books appointments, and chases leads — 24/7, automatically.">
+
+<meta name="theme-color" content="#1E5B3F">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+
 <script>try{var t=localStorage.getItem('pv-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=26">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Instrument+Sans:wght@400;500;600&family=Poppins:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css?v=35">
 </head>
 <body>
 
@@ -35,8 +59,12 @@
 
 <header class="nav" id="nav">
   <div class="shell nav-row">
-    <a class="wordmark" href="#top" aria-label="Prime Vocal home">
-      <svg class="mark" viewBox="20 18 66 64" role="img" aria-hidden="true"><use href="#pvMark"/></svg>
+    <!-- Full lockup: the mark, a hairline divider, then the wordmark — the same
+         arrangement as the brand logo. Kept as live SVG + text rather than a
+         flat image so it stays crisp on any screen and recolours itself in
+         dark mode instead of needing a second file. -->
+    <a class="wordmark" href="#top" aria-label="Primevocal home">
+      <span class="wordmark-text">primevocal</span>
     </a>
     <div class="nav-right">
       <button class="theme-toggle" id="themeToggle" aria-label="Switch color theme">
@@ -126,7 +154,7 @@
       <div class="vc-pane" id="modeSms" data-pane="sms" role="tabpanel" hidden>
         <div class="chat" id="chat">
           <div class="chat-head">
-            <span class="chat-av"><img src="./lara-avatar.png" alt="Lara" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"><svg class="mark" viewBox="20 18 66 64" aria-hidden="true"><use href="#pvMark"/></svg></span>
+            <span class="chat-av"><img class="avatar-img" src="assets/lara-avatar.png" alt="Lara, the Prime Vocal AI receptionist" width="320" height="320" decoding="async"><svg class="mark" viewBox="20 18 66 64" aria-hidden="true"><use href="#pvMark"/></svg></span>
             <span class="chat-who">Lara <span class="mono">· active now</span></span>
           </div>
           <div class="chat-body" id="chatBody">
@@ -191,6 +219,7 @@
       in for Thursday 9 January at 9:00AM.</p>
     </div>
   </div>
+
 </section>
 
 <!-- ============ ALWAYS ON · 24H CLOCK ============ -->
@@ -260,7 +289,7 @@
 
             <div class="ph-rings" id="phRings" aria-hidden="true">
               <i></i><i></i><i></i>
-              <span class="ph-avatar"><img src="./lara-avatar.png" alt="Lara" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"><svg class="mark" viewBox="20 18 66 64" aria-hidden="true"><use href="#pvMark"/></svg></span>
+              <span class="ph-avatar"><img class="avatar-img" src="assets/lara-avatar.png" alt="Lara, the Prime Vocal AI receptionist" width="320" height="320" decoding="async"><svg class="mark" viewBox="20 18 66 64" aria-hidden="true"><use href="#pvMark"/></svg></span>
             </div>
 
             <p class="ph-name" id="phName">Lara</p>
@@ -419,6 +448,49 @@
 
 </main>
 
+<!-- ============ FLOATING TALK TO AI ============ -->
+<button class="talk-fab" id="talkFab" type="button" aria-haspopup="dialog" aria-controls="talkModal">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+    <path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4" stroke-linecap="round"/>
+  </svg>
+  Talk to AI
+</button>
+
+<div class="talk-modal" id="talkModal" role="dialog" aria-modal="true" aria-labelledby="talkTitle" hidden>
+  <div class="talk-card" role="document">
+    <button class="talk-close" id="talkClose" type="button" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+        <path d="M5 5l14 14M19 5L5 19" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <h2 class="talk-title" id="talkTitle">Talk to Lara</h2>
+    <p class="talk-sub">Let our AI answer your questions live</p>
+
+    <form id="talkForm" novalidate>
+      <div class="talk-f">
+        <label for="tkName">First name</label>
+        <input id="tkName" name="name" type="text" autocomplete="given-name" placeholder="Sam" required>
+      </div>
+      <div class="talk-f">
+        <label for="tkEmail">Email</label>
+        <input id="tkEmail" name="email" type="email" autocomplete="email" placeholder="sam@clinic.com" required>
+      </div>
+      <div class="talk-f">
+        <label for="tkPhone">Phone number</label>
+        <input id="tkPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+61 400 000 000" required>
+      </div>
+      <button class="talk-submit" type="submit">Start the call &rarr;</button>
+      <p class="talk-fine">Replies in under 3 seconds · No commitment</p>
+    </form>
+
+    <div class="talk-done" id="talkDone" hidden>
+      <p class="talk-done-h">Your phone is about to ring.</p>
+      <p class="talk-done-p">Pick up and ask Lara anything a customer would.</p>
+    </div>
+  </div>
+</div>
+
 <footer class="footer">
   <div class="shell foot-row">
     <span class="mono">PRIME VOCAL © <span id="year">2026</span> · The phone is always on.</span>
@@ -426,15 +498,16 @@
   </div>
 </footer>
 
-<script src="assets/main.js?v=26"></script>
+<script src="assets/main.js?v=35"></script>
 
 <!-- Section 01's 3D street. Loads as an ES module, so the page must be served
      over http(s) — opening index.html straight off disk blocks module imports.
      If Three.js can't be reached the section still runs: main.js drives the
      story text and the CCTV clock on its own. -->
+<link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" crossorigin>
 <script type="importmap">
 { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
 </script>
-<script type="module" src="assets/scene.js?v=26"></script>
+<script type="module" src="assets/scene.js?v=35" onerror="window.__pvSceneFailed=true"></script>
 </body>
 </html>

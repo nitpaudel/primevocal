@@ -193,46 +193,72 @@ img,svg{ max-width:100%; display:block; }
 /* the mark inherits colour, so one asset covers light and dark */
 .mark{ width:auto; color:currentColor; display:block; object-fit:contain; }
 
-/* Lara's avatar. When the file loads main.js adds .has-avatar, which strips
-   the green disc and its glow so only the circular photo remains. If the file
-   is missing the img is removed and the green + mark stay as a fallback. */
+/* Lara's avatar. The photo sits over the disc and fills it; the PV mark
+   underneath is only revealed if the image fails to load, in which case
+   main.js drops the <img> and adds .avatar-missing. */
 .avatar-img{
   position:absolute;
   inset:0;
   width:100%; height:100%;
   object-fit:cover;
-  object-position:center 38%;   /* keeps her face centred in the circle */
+  /* assets/lara-avatar.png is already a square 320x320 crop, so a centred
+     cover fills the disc with no cropping at all — full face, hair to chin */
+  object-position:center center;
   border-radius:50%;
   display:block;
   z-index:2;
 }
-.has-avatar{
-  background:none !important;
-  box-shadow:none !important;
-}
-.has-avatar .mark{ display:none; }
+/* the mark is the avatar fallback only */
+.chat-av .mark,
+.ph-avatar .mark{ display:none; }
+.chat-av.avatar-missing .mark{ display:block; }
+.ph-avatar.avatar-missing .mark{ display:block; }
 
+/* ---------- header: wordmark only ----------
+   Text-only lockup, matching the supplied logo: lowercase "primevocal" in a
+   geometric sans with a green gradient running top-left to bottom-right.
+   Kept as live text rather than an image so it stays sharp at any density,
+   recolours in dark mode, and costs nothing to load. One variable sizes it. */
 .wordmark{
-  display:flex;
-  align-items:center;      /* vertical centring in the nav row */
+  --logo-h:34px;
+  display:inline-flex;
+  align-items:center;
   justify-content:flex-start;
+  font-size:var(--logo-h);
   flex-shrink:0;
-  line-height:0;           /* kills the inline-baseline gap that clipped it */
+  margin-right:auto;       /* pinned hard left whatever sits on the right */
   text-decoration:none;
-  color:var(--head);
+  color:var(--green);
   transition:opacity .25s var(--ease);
 }
 .wordmark:hover{ opacity:.66; }
-.wordmark .mark{
-  height:46px;
-  max-height:46px;
-  width:auto;
-  object-fit:contain;      /* never crops, whatever the source */
-  overflow:visible;
+.wordmark-text{
+  font-family:'Poppins', var(--sans);
+  font-weight:600;
+  font-size:.78em;         /* .78 x --logo-h */
+  line-height:1;
+  letter-spacing:-.022em;
+  white-space:nowrap;
   display:block;
-  transition:height .35s var(--ease);
+  align-self:center;
+  flex:0 0 auto;
+  /* flat colour first, so it still reads if background-clip:text is unsupported */
+  color:var(--green);
+  background:linear-gradient(135deg, #2f8159 0%, #22603f 52%, #17452e 100%);
+  -webkit-background-clip:text;
+          background-clip:text;
+  -webkit-text-fill-color:transparent;
 }
-.nav.stuck .wordmark .mark{ height:40px; }
+[data-theme="dark"] .wordmark-text{
+  color:var(--gdk);
+  background:linear-gradient(135deg, #7fc79c 0%, #5FA97F 55%, #3f8b62 100%);
+  -webkit-background-clip:text;
+          background-clip:text;
+}
+/* dark mode: the brand green sinks into the dark paper, so use the lifted one */
+[data-theme="dark"] .wordmark-text{ color:var(--gdk); }
+
+.nav.stuck .wordmark{ --logo-h:30px; }
 .nav-right{ display:flex; align-items:center; gap:14px; }
 
 .theme-toggle{
@@ -422,11 +448,12 @@ img,svg{ max-width:100%; display:block; }
   position:relative;
   border-radius:50%;
   overflow:hidden;
-  width:32px; height:32px;
+  width:38px; height:38px;
+  flex:0 0 38px;            /* never squashed by the name beside it */
   display:grid; place-items:center;
   color:#F5F3EC;
 }
-.chat-av .mark{ height:16px; }
+.chat-av .mark{ height:18px; }
 /* green disc only comes back if lara-avatar.png is missing */
 .chat-av.avatar-missing{ background:linear-gradient(150deg, #4E9A6E, #1E5B3F); }
 .chat-who{ font-size:.9rem; font-weight:600; }
@@ -635,6 +662,149 @@ img,svg{ max-width:100%; display:block; }
   position:absolute; width:1px; height:1px;
   padding:0; margin:-1px; overflow:hidden;
   clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+
+/* ==========================================================
+   FLOATING "TALK TO AI" BUTTON + MODAL
+   ========================================================== */
+.talk-fab{
+  position:fixed;
+  right:20px; bottom:20px;
+  z-index:400;
+  display:inline-flex; align-items:center; gap:9px;
+  padding:14px 22px;
+  border:1px solid rgba(140,230,185,.28);
+  border-radius:999px;
+  background:linear-gradient(135deg, #1a3d2b 0%, #2d6a4f 100%);
+  color:#F5F3EC;
+  font-family:var(--sans);
+  font-size:.92rem; font-weight:600;
+  box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0 0 rgba(45,106,79,.5);
+  animation:fabPulse 2.8s var(--ease) infinite;
+  transition:transform .28s var(--spring), box-shadow .3s var(--ease), background .25s var(--ease);
+}
+.talk-fab:hover{
+  background:linear-gradient(135deg, #2d6a4f 0%, #3d8c65 100%);
+  transform:translateY(-3px) scale(1.03);
+  animation-play-state:paused;
+}
+.talk-fab svg{ width:17px; height:17px; flex:0 0 auto; }
+@keyframes fabPulse{
+  0%   { box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0 0 rgba(78,154,110,.5); }
+  70%  { box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0 16px rgba(78,154,110,0); }
+  100% { box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0 0 rgba(78,154,110,0); }
+}
+
+.talk-modal{
+  position:fixed; inset:0;
+  z-index:500;
+  display:grid; place-items:center;
+  padding:20px;
+  background:rgba(6,10,7,.72);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  opacity:0; visibility:hidden;
+  transition:opacity .32s var(--ease), visibility .32s;
+}
+.talk-modal.open{ opacity:1; visibility:visible; }
+
+.talk-card{
+  position:relative;
+  width:min(420px, 100%);
+  max-height:92vh;
+  overflow-y:auto;
+  background:linear-gradient(160deg, #10190f 0%, #0B120C 55%, #080c09 100%);
+  border:1px solid rgba(140,230,185,.16);
+  border-radius:20px;
+  padding:36px 30px 28px;
+  text-align:center;
+  box-shadow:0 40px 90px -30px rgba(0,0,0,.85);
+  transform:translateY(18px) scale(.97);
+  transition:transform .42s var(--spring);
+}
+.talk-modal.open .talk-card{ transform:none; }
+
+.talk-close{
+  position:absolute; top:14px; right:14px;
+  width:34px; height:34px;
+  display:grid; place-items:center;
+  border:1px solid rgba(242,239,230,.16);
+  border-radius:50%;
+  background:transparent;
+  color:rgba(242,239,230,.7);
+  transition:color .2s var(--ease), border-color .2s var(--ease), transform .25s var(--spring);
+}
+.talk-close:hover{ color:#F2EFE6; border-color:rgba(242,239,230,.45); transform:rotate(90deg); }
+.talk-close svg{ width:14px; height:14px; }
+
+.talk-title{
+  font-family:var(--serif);
+  font-weight:450;
+  font-size:2rem;
+  line-height:1.1;
+  color:#F5F3EC;
+  margin:0 0 8px;
+}
+.talk-sub{ color:rgba(242,239,230,.55); font-size:.94rem; margin:0 0 24px; }
+
+.talk-f{ margin-bottom:12px; text-align:left; }
+.talk-f label{
+  display:block;
+  font-family:var(--monoF);
+  font-size:.62rem; letter-spacing:.12em; text-transform:uppercase;
+  color:rgba(242,239,230,.5);
+  margin-bottom:6px;
+}
+.talk-f input{
+  width:100%;
+  background:rgba(242,239,230,.05);
+  border:1px solid rgba(242,239,230,.16);
+  border-radius:9px;
+  padding:13px 14px;
+  font-family:inherit; font-size:.97rem;
+  color:#F5F3EC;
+  transition:border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease);
+}
+.talk-f input::placeholder{ color:rgba(242,239,230,.3); }
+.talk-f input:focus{
+  outline:none;
+  border-color:var(--gdk);
+  background:rgba(242,239,230,.08);
+  box-shadow:0 0 0 3px rgba(78,154,110,.16);
+}
+.talk-f.invalid input{ border-color:#C0452F; }
+
+.talk-submit{
+  width:100%;
+  margin-top:8px;
+  padding:15px 20px;
+  border:1px solid transparent;
+  border-radius:10px;
+  background:linear-gradient(135deg, #1a3d2b 0%, #2d6a4f 100%);
+  color:#F5F3EC;
+  font-family:inherit; font-size:.98rem; font-weight:600;
+  box-shadow:0 10px 26px -14px rgba(45,106,79,.9);
+  transition:background .25s var(--ease), transform .28s var(--spring), box-shadow .3s var(--ease);
+}
+.talk-submit:hover{
+  background:linear-gradient(135deg, #2d6a4f 0%, #3d8c65 100%);
+  transform:translateY(-2px);
+  box-shadow:0 18px 32px -16px rgba(45,106,79,.95);
+}
+.talk-fine{
+  font-family:var(--monoF);
+  font-size:.6rem; letter-spacing:.1em; text-transform:uppercase;
+  color:rgba(242,239,230,.4);
+  margin:14px 0 0;
+}
+.talk-done{ padding:14px 0 6px; animation:rise .5s var(--spring) both; }
+.talk-done-h{ font-family:var(--serif); font-size:1.6rem; color:#F5F3EC; margin:0 0 8px; }
+.talk-done-p{ color:rgba(242,239,230,.6); margin:0; font-size:.94rem; }
+
+@media (max-width:560px){
+  .talk-fab{ right:14px; bottom:14px; padding:12px 18px; font-size:.86rem; }
+  .talk-card{ padding:30px 22px 24px; }
+  .talk-title{ font-size:1.7rem; }
 }
 
 /* ==========================================================
@@ -1202,32 +1372,35 @@ html.no-io .rv{ opacity:1; transform:none; }
 /* ---------- responsive ---------- */
 @media (max-width:1020px){
   .hero-grid{ grid-template-columns:1fr; gap:52px; }
-  .voice-card{ max-width:480px; }
+  /* once the grid stacks the card is a lone block in a full-width row —
+     without the auto margins it hugs the left edge instead of sitting
+     under the headline it belongs to */
+  .voice-card{ max-width:480px; margin-inline:auto; }
   .hear-grid{ grid-template-columns:1fr; gap:52px; }
-  .hear-phone{ justify-content:flex-start; }
-  .demo-box{ max-width:520px; }
+  .hear-phone{ justify-content:center; }
+  .demo-box{ max-width:520px; margin-inline:auto; }
   .roi{ grid-template-columns:1fr; gap:40px; }
 }
 
 @media (max-width:860px){
-  /* no scroll-jacking on small screens — the story auto-plays in place */
-  .street{ height:auto !important; position:relative; }
-  /* full viewport, and relative so the canvas/overlays anchor to the stage
-     rather than collapsing against the auto-height section */
+  /* Phones get the same scroll-driven story as desktop, just over a shorter
+     runway: the section is tall, the stage sticks to the top of the viewport,
+     and main.js maps scroll position onto the 0..1 story progress. The old
+     build let the section collapse to one screen here, which left nothing to
+     scroll through and froze the story on a single frame. */
   .street-stage{
-    position:relative;
+    position:sticky; top:0;
     height:100vh;
     height:100svh;          /* keeps clear of mobile browser chrome */
-    min-height:100vh;
-    min-height:560px;
+    min-height:520px;
   }
   .street-canvas{ position:absolute; inset:0; width:100%; height:100%; }
-  .beat{ max-width:15ch; }
+  .beats{ place-items:end center; padding-bottom:12vh; }
+  .beat{ max-width:16ch; }
   .street[data-beat="2"] .beat.on,
   .street[data-beat="3"] .beat.on,
   .street[data-beat="5"] .beat.on,
-  .street[data-beat="6"] .beat.on{ margin-bottom:7vh; }
-  .street-hint{ display:none; }
+  .street[data-beat="6"] .beat.on{ align-self:end; margin-bottom:0; }
 }
 
 @media (max-width:900px){
@@ -1243,6 +1416,10 @@ html.no-io .rv{ opacity:1; transform:none; }
 
 @media (max-width:760px){
   .shell{ padding-inline:22px; }
+  /* one variable steps the whole lockup down so it stays in proportion */
+  .wordmark{ --logo-h:29px; }
+  .nav.stuck .wordmark{ --logo-h:26px; }
+  .nav-right{ gap:10px; }
   .hero{ padding:56px 0 64px; }
   .hero .display{ margin-bottom:22px; }
   .badges{ margin-top:44px; }
@@ -1267,9 +1444,9 @@ html.no-io .rv{ opacity:1; transform:none; }
   html{ scroll-behavior:auto; }
   .rv{ opacity:1; transform:none; }
   .bub{ opacity:1; transform:none; }
-  /* the street stops pinning and rests on its closing frame */
-  .street{ height:auto !important; }
-  .street-stage{ position:static; height:82vh; }
+  /* the street keeps working — it is scroll-linked, so nothing moves unless
+     the reader moves it — but the beats cut rather than cross-fade, and
+     main.js gives it a shorter runway */
   .beat{ transition:none; }
   /* static success frame */
   .cl-c{ stroke-dashoffset:0; opacity:1; }

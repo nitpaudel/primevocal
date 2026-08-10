@@ -35,6 +35,11 @@ Write-Host "Ctrl+C to stop."
 while ($true) {
   $client = $listener.AcceptTcpClient()
   try {
+    # Browsers open speculative sockets and then send nothing on them. Without
+    # a read timeout the loop blocks on one of those forever and the whole
+    # site stops answering, which looks exactly like the server has crashed.
+    $client.ReceiveTimeout = 4000
+    $client.SendTimeout = 8000
     $stream = $client.GetStream()
     $buf = New-Object byte[] 8192
     $n = $stream.Read($buf, 0, $buf.Length)

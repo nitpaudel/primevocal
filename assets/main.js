@@ -65,14 +65,15 @@
   window.addEventListener('load', revealVisible);
   setTimeout(revealVisible, 1400);
 
-  /* Lara's avatar. Primary path is ./lara-avatar.png next to index.html; a few
-     common alternates are tried so the file works whatever it gets saved as.
-     If none resolve the <img> is dropped and the parent gets .avatar-missing,
-     which restores the green disc and mark instead of a broken-image icon. */
+  /* Lara's avatar. Primary path is assets/lara-avatar.png; a few common
+     alternates are tried so the file still resolves whatever it gets saved as
+     (including the ./lara-avatar.png.png the file arrived with). If none
+     resolve the <img> is dropped and the parent gets .avatar-missing, which
+     restores the green disc and mark instead of a broken-image icon. */
   document.querySelectorAll('.chat-av img, .ph-avatar img').forEach(function (img) {
     var tries = [
-      './lara-avatar.png', './lara-avatar.jpg', './lara-avatar.jpeg', './lara-avatar.webp',
-      './assets/lara-avatar.png', './assets/lara.png'
+      'assets/lara-avatar.png', 'assets/lara-avatar.jpg', 'assets/lara-avatar.webp',
+      './lara-avatar.png', './lara-avatar.png.png', './lara-avatar.jpg', './assets/lara.png'
     ];
     var i = 0;
     function fail() {
@@ -100,17 +101,31 @@
     var hint = document.getElementById('streetHint');
     var BEATS = beats.length;                 /* 7 */
     var streetTicking = false;
-    var autoPlaying = false;
 
     /* where each beat owns the screen, as a fraction of the scroll */
     var BEAT_AT = [0.00, 0.15, 0.42, 0.59, 0.68, 0.78, 0.90];
 
-    function sizeStreet() {
-      if (isCompact() || reduceMotion) { street.style.height = ''; return; }
-      /* one screen to read each beat, plus a screen of run-off */
-      street.style.height = Math.round(window.innerHeight * (BEATS * 0.85 + 1)) + 'px';
-    }
     function isCompact() { return window.innerWidth <= 860; }
+
+    /* The stage is sticky, so the section's own height is the scroll runway.
+       Measure the stage rather than window.innerHeight: on phones it is sized
+       in svh, which does not track innerHeight while the browser chrome
+       collapses, and mixing the two makes progress drift past 1 early. */
+    function stageHeight() {
+      return (stage && stage.offsetHeight) || window.innerHeight;
+    }
+
+    /* How many stage-heights of scrolling the story runs over. Phones get a
+       shorter runway than desktop — same seven beats, less thumb work — and
+       reduced-motion shorter still. */
+    function runway() {
+      if (reduceMotion) return BEATS * 0.42 + 0.5;
+      return isCompact() ? BEATS * 0.55 + 0.6 : BEATS * 0.85 + 1;
+    }
+
+    function sizeStreet() {
+      street.style.height = Math.round(stageHeight() * runway()) + 'px';
+    }
 
     function paint(p) {
       /* which beat is speaking */
@@ -131,8 +146,7 @@
 
     function onStreetScroll() {
       streetTicking = false;
-      if (isCompact() || reduceMotion || autoPlaying) return;
-      var travel = street.offsetHeight - window.innerHeight;
+      var travel = street.offsetHeight - stageHeight();
       if (travel <= 0) { paint(0); return; }
       var p = Math.min(Math.max(-street.getBoundingClientRect().top / travel, 0), 1);
       paint(p);
@@ -141,19 +155,6 @@
       if (streetTicking) return;
       streetTicking = true;
       requestAnimationFrame(onStreetScroll);
-    }
-
-    /* small screens don't scroll-jack — the story auto-plays once over 10s */
-    function autoPlay() {
-      if (autoPlaying) return;
-      autoPlaying = true;
-      var t0 = null;
-      (function step(ts) {
-        if (t0 === null) t0 = ts;
-        var p = Math.min((ts - t0) / 10000, 1);
-        paint(p);
-        if (p < 1) requestAnimationFrame(step);
-      })();
     }
 
     sizeStreet();
@@ -167,25 +168,22 @@
       setTimeout(function () { sizeStreet(); requestStreet(); }, 120);
     });
 
-    if (reduceMotion) {
-      paint(1);                                  /* land on the closing frame */
-    } else if (isCompact() && 'IntersectionObserver' in window) {
-      new IntersectionObserver(function (entries, o) {
-        entries.forEach(function (e) { if (e.isIntersecting) { autoPlay(); o.disconnect(); } });
-      }, { threshold: 0.35 }).observe(street);
-    }
-    window.addEventListener('load', function () {
-      sizeStreet();
-      if (isCompact() && !reduceMotion && inView(street, 0.9)) autoPlay();
-      else requestStreet();
-    });
+    window.addEventListener('load', function () { sizeStreet(); requestStreet(); });
+    /* mobile browser chrome collapsing on the first flick changes the stage
+       height without firing resize, so re-measure a beat after first paint */
+    setTimeout(function () { sizeStreet(); requestStreet(); }, 600);
 
-    /* ---- 2D fallback ----------------------------------------------------
-       Section 01 went blank on phones whenever the WebGL layer never came up:
-       import maps are unsupported on older iOS Safari, the CDN can be blocked,
-       and low-power mode refuses WebGL contexts. If nothing has registered
-       itself shortly after load, draw the same story with a 2D context so the
-       section is never an empty gradient. */
+    /* ---- the 2D street --------------------------------------------------
+       The safety net when WebGL, import maps or the CDN are unavailable —
+       every device that can run the 3D scene now gets the 3D scene. It tells the same seven beats as the Three.js scene —
+       James walks past a closed clinic, is ignored by a busy one, then Prime
+       Vocal answers and books him — on a plain 2D canvas. No WebGL, no import
+       maps, no 600KB off a CDN, so it plays on any phone that can render a
+       web page at all.
+
+       On portrait screens it switches to a tracking camera: rather than
+       shrinking a 1000-unit street into a 375px viewport until nothing is
+       readable, it zooms in and pans along with James. */
     var canvas = document.getElementById('streetCanvas');
     var fallback2D = null;
 
@@ -195,183 +193,416 @@
       try { ctx = canvas.getContext('2d'); } catch (e) { return; }
       if (!ctx) return;                              /* a GL context already owns it */
 
-      var W = 1000, H = 570, prog = 0;
+      var W = 1000, H = 600, prog = 0;
+      var CREAM = 'rgba(242,239,230,';
+      var GREEN = 'rgba(140,230,185,';
+      var GROUND = 400;
+
+      var B = [
+        { x: 90,  w: 200, h: 165, name: 'BRIGHT SMILE', lit: false },
+        { x: 400, w: 210, h: 185, name: 'CITY DENTAL',  lit: true  },
+        { x: 715, w: 200, h: 210, name: 'PARKVIEW',     lit: true, pv: true }
+      ];
+      var LAMPS = [30, 340, 650, 960];
+      var STARS = [];
+      for (var si = 0; si < 40; si++) {
+        STARS.push({ x: (si * 137) % 1000, y: (si * 71) % 150, r: 0.6 + (si % 3) * 0.5, ph: si });
+      }
+
+      function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+      function seg(p, a, b) { return clamp((p - a) / (b - a), 0, 1); }
+      function ease(t) { return t * t * (3 - 2 * t); }
+
+      /* James's position mirrors the 3D walk exactly, so both renderers hit
+         each beat at the same scroll offset */
+      function jamesX(p) {
+        if (p < 0.13) return 150 + seg(p, 0, 0.13) * 40;
+        if (p < 0.30) return 190;
+        if (p < 0.42) return 190 + ease(seg(p, 0.30, 0.42)) * 315;
+        if (p < 0.57) return 505;
+        if (p < 0.66) return 505 + ease(seg(p, 0.57, 0.66)) * 310;
+        if (p < 0.92) return 815;
+        return 815 + ease(seg(p, 0.92, 1)) * 150;
+      }
 
       function fit() {
         var r = canvas.getBoundingClientRect();
         var dpr = Math.min(window.devicePixelRatio || 1, 2);
-        if (r.width < 2 || r.height < 2) return;
-        canvas.width = Math.round(r.width * dpr);
-        canvas.height = Math.round(r.height * dpr);
+        if (r.width < 2 || r.height < 2) return false;
+        var w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+        if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+        return true;
       }
 
-      function draw() {
-        fit();
-        if (!canvas.width) { requestAnimationFrame(draw); return; }
+      /* portrait: zoom in and track James. landscape: fit the whole street. */
+      function camera(cw, ch, focus) {
+        if (cw / ch < 1.15) {
+          var s = (ch * 0.74) / H;
+          var visW = cw / s;
+          var x = clamp(focus - visW * 0.5, -70, W + 70 - visW);
+          /* pushed down the frame so the story text has clear sky above it */
+          return { s: s, ox: -x * s, oy: (ch - H * s) * 0.86 };
+        }
+        var s2 = Math.min(cw / W, ch / H) * 0.95;
+        return { s: s2, ox: (cw - W * s2) / 2, oy: (ch - H * s2) / 2 };
+      }
+
+      /* small stick figure — the staff behind the glass */
+      function stick(x, y, s, pose, alpha) {
+        ctx.save();
+        ctx.translate(x, y); ctx.scale(s, s);
+        ctx.strokeStyle = CREAM + alpha + ')';
+        ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.beginPath(); ctx.arc(0, -26, 6, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, -20); ctx.lineTo(0, -4);
+        if (pose === 'phone') { ctx.moveTo(0, -15); ctx.lineTo(7, -22); ctx.moveTo(0, -15); ctx.lineTo(-8, -8); }
+        else { ctx.moveTo(0, -15); ctx.lineTo(-8, -7); ctx.moveTo(0, -15); ctx.lineTo(8, -7); }
+        ctx.moveTo(0, -4); ctx.lineTo(-6, 12);
+        ctx.moveTo(0, -4); ctx.lineTo(6, 12);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function draw(ms) {
+        if (!fit()) { requestAnimationFrame(draw); return; }
+        var t = ms / 1000;
         var cw = canvas.width, ch = canvas.height;
-        /* contain the 1000x570 stage inside the canvas */
-        var s = Math.min(cw / W, ch / H) * 0.95;
-        var ox = (cw - W * s) / 2, oy = (ch - H * s) / 2;
+        var p = prog;
+        var jx = jamesX(p);
+        var cam = camera(cw, ch, jx);
+        var dim = 1 - seg(p, 0.90, 1) * 0.45;      /* the street fades on the closing line */
 
         ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.fillStyle = '#0b140d';
+        var sky = ctx.createLinearGradient(0, 0, cw, ch);
+        sky.addColorStop(0, '#080f0a'); sky.addColorStop(0.5, '#0f1a10'); sky.addColorStop(1, '#080c09');
+        ctx.fillStyle = sky;
         ctx.fillRect(0, 0, cw, ch);
-        ctx.setTransform(s, 0, 0, s, ox, oy);
-
-        var p = prog;
-        var cream = 'rgba(242,239,230,';
+        ctx.setTransform(cam.s, 0, 0, cam.s, cam.ox, cam.oy);
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
-        /* ground */
-        ctx.strokeStyle = cream + '.25)'; ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.moveTo(40, 400); ctx.lineTo(960, 400); ctx.stroke();
+        /* stars */
+        STARS.forEach(function (st) {
+          ctx.fillStyle = CREAM + (0.10 + Math.abs(Math.sin(t * 0.6 + st.ph)) * 0.16) * dim + ')';
+          ctx.beginPath(); ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2); ctx.fill();
+        });
 
-        /* three clinics */
-        var B = [
-          { x: 90,  w: 200, h: 165, name: 'BRIGHT SMILE', lit: false },
-          { x: 400, w: 210, h: 185, name: 'CITY DENTAL',  lit: true  },
-          { x: 715, w: 200, h: 210, name: 'PARKVIEW',     lit: true, pv: true }
-        ];
+        /* street lamps: pool of light first, so everything else sits on top */
+        LAMPS.forEach(function (lx, i) {
+          var f = 0.85 + Math.sin(t * (1.7 + i * 0.4) + i) * 0.12;
+          var pool = ctx.createRadialGradient(lx, GROUND + 60, 4, lx, GROUND + 60, 130);
+          pool.addColorStop(0, 'rgba(255,215,154,' + 0.11 * f * dim + ')');
+          pool.addColorStop(1, 'rgba(255,215,154,0)');
+          ctx.fillStyle = pool;
+          ctx.fillRect(lx - 130, GROUND - 20, 260, 180);
+          ctx.strokeStyle = CREAM + 0.22 * dim + ')'; ctx.lineWidth = 2.5;
+          ctx.beginPath(); ctx.moveTo(lx, GROUND + 40); ctx.lineTo(lx, GROUND - 130); ctx.stroke();
+          ctx.fillStyle = 'rgba(255,233,184,' + 0.85 * f * dim + ')';
+          ctx.beginPath(); ctx.arc(lx, GROUND - 136, 7, 0, Math.PI * 2); ctx.fill();
+        });
+
+        /* kerb */
+        ctx.strokeStyle = CREAM + 0.25 * dim + ')'; ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.moveTo(-80, GROUND); ctx.lineTo(1080, GROUND); ctx.stroke();
+
+        /* ---- the three clinics ---- */
         B.forEach(function (b, bi) {
-          var top = 400 - b.h;
+          var top = GROUND - b.h;
           var answered = b.pv && p > 0.66;
-          ctx.strokeStyle = cream + (answered ? '.95)' : '.6)');
-          ctx.lineWidth = 1.6;
-          ctx.strokeRect(b.x, top, b.w, b.h);
-          ctx.beginPath(); ctx.moveTo(b.x - 8, top); ctx.lineTo(b.x + b.w + 8, top); ctx.stroke();
+          var glow = b.pv ? seg(p, 0.63, 0.72) * (1 - seg(p, 0.95, 1)) : 0;
 
-          /* windows */
+          if (glow > 0) {                            /* Parkview lights up green */
+            var halo = ctx.createRadialGradient(b.x + b.w / 2, top + b.h / 2, 10, b.x + b.w / 2, top + b.h / 2, 220);
+            halo.addColorStop(0, 'rgba(78,154,110,' + 0.20 * glow + ')');
+            halo.addColorStop(1, 'rgba(78,154,110,0)');
+            ctx.fillStyle = halo;
+            ctx.fillRect(b.x - 180, top - 180, b.w + 360, b.h + 360);
+          }
+
+          ctx.strokeStyle = answered ? GREEN + 0.85 * dim + ')' : CREAM + 0.55 * dim + ')';
+          ctx.lineWidth = 1.8;
+          ctx.strokeRect(b.x, top, b.w, b.h);
+          ctx.beginPath(); ctx.moveTo(b.x - 9, top); ctx.lineTo(b.x + b.w + 9, top); ctx.stroke();
+
           for (var r = 0; r < 2; r++) for (var c = 0; c < 3; c++) {
-            var wx = b.x + 16 + c * (b.w - 32) / 3, wy = top + 20 + r * 52;
+            var wx = b.x + 16 + c * (b.w - 32) / 3, wy = top + 22 + r * 52;
             var ww = (b.w - 32) / 3 - 12, wh = 36;
-            ctx.fillStyle = b.lit ? (answered ? 'rgba(111,185,143,.22)' : cream + '.13)') : cream + '.03)';
+            ctx.fillStyle = b.lit
+              ? (answered ? 'rgba(111,185,143,' + 0.24 * dim + ')' : CREAM + 0.13 * dim + ')')
+              : CREAM + 0.03 + ')';
             ctx.fillRect(wx, wy, ww, wh);
-            ctx.strokeStyle = cream + '.35)'; ctx.lineWidth = 1;
+            ctx.strokeStyle = CREAM + 0.32 * dim + ')'; ctx.lineWidth = 1;
             ctx.strokeRect(wx, wy, ww, wh);
           }
-          /* door */
-          ctx.strokeStyle = cream + '.4)';
-          ctx.strokeRect(b.x + b.w / 2 - 22, 400 - 54, 44, 54);
-          /* signage */
-          ctx.fillStyle = answered ? 'rgba(140,230,185,.95)' : cream + '.5)';
+
+          /* shopfront glazing + door */
+          ctx.strokeStyle = CREAM + 0.36 * dim + ')'; ctx.lineWidth = 1.3;
+          ctx.strokeRect(b.x + 12, GROUND - 78, b.w - 24, 78);
+          ctx.strokeStyle = CREAM + 0.45 * dim + ')';
+          ctx.strokeRect(b.x + b.w / 2 - 22, GROUND - 56, 44, 56);
+
+          ctx.fillStyle = answered ? GREEN + 0.95 + ')' : CREAM + 0.5 * dim + ')';
           ctx.font = '600 13px "IBM Plex Mono", monospace';
           ctx.textAlign = 'center';
-          ctx.fillText(b.name, b.x + b.w / 2, top - 12);
+          ctx.fillText(b.name, b.x + b.w / 2, top - 14);
 
-          if (bi === 0) {                              /* CLOSED plate */
-            ctx.fillStyle = 'rgba(139,32,32,.35)';
-            ctx.fillRect(b.x + b.w / 2 - 34, top + 128, 68, 22);
-            ctx.fillStyle = '#F2EFE6';
+          if (bi === 0) {                            /* CLOSED plate on the door */
+            ctx.fillStyle = 'rgba(139,32,32,' + 0.4 * dim + ')';
+            ctx.fillRect(b.x + b.w / 2 - 34, GROUND - 44, 68, 22);
+            ctx.strokeStyle = 'rgba(200,90,80,' + 0.85 * dim + ')'; ctx.lineWidth = 1.3;
+            ctx.strokeRect(b.x + b.w / 2 - 34, GROUND - 44, 68, 22);
+            ctx.fillStyle = CREAM + 0.9 * dim + ')';
             ctx.font = '600 11px "IBM Plex Mono", monospace';
-            ctx.fillText('CLOSED', b.x + b.w / 2, top + 143);
+            ctx.fillText('CLOSED', b.x + b.w / 2, GROUND - 29);
           }
-          if (b.pv && answered) {                      /* PRIME VOCAL badge */
-            ctx.fillStyle = 'rgba(30,91,63,.95)';
-            ctx.fillRect(b.x + b.w / 2 - 58, top - 52, 116, 26);
-            ctx.fillStyle = '#EAFBF1';
+
+          if (bi === 1) {
+            /* City Dental is open and busy. Her phone rings; she glances at
+               it and goes back to her paperwork — beat 3. */
+            var vis = seg(p, 0.30, 0.42) * dim;
+            if (vis > 0.01) {
+              var ringingB = p > 0.42 && p < 0.55;
+              var glance = p > 0.455 && p < 0.50;
+              stick(b.x + 52, GROUND - 8, 1.15, glance ? 'phone' : 'desk', 0.75 * vis);
+              stick(b.x + 150, GROUND - 8, 1.05, 'desk', 0.5 * vis);
+              /* the ringing desk phone */
+              var shake = ringingB ? Math.sin(t * 26) * 2.2 : 0;
+              ctx.fillStyle = CREAM + 0.75 * vis + ')';
+              ctx.fillRect(b.x + 88, GROUND - 30 - Math.abs(shake), 18, 9);
+              if (ringingB) {
+                for (var rk = 0; rk < 2; rk++) {
+                  var kb = ((t * 1.6 + rk / 2) % 1);
+                  ctx.strokeStyle = CREAM + (1 - kb) * 0.4 * vis + ')';
+                  ctx.lineWidth = 1.2;
+                  ctx.beginPath(); ctx.arc(b.x + 97, GROUND - 28, 10 + kb * 20, -2.4, -0.7); ctx.stroke();
+                }
+              }
+            }
+          }
+
+          if (b.pv && glow > 0.02) {                 /* PRIME VOCAL badge */
+            var by = top - 62 + Math.sin(t * 2.4) * 2;
+            ctx.fillStyle = 'rgba(30,91,63,' + 0.95 * glow + ')';
+            ctx.fillRect(b.x + b.w / 2 - 62, by, 124, 28);
+            ctx.strokeStyle = 'rgba(140,230,185,' + 0.9 * glow + ')'; ctx.lineWidth = 1.4;
+            ctx.strokeRect(b.x + b.w / 2 - 62, by, 124, 28);
+            ctx.fillStyle = 'rgba(234,251,241,' + glow + ')';
             ctx.font = '600 12px "IBM Plex Mono", monospace';
-            ctx.fillText('PRIME VOCAL', b.x + b.w / 2, top - 34);
+            ctx.textAlign = 'center';
+            ctx.fillText('PRIME VOCAL', b.x + b.w / 2, by + 19);
           }
         });
 
-        /* James walks left to right */
-        var jx = p < 0.13 ? 150 : p < 0.30 ? 190 : p < 0.42 ? 190 + (p - 0.30) / 0.12 * 315
-               : p < 0.57 ? 505 : p < 0.66 ? 505 + (p - 0.57) / 0.09 * 310 : 815;
-        var bob = Math.abs(Math.sin(p * 60)) * 3;
-        ctx.strokeStyle = cream + '.95)'; ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(jx, 452 - bob, 15, 0, Math.PI * 2); ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(jx, 467 - bob); ctx.lineTo(jx, 508 - bob);
-        ctx.moveTo(jx, 508 - bob); ctx.lineTo(jx - 14, 545);
-        ctx.moveTo(jx, 508 - bob); ctx.lineTo(jx + 14, 545);
-        ctx.moveTo(jx, 478 - bob); ctx.lineTo(jx - 18, 494 - bob);
-        ctx.moveTo(jx, 476 - bob); ctx.lineTo(jx + 16, 462 - bob);
-        ctx.stroke();
-        ctx.fillStyle = '#0b140d';
-        ctx.fillRect(jx + 13, 452 - bob, 10, 16);
-        ctx.strokeStyle = 'rgba(111,185,143,.9)'; ctx.lineWidth = 1.4;
-        ctx.strokeRect(jx + 13, 452 - bob, 10, 16);
+        /* ---- James ---- */
+        var walking = p < 0.13 || (p > 0.30 && p < 0.42) || (p > 0.57 && p < 0.66) || p > 0.92;
+        var stride = walking ? Math.sin(jx * 0.32) : 0;
+        var bob = walking ? Math.abs(Math.sin(jx * 0.32)) * 3 : 0;
+        var calling = (p > 0.15 && p < 0.30) || (p > 0.42 && p < 0.57) || (p > 0.66 && p < 0.88);
+        var hy = 452 - bob;
 
-        /* call line to whichever clinic he is on */
-        var tgt = p < 0.30 ? 0 : p < 0.57 ? 1 : 2;
-        var ringing = (p > 0.15 && p < 0.26) || (p > 0.42 && p < 0.53) || (p > 0.66 && p < 0.76);
-        if (p > 0.15) {
-          var t = B[tgt], tx = t.x + t.w / 2, ty = 400 - t.h - 70;
-          ctx.strokeStyle = tgt === 2 ? 'rgba(140,230,185,.9)' : 'rgba(242,239,230,.5)';
-          ctx.lineWidth = 2;
+        ctx.strokeStyle = CREAM + 0.95 * dim + ')';
+        ctx.lineWidth = 3.4;
+        ctx.beginPath(); ctx.arc(jx, hy, 15, 0, Math.PI * 2); ctx.stroke();
+
+        /* his face carries the beat: fed up, then relieved */
+        ctx.fillStyle = CREAM + 0.95 * dim + ')';
+        ctx.strokeStyle = CREAM + 0.95 * dim + ')';
+        ctx.lineWidth = 2;
+        var down = p < 0.66 && p > 0.14;
+        if (down) {
           ctx.beginPath();
-          ctx.moveTo(jx + 20, 450 - bob);
-          ctx.quadraticCurveTo((jx + tx) / 2, ty - 40, tx, ty);
+          ctx.moveTo(jx - 8, hy - 4); ctx.lineTo(jx - 2, hy - 4);
+          ctx.moveTo(jx + 2, hy - 4); ctx.lineTo(jx + 8, hy - 4);
           ctx.stroke();
+          ctx.beginPath(); ctx.arc(jx, hy + 12, 7, 1.15 * Math.PI, 1.85 * Math.PI); ctx.stroke();
+        } else {
+          ctx.beginPath(); ctx.arc(jx - 5, hy - 4, 2, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(jx + 5, hy - 4, 2, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath();
+          if (p > 0.66) ctx.arc(jx, hy + 3, 7, 0.15 * Math.PI, 0.85 * Math.PI);
+          else { ctx.moveTo(jx - 6, hy + 6); ctx.lineTo(jx + 6, hy + 6); }
+          ctx.stroke();
+        }
 
-          if (ringing) {                                /* expanding pulses */
+        ctx.strokeStyle = CREAM + 0.95 * dim + ')';
+        ctx.lineWidth = 3.4;
+        ctx.beginPath();
+        ctx.moveTo(jx, hy + 15); ctx.lineTo(jx, hy + 56);                       /* torso */
+        ctx.moveTo(jx, hy + 56); ctx.lineTo(jx - 14 + stride * 9, 545);          /* legs */
+        ctx.moveTo(jx, hy + 56); ctx.lineTo(jx + 14 - stride * 9, 545);
+        ctx.moveTo(jx, hy + 26); ctx.lineTo(jx - 17 - stride * 5, hy + 42);      /* free arm */
+        ctx.stroke();
+
+        /* phone arm: up at his ear while a call is live, down otherwise */
+        ctx.beginPath();
+        ctx.moveTo(jx, hy + 24);
+        if (calling) ctx.lineTo(jx + 13, hy + 2); else ctx.lineTo(jx + 16, hy + 42);
+        ctx.stroke();
+        var px = calling ? jx + 13 : jx + 16, py = calling ? hy - 6 : hy + 44;
+        ctx.fillStyle = '#0b140d';
+        ctx.fillRect(px - 5, py - 8, 10, 16);
+        ctx.strokeStyle = calling
+          ? 'rgba(111,185,143,' + (0.6 + Math.sin(t * 6) * 0.3) * dim + ')'
+          : 'rgba(111,185,143,' + 0.35 * dim + ')';
+        ctx.lineWidth = 1.6;
+        ctx.strokeRect(px - 5, py - 8, 10, 16);
+
+        /* ---- the call itself ---- */
+        var tgt = p < 0.30 ? 0 : p < 0.57 ? 1 : 2;
+        var ringing = (p > 0.15 && p < 0.26) || (p > 0.42 && p < 0.53) || (p > 0.66 && p < 0.74);
+        if (p > 0.15) {
+          var b2 = B[tgt], tx = b2.x + b2.w / 2, ty = GROUND - b2.h - 76;
+          ctx.strokeStyle = tgt === 2 ? GREEN + 0.75 * dim + ')' : CREAM + 0.4 * dim + ')';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 7]);
+          ctx.beginPath();
+          ctx.moveTo(px + 6, py);
+          ctx.quadraticCurveTo((px + tx) / 2, ty - 50, tx, ty);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          if (ringing) {
             for (var k = 0; k < 3; k++) {
-              var kk = ((p * 26 + k / 3) % 1);
-              ctx.strokeStyle = (tgt === 2 ? 'rgba(140,230,185,' : 'rgba(242,239,230,') + (1 - kk) * 0.6 + ')';
-              ctx.lineWidth = 1.5;
-              ctx.beginPath(); ctx.arc(tx, ty, 8 + kk * 42, 0, Math.PI * 2); ctx.stroke();
+              var kk = ((t * 0.9 + k / 3) % 1);
+              ctx.strokeStyle = (tgt === 2 ? GREEN : CREAM) + (1 - kk) * 0.55 * dim + ')';
+              ctx.lineWidth = 1.6;
+              ctx.beginPath(); ctx.arc(tx, ty, 9 + kk * 46, 0, Math.PI * 2); ctx.stroke();
             }
           }
-          /* outcome marker */
-          var failed = (tgt === 0 && p > 0.26) || (tgt === 1 && p > 0.53);
-          if (failed) {
-            ctx.strokeStyle = '#8B2020'; ctx.lineWidth = 5;
+
+          /* nobody home / nobody cares */
+          var failK = tgt === 0 ? seg(p, 0.26, 0.30) : tgt === 1 ? seg(p, 0.53, 0.57) : 0;
+          if (failK > 0) {
+            ctx.strokeStyle = 'rgba(163,61,42,' + failK * dim + ')';
+            ctx.lineWidth = 5 * (0.6 + ease(failK) * 0.4);
+            var d = 13 * (0.6 + ease(failK) * 0.4);
             ctx.beginPath();
-            ctx.moveTo(tx - 13, ty - 13); ctx.lineTo(tx + 13, ty + 13);
-            ctx.moveTo(tx + 13, ty - 13); ctx.lineTo(tx - 13, ty + 13);
+            ctx.moveTo(tx - d, ty - d); ctx.lineTo(tx + d, ty + d);
+            ctx.moveTo(tx + d, ty - d); ctx.lineTo(tx - d, ty + d);
             ctx.stroke();
           }
-          if (tgt === 2 && p > 0.76) {
-            ctx.strokeStyle = '#6FD3A2'; ctx.lineWidth = 5;
-            ctx.beginPath();
-            ctx.moveTo(tx - 14, ty); ctx.lineTo(tx - 4, ty + 11); ctx.lineTo(tx + 15, ty - 12);
-            ctx.stroke();
+
+          /* Prime Vocal answers: tick, then a live conversation waveform */
+          if (tgt === 2) {
+            var okK = seg(p, 0.70, 0.76);
+            if (okK > 0) {
+              ctx.strokeStyle = 'rgba(111,211,162,' + okK * dim + ')';
+              ctx.lineWidth = 5;
+              ctx.beginPath();
+              ctx.moveTo(tx - 14, ty); ctx.lineTo(tx - 4, ty + 11); ctx.lineTo(tx + 15, ty - 12);
+              ctx.stroke();
+            }
+            /* the live conversation, hung on the call line between the two —
+               low enough to clear the signage and the booking card above it */
+            var waveK = seg(p, 0.70, 0.76) * (1 - seg(p, 0.86, 0.90));
+            if (waveK > 0.01) {
+              var mid = (jx + tx) / 2, wy = GROUND - 148;
+              for (var wi = 0; wi < 9; wi++) {
+                var amp = 5 + Math.abs(Math.sin(t * 4 + wi * 0.7)) * 22;
+                ctx.strokeStyle = GREEN + waveK * 0.85 * dim + ')';
+                ctx.lineWidth = 3.4;
+                ctx.beginPath();
+                ctx.moveTo(mid + (wi - 4) * 11, wy - amp / 2);
+                ctx.lineTo(mid + (wi - 4) * 11, wy + amp / 2);
+                ctx.stroke();
+              }
+            }
           }
         }
 
-        /* booking card drops in */
-        if (p > 0.78) {
-          var k2 = Math.min((p - 0.78) / 0.08, 1);
-          var cy = 40 + k2 * 40;
+        /* ---- booked ---- */
+        var cardK = seg(p, 0.78, 0.86) * (1 - seg(p, 0.95, 1));
+        if (cardK > 0.01) {
+          var cx = 700, cy = 30 + ease(seg(p, 0.78, 0.86)) * 46;
+          ctx.globalAlpha = clamp(cardK * 1.5, 0, 1);
           ctx.fillStyle = '#FBFAF5';
-          ctx.fillRect(700, cy, 230, 86);
+          ctx.fillRect(cx, cy, 230, 92);
           ctx.fillStyle = '#1E5B3F';
-          ctx.fillRect(700, cy, 230, 26);
+          ctx.fillRect(cx, cy, 230, 28);
           ctx.fillStyle = '#EAF6EF';
           ctx.font = '600 12px "IBM Plex Mono", monospace';
           ctx.textAlign = 'left';
-          ctx.fillText('BOOKED', 712, cy + 18);
-          ctx.fillStyle = '#17150F';
-          ctx.font = '400 22px Fraunces, Georgia, serif';
-          ctx.fillText('James', 754, cy + 56);
-          ctx.fillStyle = '#807B69';
-          ctx.font = '400 12px "IBM Plex Mono", monospace';
-          ctx.fillText('THU 9 JAN · 9:00AM', 754, cy + 74);
+          ctx.fillText('BOOKED', cx + 12, cy + 19);
           ctx.strokeStyle = '#1E5B3F'; ctx.lineWidth = 6;
           ctx.beginPath();
-          ctx.moveTo(714, cy + 52); ctx.lineTo(726, cy + 64); ctx.lineTo(744, cy + 44);
+          ctx.moveTo(cx + 14, cy + 58); ctx.lineTo(cx + 26, cy + 70); ctx.lineTo(cx + 44, cy + 50);
           ctx.stroke();
+          ctx.fillStyle = '#17150F';
+          ctx.font = '400 22px Fraunces, Georgia, serif';
+          ctx.fillText('James', cx + 58, cy + 62);
+          ctx.fillStyle = '#807B69';
+          ctx.font = '400 11px "IBM Plex Mono", monospace';
+          ctx.fillText('THU 9 JAN · 9:00AM', cx + 58, cy + 80);
+          ctx.globalAlpha = 1;
         }
 
         requestAnimationFrame(draw);
       }
+
+      /* Size the buffer up front and on every viewport change, not only from
+         inside the draw loop. rAF is throttled while the tab is backgrounded
+         and in iOS low-power mode, and without this the canvas keeps its
+         default 300x150 backing store stretched over a full-screen box, which
+         is exactly what "the animation is broken on mobile" looks like. */
+      fit();
+      window.addEventListener('resize', fit);
+      window.addEventListener('load', fit);
+      window.addEventListener('orientationchange', function () { setTimeout(fit, 150); });
+      /* build2D can run before the stylesheet has laid the canvas out, when
+         fit() has no box to measure yet. Retry off timers rather than relying
+         on the draw loop, which never gets a frame while rAF is throttled. */
+      [60, 250, 800, 2000].forEach(function (ms) { setTimeout(fit, ms); });
 
       requestAnimationFrame(draw);
       document.documentElement.classList.add('street-2d');
       return { update: function (v) { prog = v; } };
     }
 
-    setTimeout(function () {
-      if (window.pvStreet) return;                 /* WebGL is running */
+    function start2D() {
+      if (window.pvStreet) return;
       fallback2D = build2D();
       if (fallback2D) {
         window.pvStreet = { update: fallback2D.update, ready: true, mode: '2d' };
-        /* replay from the top now that something can actually draw */
-        if (isCompact() && !reduceMotion) { autoPlaying = false; autoPlay(); }
-        else requestStreet();
+        requestStreet();                             /* draw the current frame */
       }
-    }, 1800);
+    }
+
+    /* Which renderer runs. Phones always take the 2D path: the Three.js scene
+       needs WebGL, an ES-module import map and a CDN round trip, and any one of
+       those missing used to leave the section frozen. Desktop still gets the 3D
+       street, with 2D stepping in if it has not registered itself shortly. */
+    function canRun3D() {
+      /* Phones run the real 3D street too. The only disqualifiers are the
+         genuine ones: no WebGL, or no import-map support to resolve "three". */
+      try {
+        var probe = document.createElement('canvas');
+        if (!window.WebGLRenderingContext) return false;
+        if (!(probe.getContext('webgl') || probe.getContext('experimental-webgl'))) return false;
+      } catch (e) { return false; }
+      /* import maps landed with HTMLScriptElement.supports — no supports(), no
+         module resolution for "three", so do not sit waiting for it */
+      return !!(window.HTMLScriptElement && HTMLScriptElement.supports &&
+                HTMLScriptElement.supports('importmap'));
+    }
+
+    /* Hand off to 2D only when 3D genuinely cannot arrive — never on a short
+       timer. Three.js is ~600KB from a CDN, which routinely takes longer than
+       a second or two on mobile data; a 1.8s deadline meant phones on a normal
+       connection were quietly downgraded to the 2D street even though WebGL
+       was fine. Wait for the module to actually fail, or for a long stop. */
+    if (canRun3D()) {
+      var waited = 0;
+      var poll = setInterval(function () {
+        waited += 200;
+        if (window.pvStreet) { clearInterval(poll); return; }   /* 3D arrived */
+        if (window.__pvSceneFailed || waited >= 20000) {
+          clearInterval(poll);
+          start2D();
+        }
+      }, 200);
+    } else {
+      start2D();
+    }
   }
 
   /* ---------- hero card: Voice / SMS ----------
@@ -813,6 +1044,73 @@
       input.addEventListener('input', recalc);
     });
     recalc();
+  }
+
+  /* ==========================================================
+     FLOATING "TALK TO AI" BUTTON + MODAL
+     ========================================================== */
+  var fab = document.getElementById('talkFab');
+  var modal = document.getElementById('talkModal');
+  if (fab && modal) {
+    var talkForm = document.getElementById('talkForm');
+    var talkDone = document.getElementById('talkDone');
+    var talkClose = document.getElementById('talkClose');
+    var lastFocus = null;
+
+    function openTalk() {
+      lastFocus = document.activeElement;
+      modal.hidden = false;
+      /* next frame so the transition has a from-state to animate out of */
+      requestAnimationFrame(function () { modal.classList.add('open'); });
+      setTimeout(function () { modal.classList.add('open'); }, 30);
+      document.body.style.overflow = 'hidden';
+      setTimeout(function () {
+        var f = document.getElementById('tkName');
+        if (f) f.focus();
+      }, 340);
+    }
+    function closeTalk() {
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+      setTimeout(function () {
+        modal.hidden = true;
+        /* reset so it opens clean next time */
+        if (talkForm && talkDone) { talkForm.hidden = false; talkDone.hidden = true; }
+      }, 340);
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    fab.addEventListener('click', openTalk);
+    if (talkClose) talkClose.addEventListener('click', closeTalk);
+    modal.addEventListener('click', function (e) { if (e.target === modal) closeTalk(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.classList.contains('open')) closeTalk();
+    });
+
+    if (talkForm && talkDone) {
+      talkForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var ok = true;
+        talkForm.querySelectorAll('input[required]').forEach(function (input) {
+          var v = input.value.trim();
+          var valid = v.length > 0;
+          if (input.type === 'email') valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+          if (input.type === 'tel') valid = v.replace(/\D/g, '').length >= 7;
+          input.closest('.talk-f').classList.toggle('invalid', !valid);
+          if (!valid) ok = false;
+        });
+        if (!ok) return;
+        /* TODO: post to the same serverless endpoint as the hero demo form
+           before launch — this only shows the confirmation for now. */
+        talkForm.hidden = true;
+        talkDone.hidden = false;
+      });
+      talkForm.querySelectorAll('input').forEach(function (input) {
+        input.addEventListener('input', function () {
+          input.closest('.talk-f').classList.remove('invalid');
+        });
+      });
+    }
   }
 
   /* ---------- faq: one open at a time ---------- */

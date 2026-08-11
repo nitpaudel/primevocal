@@ -132,8 +132,8 @@
        child — travelCache goes negative, onStreetScroll bails to paint(0), and
        the story freezes on beat 1 and never plays. */
     function runway() {
-      if (reduceMotion) return BEATS * 0.08 + 0.15;
-      return isCompact() ? BEATS * 0.09 + 0.15 : BEATS * 0.11 + 0.15;
+      if (reduceMotion) return BEATS * 0.13 + 0.4;
+      return isCompact() ? BEATS * 0.14 + 0.42 : BEATS * 0.15 + 0.45;
     }
 
     var travelCache = 0;

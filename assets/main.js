@@ -179,9 +179,21 @@
       return isCompact() ? BEATS * 0.55 + 0.6 : BEATS * 0.85 + 1;
     }
 
+    /* Once the story has played out the section stops being a scroll runway
+       and becomes an ordinary one-screen section. Until then it is tall, and
+       the sticky stage inside it is what turns that height into story time. */
+    var finished = false;
+    var travelCache = 0;
+
+    /* Strictly read-then-write: measure the stage first, then set the height
+       and derive the runway arithmetically. Reading offsetHeight back out
+       after writing the height forces a synchronous reflow for a number we
+       already know. */
     function sizeStreet() {
-      street.style.height = Math.round(stageHeight() * runway()) + 'px';
-      measureStreet();
+      var sh = stageHeight();
+      var h = Math.round(sh * (finished ? 1 : runway()));
+      street.style.height = h + 'px';
+      travelCache = h - sh;
     }
 
     /* One-way ratchet.
@@ -228,18 +240,61 @@
       if (window.pvStreet && window.pvStreet.ready) window.pvStreet.update(dp);
     }
 
-    /* The runway is fixed per layout, so measuring it on every scroll frame
-       is pure layout thrash. Cache it and refresh only when the page resizes. */
-    var travelCache = 0;
-    function measureStreet() {
-      travelCache = street.offsetHeight - stageHeight();
+    /* ---- releasing the scroll lock ----
+       The runway is six-odd screens of scrolling, and every one of them is
+       spent with the stage pinned to the top of the viewport. That is the
+       right trade while the story is still playing — but the moment it ends,
+       those screens are just a frozen frame the reader has to grind past, and
+       they have to grind past them again every time they scroll back up.
+
+       So the section gives the height back. It collapses to a single screen,
+       which makes scrolling through it from then on cost exactly what any
+       other section costs.
+
+       Collapsing moves everything below the section up by the height removed,
+       which would yank the page. The fix is to pin the stage: note where it
+       sits in the viewport, collapse, then scroll by the difference. The stage
+       lands on the same pixel it was already on, so the release is invisible —
+       nothing appears to move, there is simply no runway left underneath. */
+    function finishStreet() {
+      if (finished) return;
+
+      /* Both measurements are taken before anything moves. Once the runway is
+         gone the stage can no longer stick, so it comes to rest on the
+         section's own top edge — which is where `rectTop` already is. The
+         difference between that and where the stage sits right now is exactly
+         how far the page has to be scrolled to leave it looking untouched.
+         Derived, not measured back: reading layout out again after writing the
+         height is a forced reflow, and not every engine answers it honestly. */
+      var rectTop = street.getBoundingClientRect().top;
+      var stageTop = stage.getBoundingClientRect().top;
+      var drift = rectTop - stageTop;
+
+      finished = true;
+      paint(1);                                   /* land exactly on the end frame */
+
+      var doc = document.documentElement;
+      var prevBehavior = doc.style.scrollBehavior;
+      doc.style.scrollBehavior = 'auto';          /* html{scroll-behavior:smooth}
+                                                     would animate the correction
+                                                     and make it very visible */
+      sizeStreet();                               /* now just one stage-height */
+      if (drift) window.scrollBy(0, drift);
+      doc.style.scrollBehavior = prevBehavior;
+
+      if (hint) hint.style.opacity = '0';
     }
 
     function onStreetScroll() {
       streetTicking = false;
+      /* the runway is gone and progress is parked at 1 — there is nothing
+         left to drive, and this is what stops any chance of a replay */
+      if (finished) return;
       if (travelCache <= 0) { paint(0); return; }
       var p = -street.getBoundingClientRect().top / travelCache;
       paint(p < 0 ? 0 : p > 1 ? 1 : p);
+      /* a hair short of 1 so a scroll that lands a pixel shy still releases */
+      if (maxP >= 0.995) finishStreet();
     }
     function requestStreet() {
       if (streetTicking) return;
@@ -756,24 +811,32 @@
 
   /* ---------- SMS pane · auto-playing conversation ----------
      Nobody scrolls this: it deals itself out on timers, with a typing
-     indicator in front of every one of Lara's replies and a pause that scales
-     with how much she has to say, then holds the booking badge for three
-     seconds and starts again from an empty thread.
+     indicator in front of every one of Lara's replies, then holds the booking
+     badge and starts again from an empty thread.
 
      `think` is how long the sender sits there before the bubble lands;
-     `type`  is how long Lara's dots run before her bubble replaces them. */
+     `type`  is how long Lara's dots run before her bubble replaces them.
+     The two add up to the gap the reader actually perceives, so every gap
+     below lands between 1.5s and 2.5s — fast enough to hold attention, slow
+     enough to read. Only the opening line comes in quicker, so the thread
+     starts moving as soon as the tab is opened. */
   var imsgBody = document.getElementById('imsgBody');
   var chatTimers = [];
   var chatRun = 0;                    /* cancels a loop that is mid-flight */
+  var CHAT_LOOP_PAUSE = 4000;         /* hold on the badge before replaying */
 
   var IMSG_SCRIPT = [
-    { from: 'them', text: 'Hi, is there an appointment available tomorrow?', think: 700 },
-    { from: 'us',   text: 'Hey! Yes, we have 10:30am or 2:15pm free. Which works for you?', think: 500, type: 1500 },
-    { from: 'them', text: '2:15 please', think: 1500 },
-    { from: 'us',   text: 'Perfect! Can I grab your name?', think: 420, type: 1000 },
-    { from: 'them', text: 'James', think: 1300 },
-    { from: 'us',   text: "Done! James you're booked for tomorrow at 2:15pm. See you then 😊", think: 460, type: 1700 },
-    { from: 'card', text: '✓ Booking confirmed · Tomorrow, 2:15pm', think: 750 }
+    { from: 'them', text: 'Hi is this Prime Vocal?', think: 800 },
+    { from: 'us',   text: "Hey! Yes, I'm Lara. How can I help?", think: 500, type: 1300 },
+    { from: 'them', text: 'We run a dental clinic and keep missing patient calls', think: 2100 },
+    { from: 'us',   text: 'I can handle that. I answer every call and book them straight into your calendar.', think: 600, type: 1700 },
+    { from: 'them', text: 'Even after hours?', think: 1600 },
+    { from: 'us',   text: '24/7. No call goes unanswered.', think: 500, type: 1400 },
+    { from: 'them', text: "Okay that's actually what we need. How do we get started?", think: 2400 },
+    { from: 'us',   text: "Quick 15 min call and you're live within 72 - 96 hours. Tomorrow 10am work?", think: 600, type: 1900 },
+    { from: 'them', text: 'Yeah 10am works', think: 1700 },
+    { from: 'us',   text: 'Perfect. Booked for tomorrow 10am. Talk soon 👋', think: 500, type: 1800 },
+    { from: 'card', text: '✓ Booking confirmed · Tomorrow, 10:00am', think: 1500 }
   ];
 
   function bubble(cls, text) {
@@ -835,7 +898,7 @@
     });
 
     /* hold the confirmation, then run the whole thread again from empty */
-    after(3000, playChat);
+    after(CHAT_LOOP_PAUSE, playChat);
   }
 
   vcTabs.forEach(function (tab) {
@@ -1033,15 +1096,17 @@
   var form = document.getElementById('demoForm');
   var successBox = document.getElementById('demoSuccess');
   var phone = document.getElementById('phone');
-  var phRings = document.getElementById('phRings');
   var phName = document.getElementById('phName');
   var phSub = document.getElementById('phSub');
   var phStatus = document.getElementById('phStatus');
   var phClock = document.getElementById('phClock');
 
-  var CONNECT_AFTER = 8000;    /* ring for 8s, then connect */
-  var CALL_LENGTH = 150;       /* hang up at 2:30 */
-  var connectTimer = null, tickTimer = null, elapsed = 0;
+  /* The screen has exactly two states, and data-state on .phone is what picks
+     between them: "idle" is the incoming-call screen, "active" is the live
+     call. Nothing runs on a timer to move between them — only the visitor
+     does, by submitting the form, sliding to answer, or hitting End. */
+  var CALL_STOP = 13;          /* the timer counts to 0:13 and then holds */
+  var tickTimer = null, elapsed = 0;
 
   function phoneClock() {
     if (!phClock) return;
@@ -1056,66 +1121,45 @@
     return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   }
 
+  /* STATE 1 · the incoming-call screen */
   function resetPhone() {
-    clearTimeout(connectTimer); clearInterval(tickTimer);
-    connectTimer = tickTimer = null;
+    clearInterval(tickTimer);
+    tickTimer = null;
     elapsed = 0;
     if (!phone) return;
     phone.dataset.state = 'idle';
-    phRings.classList.remove('ringing');
-    phStatus.textContent = 'Incoming Call';
+    phStatus.textContent = 'Incoming call';   /* .mono uppercases it on screen */
     phName.textContent = 'Lara';
     phSub.textContent = 'Prime Vocal';
+    /* the form comes back with the idle screen, so the demo can be run again */
+    if (form && successBox) { form.hidden = false; successBox.hidden = true; }
   }
 
-  function connectCall() {
+  /* STATE 2 · the live call. The timer counts a second at a time up to 0:13
+     and then simply stops — long enough to read as a real connected call,
+     short enough that it is never still climbing when the visitor looks back. */
+  function startCall(name) {
+    clearInterval(tickTimer);
     if (!phone) return;
-    phone.dataset.state = 'connected';
-    phRings.classList.remove('ringing');
-    phStatus.textContent = 'Prime Vocal';
-    phSub.textContent = '0:00';
+    phone.dataset.state = 'active';
+    phStatus.textContent = 'calling mobile...';
+    phName.textContent = name || 'Lara';
     elapsed = 0;
+    phSub.textContent = fmt(0);
     tickTimer = setInterval(function () {
       elapsed += 1;
       phSub.textContent = fmt(elapsed);
-      if (elapsed >= CALL_LENGTH) endCall();
+      if (elapsed >= CALL_STOP) { clearInterval(tickTimer); tickTimer = null; }
     }, 1000);
   }
 
-  function endCall() {
-    clearTimeout(connectTimer); clearInterval(tickTimer);
-    if (phone) {
-      phone.dataset.state = 'ended';
-      phStatus.textContent = 'Call ended';
-      phSub.textContent = elapsed ? 'Lasted ' + fmt(elapsed) : 'Declined';
-      phRings.classList.remove('ringing');
-    }
-    setTimeout(function () {
-      resetPhone();
-      if (form && successBox) { form.hidden = false; successBox.hidden = true; }
-    }, 2200);
-  }
-
-  function startCall(name) {
-    clearTimeout(connectTimer); clearInterval(tickTimer);
-    if (!phone) return;
-    phone.dataset.state = 'ringing';
-    phStatus.textContent = 'Incoming Call';
-    phName.textContent = name || 'Lara';
-    phSub.textContent = 'Prime Vocal';
-    phRings.classList.add('ringing');
-    connectTimer = setTimeout(connectCall, CONNECT_AFTER);
-  }
-
-  var phAccept = document.getElementById('phAccept');
-  var phDecline = document.getElementById('phDecline');
+  /* slide-to-answer takes the incoming screen straight to the live call */
+  var phSlide = document.getElementById('phSlide');
   var phEnd = document.getElementById('phEnd');
-  if (phAccept) phAccept.addEventListener('click', function () {
-    if (phone.dataset.state === 'ringing') { clearTimeout(connectTimer); connectCall(); }
-    else { startCall('Lara'); }
+  if (phSlide) phSlide.addEventListener('click', function () {
+    if (phone && phone.dataset.state !== 'active') startCall('Lara');
   });
-  if (phDecline) phDecline.addEventListener('click', endCall);
-  if (phEnd) phEnd.addEventListener('click', endCall);
+  if (phEnd) phEnd.addEventListener('click', resetPhone);
 
   if (form && successBox) {
     form.addEventListener('submit', function (e) {

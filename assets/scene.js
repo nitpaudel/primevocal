@@ -645,9 +645,13 @@ function boot() {
     if (ms - resizeAt > 250) { resizeAt = ms; resize(); }
     if (!visible) return;
 
-    /* lambda 8 ≈ the old 0.12-per-frame feel at 60Hz, but identical on any
-       display and forgiving of a dropped frame */
-    progress = damp(progress, target, 8, dt);
+    /* The scroll position is the target; this is how hard James chases it.
+       Lambda 6 is a ~170ms time constant — slack enough that a fast flick of
+       the wheel is integrated into a continuous walk instead of teleporting
+       him down the street, tight enough that he never feels detached from the
+       scrollbar. Higher values (8+) let a quick scroll skip most of the walk
+       cycle, which is what read as stuttering. */
+    progress = damp(progress, target, 6, dt);
     if (Math.abs(target - progress) < 0.0004) progress = target;
     const p = progress;
 
@@ -662,11 +666,23 @@ function boot() {
     else               x = 24 + ease(seg(p, 0.90, 1)) * 16;
 
     const prevX = james.position.x;
+    const dx = x - prevX;
     james.position.x = x;
-    walked += Math.abs(x - prevX);
+    walked += Math.abs(dx);
 
-    const moving = Math.abs(x - prevX) > 0.004;
-    const stride = moving ? Math.sin(walked * 1.5) : 0;
+    /* Walking or standing, decided on speed in world units per second.
+       The old test compared the per-frame delta against a fixed number, which
+       means the same walking speed reads as "moving" at 60Hz and "stopped" at
+       120Hz — where each frame covers half the distance. On a fast display he
+       flickered between the walk cycle and the idle several times a second,
+       and that flicker was the stutter. Dividing by dt makes the decision
+       frame-rate independent. */
+    const speed = Math.abs(dx) / Math.max(dt, 1e-4);
+    const moving = speed > 0.45;
+
+    /* the stride phase always advances with the distance covered — it is the
+       amplitude below, not this, that is faded out when he stops */
+    const stride = Math.sin(walked * 1.5);
 
     /* ---- idle ----
        The story plays once and then parks; main.js never hands progress back,
@@ -678,14 +694,18 @@ function boot() {
     const idle = !moving;
     const breath = Math.sin(time * 0.85);
 
-    legL.rotation.x = stride * 0.75;
-    legR.rotation.x = -stride * 0.75;
-
     /* One damped weight cross-fades the whole pose between walking and
        standing, so the walk cycle keeps its full amplitude and the hand-off
        into the idle still has no pop in it. */
     idleMix = damp(idleMix, idle ? 1 : 0, 4.5, dt);
     const w = 1 - idleMix;
+
+    /* Legs are faded by that same weight rather than hard-zeroed. Cutting the
+       stride to 0 the instant scrolling stopped snapped him out of whatever
+       mid-step pose he was in — legs splayed one frame, together the next.
+       Now the step he is halfway through simply eases closed. */
+    legL.rotation.x = stride * 0.75 * w;
+    legR.rotation.x = -stride * 0.75 * w;
 
     james.position.y   = Math.abs(Math.sin(walked * 3)) * 0.07 * w + breath * 0.022 * idleMix;
     james.rotation.z   = Math.sin(time * 0.42) * 0.008 * idleMix;   /* weight shifting */

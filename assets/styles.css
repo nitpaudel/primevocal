@@ -642,8 +642,8 @@ img,svg{ max-width:100%; display:block; }
 
 .imsg-body{
   flex:1 1 auto;
-  display:flex; flex-direction:column; gap:5px;
-  padding:12px 12px 14px;
+  display:flex; flex-direction:column; gap:4px;
+  padding:10px 11px 12px;
   overflow:hidden;
   justify-content:flex-end;
   /* The column is bottom-anchored, so as the thread grows the opening lines
@@ -652,12 +652,15 @@ img,svg{ max-width:100%; display:block; }
   -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 46px);
           mask-image:linear-gradient(to bottom, transparent 0, #000 46px);
 }
+/* Small type on purpose: the thread is ten messages long, and this is what
+   lets most of the exchange sit on screen at once instead of one line at a
+   time. Sized down from .8rem when the conversation was rewritten. */
 .imsg-bub{
-  max-width:78%;
-  padding:8px 13px;
-  border-radius:17px;
-  font-size:.8rem;
-  line-height:1.38;
+  max-width:81%;
+  padding:6px 11px;
+  border-radius:15px;
+  font-size:.7rem;
+  line-height:1.36;
   opacity:0;
   transform:translateY(10px) scale(.96);
   transition:opacity .35s var(--ease), transform .42s var(--spring);
@@ -686,12 +689,13 @@ img,svg{ max-width:100%; display:block; }
   display:flex; align-items:center; justify-content:center; gap:8px;
   background:rgba(78,154,110,.14);
   border:1px solid rgba(140,230,185,.32);
-  border-radius:11px;
-  padding:9px 14px;
+  border-radius:10px;
+  padding:7px 12px;
   text-align:center;
   font-family:var(--monoF);
-  font-size:.6rem; letter-spacing:.09em; text-transform:uppercase;
+  font-size:.55rem; letter-spacing:.08em; text-transform:uppercase;
   font-weight:500;
+  line-height:1.35;
   color:var(--glow);
   margin-top:3px;
 }
@@ -699,8 +703,8 @@ img,svg{ max-width:100%; display:block; }
   align-self:flex-start;
   display:flex; gap:4px; align-items:center;
   background:rgba(245,243,236,.11);
-  padding:11px 15px;
-  border-radius:17px;
+  padding:9px 13px;
+  border-radius:15px;
   border-bottom-left-radius:6px;
   opacity:0;
   transform:translateY(6px);
@@ -711,9 +715,9 @@ img,svg{ max-width:100%; display:block; }
 .imsg-typing.us{
   align-self:flex-end;
   background:rgba(78,154,110,.24);
-  border-radius:17px;
+  border-radius:15px;
   border-bottom-right-radius:6px;
-  border-bottom-left-radius:17px;
+  border-bottom-left-radius:15px;
 }
 .imsg-typing.in{ opacity:1; transform:none; }
 .imsg-typing i{
@@ -784,6 +788,10 @@ img,svg{ max-width:100%; display:block; }
 .street{
   position:relative;
   background:linear-gradient(135deg, #080f0a 0%, #0f1a10 50%, #080c09 100%);
+  /* main.js collapses this section's height the moment the story finishes, and
+     corrects the scroll by hand so nothing appears to move. Chrome's scroll
+     anchoring would try to make its own correction on top of that and fight it. */
+  overflow-anchor:none;
 }
 .street-stage{
   position:sticky; top:0;
@@ -1237,8 +1245,7 @@ img,svg{ max-width:100%; display:block; }
   background:#141416;
   box-shadow:inset 0 0 2px rgba(80,120,220,.45);
 }
-.phone[data-state="ringing"] .island-cam,
-.phone[data-state="connected"] .island-cam{
+.phone[data-state="active"] .island-cam{
   background:#2E8B57;
   box-shadow:0 0 7px rgba(46,139,87,.9);
 }
@@ -1257,12 +1264,22 @@ img,svg{ max-width:100%; display:block; }
 .sb-right{ display:flex; align-items:center; gap:5px; }
 .status-bar svg{ height:10px; width:auto; fill:currentColor; }
 
-/* "Incoming Call" — the one line of chrome at the top of the screen */
+/* the one line of chrome at the top of the screen. Incoming reads as spaced
+   caps ("INCOMING CALL"); the live call keeps its lowercase "calling mobile…" */
 .ph-status{
   color:rgba(255,255,255,.62);
   font-size:.62rem;
+  line-height:18px;          /* pinned so the two states measure identically */
   letter-spacing:.2em;
   margin:26px 0 34px;
+  transition:color .3s var(--ease);
+}
+.phone[data-state="active"] .ph-status{
+  text-transform:none;
+  letter-spacing:.06em;
+  font-size:.68rem;
+  line-height:18px;
+  color:rgba(255,255,255,.5);
 }
 
 .ph-rings{
@@ -1278,14 +1295,10 @@ img,svg{ max-width:100%; display:block; }
   width:100%; height:100%;
   opacity:0;
 }
-/* idle reads as an incoming call too — the screen says so — so the pulse
-   runs there as well and only stops once the call connects or ends */
-.phone[data-state="idle"] .ph-rings i,
-.ph-rings.ringing i{ animation:ring 2s ease-out infinite; }
-.phone[data-state="idle"] .ph-rings i:nth-child(2),
-.ph-rings.ringing i:nth-child(2){ animation-delay:.65s; }
-.phone[data-state="idle"] .ph-rings i:nth-child(3),
-.ph-rings.ringing i:nth-child(3){ animation-delay:1.3s; }
+/* the pulse belongs to the incoming state; once the call is live it stops */
+.phone[data-state="idle"] .ph-rings i{ animation:ring 2s ease-out infinite; }
+.phone[data-state="idle"] .ph-rings i:nth-child(2){ animation-delay:.65s; }
+.phone[data-state="idle"] .ph-rings i:nth-child(3){ animation-delay:1.3s; }
 /* starts flush with the 104px avatar inside the 150px box, so the pulse
    reads as leaving her face rather than cutting across it */
 @keyframes ring{ 0%{opacity:.55; transform:scale(.7)} 100%{opacity:0; transform:scale(1.2)} }
@@ -1306,8 +1319,8 @@ img,svg{ max-width:100%; display:block; }
 }
 .ph-avatar .mark{ height:40px; }
 @keyframes avatarBreath{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.035) } }
-.ph-rings.ringing .ph-avatar{ animation:nudge 2s ease-in-out infinite; }
-@keyframes nudge{ 0%,100%{transform:rotate(0)} 4%{transform:rotate(-7deg)} 8%{transform:rotate(6deg)} 12%{transform:rotate(-4deg)} 16%{transform:rotate(0)} }
+.phone[data-state="idle"] .ph-avatar{ animation:nudge 2.6s ease-in-out infinite; }
+@keyframes nudge{ 0%,100%{transform:rotate(0)} 4%{transform:rotate(-6deg)} 8%{transform:rotate(5deg)} 12%{transform:rotate(-3deg)} 16%{transform:rotate(0)} }
 
 /* Apple sets the caller name large and light — that, and nothing else */
 .ph-name{
@@ -1326,50 +1339,156 @@ img,svg{ max-width:100%; display:block; }
   opacity:1;
   margin:0 0 auto;
   font-size:.66rem;
+  /* fixed line box: the live-call timer is set larger than "PRIME VOCAL", and
+     without this the whole screen — and so the phone frame — grew a few pixels
+     taller the moment the call connected */
+  line-height:24px;
   letter-spacing:.14em;
   font-variant-numeric:tabular-nums;
 }
-.phone[data-state="connected"] .ph-sub{ color:#34C759; letter-spacing:.1em; }
+/* live call: the subtitle becomes the running timer, in Apple's call green */
+.phone[data-state="active"] .ph-sub{
+  color:#34C759;
+  letter-spacing:.06em;
+  font-size:.95rem;
+  line-height:24px;
+  font-weight:500;
+}
 
-.ph-actions{
-  display:flex; gap:56px;
-  margin-top:34px;
-  align-items:flex-start; justify-content:center;
-}
-.ph-action-wrap{
-  display:flex; flex-direction:column; align-items:center; gap:7px;
-}
-.ph-btn-label{
-  font-family:var(--sans); font-size:.72rem; font-weight:400;
-  color:rgba(255,255,255,.7); letter-spacing:.01em;
-}
-.ph-btn{
-  width:64px; height:64px;
-  border:0;
-  border-radius:50%;
+/* ---------- phone · the two control decks ----------
+   Both stack in the same box and cross-fade, so the screen changes state
+   without a single pixel of layout shift. The box is tall enough for the
+   taller of the two (the six-button call pad). */
+.ph-controls{
   position:relative;
-  padding:0;
-  box-shadow:0 8px 18px -8px rgba(17,17,17,.45);
-  transition:transform .28s var(--spring), box-shadow .28s var(--ease);
+  width:100%;
+  height:196px;
+  flex:0 0 196px;
 }
-.ph-btn:hover{ transform:scale(1.07); box-shadow:0 14px 26px -10px rgba(17,17,17,.5); }
-.ph-btn::after{
+.ph-incoming,
+.ph-live{
+  position:absolute;
+  left:0; right:0; bottom:0;
+  display:flex; flex-direction:column; align-items:center;
+  transition:opacity .38s var(--ease), transform .45s var(--ease),
+             visibility .38s var(--ease);
+}
+.ph-live{ opacity:0; visibility:hidden; transform:translateY(16px); }
+.phone[data-state="active"] .ph-incoming{
+  opacity:0; visibility:hidden; transform:translateY(-14px);
+}
+.phone[data-state="active"] .ph-live{ opacity:1; visibility:visible; transform:none; }
+
+/* STATE 1 · Message / Voicemail, then slide to answer */
+.ph-quick{
+  display:flex; justify-content:center; gap:74px;
+  margin-bottom:22px;
+}
+.ph-quick-item{ display:flex; flex-direction:column; align-items:center; gap:7px; }
+.ph-quick-btn{
+  width:46px; height:46px;
+  border-radius:50%;
+  display:grid; place-items:center;
+  /* frosted glass over the dark wall */
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.1);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  color:rgba(255,255,255,.92);
+}
+.ph-quick-btn svg{ width:21px; height:21px; }
+.ph-quick-label{
+  font-family:var(--sans);
+  font-size:.68rem; font-weight:400;
+  color:rgba(255,255,255,.72);
+}
+
+.ph-slide{
+  position:relative;
+  width:100%;
+  max-width:246px;
+  height:60px;
+  border:0;
+  border-radius:999px;
+  padding:0;
+  display:flex; align-items:center;
+  background:linear-gradient(135deg, #34a76b 0%, #1E5B3F 100%);
+  box-shadow:0 12px 26px -14px rgba(30,91,63,.95), inset 0 1px 0 rgba(255,255,255,.14);
+  overflow:hidden;
+  transition:transform .28s var(--spring), box-shadow .3s var(--ease);
+}
+.ph-slide:hover{ transform:translateY(-2px); box-shadow:0 18px 32px -16px rgba(30,91,63,1); }
+.ph-slide:active{ transform:translateY(0) scale(.99); }
+.ph-slide-knob{
+  position:relative; z-index:2;
+  flex:0 0 auto;
+  width:48px; height:48px;
+  margin-left:6px;
+  border-radius:50%;
+  background:#FFFFFF;
+  color:#1E5B3F;
+  display:grid; place-items:center;
+  box-shadow:0 3px 8px -3px rgba(0,0,0,.5);
+  animation:slideNudge 2.6s var(--ease) infinite;
+}
+.ph-slide-knob svg{ width:22px; height:22px; }
+@keyframes slideNudge{ 0%,72%,100%{ transform:translateX(0) } 84%{ transform:translateX(7px) } }
+.ph-slide-text{
+  position:relative; z-index:2;
+  flex:1;
+  text-align:center;
+  padding-right:26px;             /* optically centres against the knob */
+  font-family:var(--sans);
+  font-size:.86rem; font-weight:500;
+  color:rgba(255,255,255,.9);
+}
+/* the light sweep that tells you it is a slider */
+.ph-slide::after{
   content:"";
   position:absolute; inset:0;
-  margin:auto;
-  width:26px; height:26px;
-  background:currentColor;
-  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.24 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.6a1 1 0 01-.24 1l-2.23 2.2z'/%3E%3C/svg%3E") center/contain no-repeat;
-          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.24 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.6a1 1 0 01-.24 1l-2.23 2.2z'/%3E%3C/svg%3E") center/contain no-repeat;
+  background:linear-gradient(100deg, transparent 34%, rgba(255,255,255,.26) 50%, transparent 66%);
+  transform:translateX(-100%);
+  animation:slideShine 2.6s var(--ease) infinite;
+  z-index:1;
 }
-.ph-btn.decline, .ph-btn.end{ background:#FF3B30; color:#fff; }
-.ph-btn.decline::after, .ph-btn.end::after{ transform:rotate(135deg); }
-.ph-btn.accept{ background:#34C759; color:#fff; animation:jiggle 1.8s ease-in-out infinite; }
-@keyframes jiggle{ 0%,86%,100%{transform:translateY(0)} 91%{transform:translateY(-5px)} 96%{transform:translateY(0)} }
-.ph-btn.end{ display:none; }
-.phone[data-state="connected"] .ph-btn.decline,
-.phone[data-state="connected"] .ph-btn.accept{ display:none; }
-.phone[data-state="connected"] .ph-btn.end{ display:block; }
+@keyframes slideShine{ 0%,30%{ transform:translateX(-100%) } 75%,100%{ transform:translateX(100%) } }
+
+/* STATE 2 · the six call controls */
+.ph-pad{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:20px 30px;
+  width:100%;
+  max-width:250px;
+}
+.ph-pad-btn{
+  display:flex; flex-direction:column; align-items:center; gap:7px;
+  background:none; border:0; padding:0;
+  cursor:default;
+}
+.ph-pad-btn#phEnd{ cursor:pointer; }
+.ph-pad-ico{
+  width:58px; height:58px;
+  border-radius:50%;
+  display:grid; place-items:center;
+  background:rgba(255,255,255,.16);
+  color:#fff;
+  transition:background .22s var(--ease), transform .26s var(--spring);
+}
+.ph-pad-ico svg{ width:24px; height:24px; }
+.ph-pad-btn:hover .ph-pad-ico{ background:rgba(255,255,255,.24); }
+.ph-pad-label{
+  font-family:var(--sans);
+  font-size:.66rem; font-weight:400;
+  color:rgba(255,255,255,.75);
+  white-space:nowrap;
+}
+.ph-pad-end .ph-pad-ico{
+  background:#FF3B30;
+  box-shadow:0 8px 18px -8px rgba(255,59,48,.8);
+}
+.ph-pad-end .ph-pad-ico svg{ transform:rotate(135deg); }
+.ph-pad-end:hover .ph-pad-ico{ background:#ff5147; transform:scale(1.06); }
 
 .home-bar{
   width:128px; height:5px; border-radius:3px;
@@ -1684,20 +1803,27 @@ html.no-io .rv{ opacity:1; transform:none; }
 
   .phone{ width:286px; transform:none; }
   .hear-phone:hover .phone{ transform:translateY(-4px); }
-  .phone-screen{ min-height:560px; padding:52px 16px 24px; }
-  .ph-status{ margin:22px 0 26px; }
+  .phone-screen{ min-height:560px; padding:52px 14px 24px; }
+  .ph-status{ margin:22px 0 24px; }
   .ph-avatar{ width:94px; height:94px; }
   .ph-name{ font-size:1.85rem; }
-  .ph-actions{ gap:46px; margin-top:28px; }
-  .ph-btn{ width:60px; height:60px; }
+  .ph-controls{ height:184px; flex-basis:184px; }
+  .ph-quick{ gap:64px; margin-bottom:18px; }
+  .ph-quick-btn{ width:44px; height:44px; }
+  .ph-slide{ height:56px; max-width:228px; }
+  .ph-slide-knob{ width:44px; height:44px; }
+  .ph-pad{ gap:16px 24px; max-width:236px; }
+  .ph-pad-ico{ width:54px; height:54px; }
+  .ph-pad-label{ font-size:.62rem; }
   .vc-actions{ grid-template-columns:1fr; }
 
-  /* SMS pane: same box height as desktop, tighter type — that keeps the whole
-     exchange from the first reply to the booking badge on screen at once */
-  .imsg-body{ padding:11px 10px 12px; gap:5px; }
-  .imsg-bub{ font-size:.78rem; padding:8px 12px; max-width:82%; }
-  .imsg-bub.card{ font-size:.55rem; padding:8px 10px; }
-  .imsg-head{ padding:10px 12px; }
+  /* SMS pane: same box height as desktop, tighter still so the long thread
+     keeps as much of itself on screen as it does on a wide display */
+  .imsg-body{ padding:9px 9px 11px; gap:4px; }
+  .imsg-bub{ font-size:.69rem; padding:6px 10px; max-width:84%; }
+  .imsg-bub.card{ font-size:.52rem; padding:7px 9px; }
+  .imsg-head{ padding:9px 11px; }
+  .imsg-av{ width:30px; height:30px; flex-basis:30px; }
   .close{ padding:84px 0; }
   .close-actions{ gap:22px; }
   .foot-row{ flex-direction:column; align-items:flex-start; }

@@ -174,79 +174,6 @@ img,svg{ max-width:100%; display:block; }
   box-shadow:0 16px 28px -18px rgba(0,0,0,.8);
 }
 
-/* ---------- announcement bar ----------
-   Above the nav, in normal flow, so it scrolls out of the way rather than
-   eating a permanent 40px of a phone screen. Dark forest green in both
-   themes — it is a fixed brand block, not a surface that follows the paper. */
-.anno{
-  background:linear-gradient(100deg, #143d29 0%, #1E5B3F 46%, #17492F 100%);
-  color:#F2FBF5;
-  border-bottom:1px solid rgba(140,230,185,.18);
-  position:relative;
-  z-index:190;              /* under the sticky nav, which slides over it */
-}
-.anno[hidden]{ display:none; }
-.anno-row{
-  display:flex; align-items:center; justify-content:space-between; gap:18px;
-  padding-block:7px;
-  min-height:38px;
-}
-.anno-text{
-  margin:0;
-  font-size:.83rem;
-  line-height:1.35;
-  letter-spacing:.005em;
-  color:rgba(242,251,245,.92);
-  display:flex; align-items:baseline; gap:7px;
-  min-width:0;
-}
-.anno-text strong{ font-weight:600; color:#EAFBF1; white-space:nowrap; }
-.anno-bolt{ font-size:.92rem; line-height:1; flex:0 0 auto; }
-
-.anno-right{ display:flex; align-items:center; gap:12px; flex:0 0 auto; }
-.anno-timer{
-  font-size:.7rem;
-  line-height:1.45;        /* body's 1.6 made the pill tall enough to thicken the bar */
-  letter-spacing:.12em;
-  color:#DFF6E9;
-  background:rgba(6,20,13,.34);
-  border:1px solid rgba(140,230,185,.26);
-  border-radius:999px;
-  padding:4px 12px;
-  font-variant-numeric:tabular-nums;
-  white-space:nowrap;
-}
-.anno-x{
-  width:26px; height:26px;
-  flex:0 0 auto;
-  display:grid; place-items:center;
-  background:transparent;
-  border:1px solid rgba(242,251,245,.24);
-  border-radius:50%;
-  color:rgba(242,251,245,.75);
-  padding:0;
-  transition:color .2s var(--ease), border-color .2s var(--ease),
-             transform .25s var(--spring), background .2s var(--ease);
-}
-.anno-x:hover{
-  color:#fff; border-color:rgba(242,251,245,.6);
-  background:rgba(242,251,245,.1);
-  transform:rotate(90deg);
-}
-.anno-x svg{ width:11px; height:11px; }
-
-@media (max-width:860px){
-  .anno-row{ gap:12px; padding-block:8px; }
-  .anno-text{ font-size:.75rem; }
-  .anno-timer{ font-size:.62rem; padding:4px 9px; letter-spacing:.08em; }
-}
-@media (max-width:560px){
-  /* the promise is the hook; the scarcity line is what gets dropped first */
-  .anno-text strong{ display:none; }
-  .anno-text{ font-size:.72rem; }
-  .anno-x{ width:24px; height:24px; }
-}
-
 /* ---------- nav ---------- */
 .nav{
   position:sticky; top:0; z-index:200;
@@ -788,10 +715,6 @@ img,svg{ max-width:100%; display:block; }
 .street{
   position:relative;
   background:linear-gradient(135deg, #080f0a 0%, #0f1a10 50%, #080c09 100%);
-  /* main.js collapses this section's height the moment the story finishes, and
-     corrects the scroll by hand so nothing appears to move. Chrome's scroll
-     anchoring would try to make its own correction on top of that and fight it. */
-  overflow-anchor:none;
 }
 .street-stage{
   position:sticky; top:0;

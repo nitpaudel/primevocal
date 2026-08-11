@@ -20,58 +20,6 @@
   var yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  /* ---------- announcement bar ----------
-     Counts down from 1d 14h in real time and never lands on zero: the instant
-     it would expire it silently rolls back to 2d 4h and keeps going, so the
-     bar always reads as "closing soon" without ever ending.
-     Timestamp-based rather than a decrementing counter, so a backgrounded tab
-     (where setInterval is throttled to once a minute) resumes on the right
-     number instead of drifting minutes behind. */
-  var anno = document.getElementById('anno');
-  var annoTimer = document.getElementById('annoTimer');
-  if (anno) {
-    var START_MS = (1 * 24 + 14) * 3600 * 1000;   /* 1 day 14 hours */
-    var RESET_MS = (2 * 24 + 4) * 3600 * 1000;    /* rolls back to 2 days 4 hours */
-
-    var dismissed = false;
-    try { dismissed = sessionStorage.getItem('pv-anno') === 'off'; } catch (e) {}
-    if (dismissed) {
-      anno.hidden = true;
-    } else if (annoTimer) {
-      var endAt = Date.now() + START_MS;
-      var pad = function (n) { return String(n).padStart(2, '0'); };
-
-      var tickAnno = function () {
-        var left = endAt - Date.now();
-        /* Rolls over on the last whole second rather than at zero, so the
-           readout never actually renders 0d 00h 00m 00s — it counts down to
-           ...00m 01s and the next tick is 2d 04h 00m 00s again. */
-        while (left < 1000) { endAt = Date.now() + RESET_MS; left = endAt - Date.now(); }
-        var s = Math.floor(left / 1000);
-        var d = Math.floor(s / 86400);
-        var h = Math.floor((s % 86400) / 3600);
-        var m = Math.floor((s % 3600) / 60);
-        annoTimer.textContent = d + 'd ' + pad(h) + 'h ' + pad(m) + 'm ' + pad(s % 60) + 's';
-      };
-
-      tickAnno();
-      setInterval(tickAnno, 1000);
-      /* a throttled background tab can miss ticks; re-sync the moment it
-         comes back so the number never appears frozen */
-      document.addEventListener('visibilitychange', function () {
-        if (!document.hidden) tickAnno();
-      });
-    }
-
-    var annoX = document.getElementById('annoX');
-    if (annoX) {
-      annoX.addEventListener('click', function () {
-        anno.hidden = true;
-        try { sessionStorage.setItem('pv-anno', 'off'); } catch (e) {}
-      });
-    }
-  }
-
   /* ---------- nav hairline + shrink ---------- */
   var nav = document.getElementById('nav');
   if (nav) {
@@ -173,25 +121,37 @@
 
     /* How many stage-heights of scrolling the story runs over. Phones get a
        shorter runway than desktop — same seven beats, less thumb work — and
-       reduced-motion shorter still. */
+       reduced-motion shorter still.
+
+       This is the only lever on how long the section costs to scroll through,
+       in both directions, and it has to stay fixed for the whole session so
+       the document height never moves. Trimmed from 0.85/0.55 per beat: the
+       story still reads at this pace, and the section is ~5 screens on desktop
+       rather than ~7, so there is far less of it to travel back over once the
+       animation has played. */
     function runway() {
-      if (reduceMotion) return BEATS * 0.42 + 0.5;
-      return isCompact() ? BEATS * 0.55 + 0.6 : BEATS * 0.85 + 1;
+      if (reduceMotion) return BEATS * 0.38 + 0.5;
+      return isCompact() ? BEATS * 0.45 + 0.5 : BEATS * 0.62 + 0.8;
     }
 
-    /* Once the story has played out the section stops being a scroll runway
-       and becomes an ordinary one-screen section. Until then it is tall, and
-       the sticky stage inside it is what turns that height into story time. */
-    var finished = false;
     var travelCache = 0;
 
-    /* Strictly read-then-write: measure the stage first, then set the height
+    /* The section's height is set once per layout and then left alone.
+       It used to collapse to a single screen the moment the story finished,
+       to give the dead runway back — but that removed ~4000px from the
+       document in one frame, which is visible twice over: the scrollbar thumb
+       jumps to its new, much larger size, and the scroll correction that keeps
+       the stage still reads as the page shoving you upward. A stable document
+       height is worth more than the reclaimed scrolling, so the runway is
+       shorter instead (see runway() above) and never changes underfoot.
+
+       Strictly read-then-write: measure the stage first, then set the height
        and derive the runway arithmetically. Reading offsetHeight back out
        after writing the height forces a synchronous reflow for a number we
        already know. */
     function sizeStreet() {
       var sh = stageHeight();
-      var h = Math.round(sh * (finished ? 1 : runway()));
+      var h = Math.round(sh * runway());
       street.style.height = h + 'px';
       travelCache = h - sh;
     }
@@ -240,61 +200,16 @@
       if (window.pvStreet && window.pvStreet.ready) window.pvStreet.update(dp);
     }
 
-    /* ---- releasing the scroll lock ----
-       The runway is six-odd screens of scrolling, and every one of them is
-       spent with the stage pinned to the top of the viewport. That is the
-       right trade while the story is still playing — but the moment it ends,
-       those screens are just a frozen frame the reader has to grind past, and
-       they have to grind past them again every time they scroll back up.
-
-       So the section gives the height back. It collapses to a single screen,
-       which makes scrolling through it from then on cost exactly what any
-       other section costs.
-
-       Collapsing moves everything below the section up by the height removed,
-       which would yank the page. The fix is to pin the stage: note where it
-       sits in the viewport, collapse, then scroll by the difference. The stage
-       lands on the same pixel it was already on, so the release is invisible —
-       nothing appears to move, there is simply no runway left underneath. */
-    function finishStreet() {
-      if (finished) return;
-
-      /* Both measurements are taken before anything moves. Once the runway is
-         gone the stage can no longer stick, so it comes to rest on the
-         section's own top edge — which is where `rectTop` already is. The
-         difference between that and where the stage sits right now is exactly
-         how far the page has to be scrolled to leave it looking untouched.
-         Derived, not measured back: reading layout out again after writing the
-         height is a forced reflow, and not every engine answers it honestly. */
-      var rectTop = street.getBoundingClientRect().top;
-      var stageTop = stage.getBoundingClientRect().top;
-      var drift = rectTop - stageTop;
-
-      finished = true;
-      paint(1);                                   /* land exactly on the end frame */
-
-      var doc = document.documentElement;
-      var prevBehavior = doc.style.scrollBehavior;
-      doc.style.scrollBehavior = 'auto';          /* html{scroll-behavior:smooth}
-                                                     would animate the correction
-                                                     and make it very visible */
-      sizeStreet();                               /* now just one stage-height */
-      if (drift) window.scrollBy(0, drift);
-      doc.style.scrollBehavior = prevBehavior;
-
-      if (hint) hint.style.opacity = '0';
-    }
-
+    /* Nothing special happens at the end of the story: progress reaches 1 at
+       exactly the moment the section's bottom edge reaches the bottom of the
+       viewport, so the next pixel of scroll simply unsticks the stage and
+       carries it away like any other section. Leaving the geometry alone is
+       what makes that exit seamless — there is nothing to release. */
     function onStreetScroll() {
       streetTicking = false;
-      /* the runway is gone and progress is parked at 1 — there is nothing
-         left to drive, and this is what stops any chance of a replay */
-      if (finished) return;
       if (travelCache <= 0) { paint(0); return; }
       var p = -street.getBoundingClientRect().top / travelCache;
       paint(p < 0 ? 0 : p > 1 ? 1 : p);
-      /* a hair short of 1 so a scroll that lands a pixel shy still releases */
-      if (maxP >= 0.995) finishStreet();
     }
     function requestStreet() {
       if (streetTicking) return;

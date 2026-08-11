@@ -125,12 +125,15 @@
 
        This is the only lever on how long the section costs to scroll through,
        in both directions, and it has to stay fixed for the whole session so
-       the document height never moves. Trimmed repeatedly — 0.85/0.55 per beat
-       originally, then 0.62/0.45, then 0.45/0.35 — so the reader spends less
-       time pinned: the section is ~2.3 screens on desktop and ~1.8 on a phone. */
+       the document height never moves.
+
+       WARNING: this must stay above 1.0. The stage inside is a full viewport
+       tall, so a runway below 1 makes the section shorter than its own sticky
+       child — travelCache goes negative, onStreetScroll bails to paint(0), and
+       the story freezes on beat 1 and never plays. */
     function runway() {
-      if (reduceMotion) return BEATS * 0.25 + 0.3;
-      return isCompact() ? BEATS * 0.22 + 0.3 : BEATS * 0.28 + 0.3;
+      if (reduceMotion) return BEATS * 0.08 + 0.15;
+      return isCompact() ? BEATS * 0.09 + 0.15 : BEATS * 0.11 + 0.15;
     }
 
     var travelCache = 0;

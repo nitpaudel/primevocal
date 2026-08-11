@@ -125,13 +125,12 @@
 
        This is the only lever on how long the section costs to scroll through,
        in both directions, and it has to stay fixed for the whole session so
-       the document height never moves. Trimmed from 0.85/0.55 per beat: the
-       story still reads at this pace, and the section is ~5 screens on desktop
-       rather than ~7, so there is far less of it to travel back over once the
-       animation has played. */
+       the document height never moves. Trimmed twice now — 0.85/0.55 per beat
+       originally, then 0.62/0.45 — so the reader spends less time pinned:
+       the section is ~3.6 screens on desktop and ~3 on a phone. */
     function runway() {
       if (reduceMotion) return BEATS * 0.38 + 0.5;
-      return isCompact() ? BEATS * 0.45 + 0.5 : BEATS * 0.62 + 0.8;
+      return isCompact() ? BEATS * 0.35 + 0.5 : BEATS * 0.45 + 0.5;
     }
 
     var travelCache = 0;

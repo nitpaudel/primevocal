@@ -20,6 +20,58 @@
   var yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+  /* ---------- announcement bar ----------
+     Counts down from 1d 14h in real time and never lands on zero: the instant
+     it would expire it silently rolls back to 2d 4h and keeps going, so the
+     bar always reads as "closing soon" without ever ending.
+     Timestamp-based rather than a decrementing counter, so a backgrounded tab
+     (where setInterval is throttled to once a minute) resumes on the right
+     number instead of drifting minutes behind. */
+  var anno = document.getElementById('anno');
+  var annoTimer = document.getElementById('annoTimer');
+  if (anno) {
+    var START_MS = (1 * 24 + 14) * 3600 * 1000;   /* 1 day 14 hours */
+    var RESET_MS = (2 * 24 + 4) * 3600 * 1000;    /* rolls back to 2 days 4 hours */
+
+    var dismissed = false;
+    try { dismissed = sessionStorage.getItem('pv-anno') === 'off'; } catch (e) {}
+    if (dismissed) {
+      anno.hidden = true;
+    } else if (annoTimer) {
+      var endAt = Date.now() + START_MS;
+      var pad = function (n) { return String(n).padStart(2, '0'); };
+
+      var tickAnno = function () {
+        var left = endAt - Date.now();
+        /* Rolls over on the last whole second rather than at zero, so the
+           readout never actually renders 0d 00h 00m 00s — it counts down to
+           ...00m 01s and the next tick is 2d 04h 00m 00s again. */
+        while (left < 1000) { endAt = Date.now() + RESET_MS; left = endAt - Date.now(); }
+        var s = Math.floor(left / 1000);
+        var d = Math.floor(s / 86400);
+        var h = Math.floor((s % 86400) / 3600);
+        var m = Math.floor((s % 3600) / 60);
+        annoTimer.textContent = d + 'd ' + pad(h) + 'h ' + pad(m) + 'm ' + pad(s % 60) + 's';
+      };
+
+      tickAnno();
+      setInterval(tickAnno, 1000);
+      /* a throttled background tab can miss ticks; re-sync the moment it
+         comes back so the number never appears frozen */
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) tickAnno();
+      });
+    }
+
+    var annoX = document.getElementById('annoX');
+    if (annoX) {
+      annoX.addEventListener('click', function () {
+        anno.hidden = true;
+        try { sessionStorage.setItem('pv-anno', 'off'); } catch (e) {}
+      });
+    }
+  }
+
   /* ---------- nav hairline + shrink ---------- */
   var nav = document.getElementById('nav');
   if (nav) {
@@ -65,15 +117,18 @@
   window.addEventListener('load', revealVisible);
   setTimeout(revealVisible, 1400);
 
-  /* Lara's avatar. Primary path is assets/lara-avatar.png; a few common
-     alternates are tried so the file still resolves whatever it gets saved as
-     (including the ./lara-avatar.png.png the file arrived with). If none
-     resolve the <img> is dropped and the parent gets .avatar-missing, which
-     restores the green disc and mark instead of a broken-image icon. */
-  document.querySelectorAll('.chat-av img, .ph-avatar img').forEach(function (img) {
+  /* Lara's avatar. Primary path is assets/lara-avatar.jpg; only spellings of
+     that same file are tried after it (including the doubled .jpg.jpg the file
+     arrived with), never the old ./lara-avatar.png — that is a different face
+     and falling back to it would quietly put the wrong person on the page.
+     If none resolve the <img> is dropped and the parent gets .avatar-missing,
+     which restores the green disc and the PV mark rather than a broken icon. */
+  document.querySelectorAll('.imsg-av img, .chat-av img, .ph-avatar img').forEach(function (img) {
     var tries = [
-      'assets/lara-avatar.png', 'assets/lara-avatar.jpg', 'assets/lara-avatar.webp',
-      './lara-avatar.png', './lara-avatar.png.png', './lara-avatar.jpg', './assets/lara.png'
+      'assets/lara-avatar.jpg',
+      'assets/lara-avatar.jpg.jpg',
+      'assets/lara-avatar.jpeg',
+      'assets/lara-avatar.webp'
     ];
     var i = 0;
     function fail() {
@@ -101,6 +156,7 @@
     var hint = document.getElementById('streetHint');
     var BEATS = beats.length;                 /* 7 */
     var streetTicking = false;
+    var maxP = 0;
 
     /* where each beat owns the screen, as a fraction of the scroll */
     var BEAT_AT = [0.00, 0.15, 0.42, 0.59, 0.68, 0.78, 0.90];
@@ -125,31 +181,65 @@
 
     function sizeStreet() {
       street.style.height = Math.round(stageHeight() * runway()) + 'px';
+      measureStreet();
     }
 
+    /* One-way ratchet.
+       The story plays once, on the way down. Scrolling back up must not rewind
+       it — it stays parked on the end frame (where scene.js keeps James
+       breathing) — so progress is clamped to the furthest point reached and
+       never given back. Everything downstream reads maxP, never the raw
+       scroll position. */
+    var lastBeat = -1, lastMins = -1, lastHint = -1;
+
     function paint(p) {
-      /* which beat is speaking */
-      var idx = 0;
-      for (var i = 0; i < BEAT_AT.length; i++) if (p >= BEAT_AT[i]) idx = i;
-      beats.forEach(function (b, i) { b.classList.toggle('on', i === idx); });
-      street.dataset.beat = String(idx + 1);
-
-      /* CCTV clock ticks 9:00 PM → 9:14 PM across the story */
-      if (recTime) {
-        var mins = Math.floor(p * 14);
-        recTime.textContent = '09:' + String(mins).padStart(2, '0') + ' PM';
+      if (p <= maxP) {
+        /* already been here — nothing to repaint, and nothing to hand the
+           renderer either, which is what keeps scrolling back up quiet */
+        if (lastBeat !== -1) return;
+      } else {
+        maxP = p;
       }
-      if (hint) hint.style.opacity = p > 0.04 ? '0' : '';
+      var dp = maxP;
 
-      if (window.pvStreet && window.pvStreet.ready) window.pvStreet.update(p);
+      var idx = 0;
+      for (var i = 0; i < BEAT_AT.length; i++) if (dp >= BEAT_AT[i]) idx = i;
+      /* only touch the DOM when something actually changed — these run on
+         every scroll frame, and redundant class/text writes are what makes a
+         scroll-linked section feel gritty */
+      if (idx !== lastBeat) {
+        lastBeat = idx;
+        beats.forEach(function (b, i) { b.classList.toggle('on', i === idx); });
+        street.dataset.beat = String(idx + 1);
+      }
+
+      if (recTime) {
+        var mins = Math.floor(dp * 14);
+        if (mins !== lastMins) {
+          lastMins = mins;
+          recTime.textContent = '09:' + String(mins).padStart(2, '0') + ' PM';
+        }
+      }
+      if (hint) {
+        var h = dp > 0.04 ? 0 : 1;
+        if (h !== lastHint) { lastHint = h; hint.style.opacity = h ? '' : '0'; }
+      }
+
+      if (window.pvStreet && window.pvStreet.ready) window.pvStreet.update(dp);
+    }
+
+    /* The runway is fixed per layout, so measuring it on every scroll frame
+       is pure layout thrash. Cache it and refresh only when the page resizes. */
+    var travelCache = 0;
+    function measureStreet() {
+      travelCache = street.offsetHeight - stageHeight();
     }
 
     function onStreetScroll() {
       streetTicking = false;
-      var travel = street.offsetHeight - stageHeight();
-      if (travel <= 0) { paint(0); return; }
-      var p = Math.min(Math.max(-street.getBoundingClientRect().top / travel, 0), 1);
-      paint(p);
+      if (travelCache <= 0) { paint(0); return; }
+      var p = -street.getBoundingClientRect().top / travelCache;
+      paint(p < 0 ? 0 : p > 1 ? 1 : p);
     }
     function requestStreet() {
       if (streetTicking) return;
@@ -264,8 +354,19 @@
         ctx.restore();
       }
 
+      /* Painting a full-screen canvas while the section is nowhere near the
+         viewport costs a frame budget the rest of the page needs. Skip the
+         work when the stage is off-screen; the loop stays alive so it picks
+         straight back up when it scrolls in. */
+      var onScreen = true;
+      if ('IntersectionObserver' in window && stage) {
+        new IntersectionObserver(function (entries) {
+          onScreen = entries[0].isIntersecting;
+        }, { rootMargin: '120px 0px' }).observe(stage);
+      }
+
       function draw(ms) {
-        if (!fit()) { requestAnimationFrame(draw); return; }
+        if (!onScreen || !fit()) { requestAnimationFrame(draw); return; }
         var t = ms / 1000;
         var cw = canvas.width, ch = canvas.height;
         var p = prog;
@@ -346,14 +447,14 @@
           ctx.textAlign = 'center';
           ctx.fillText(b.name, b.x + b.w / 2, top - 14);
 
-          if (bi === 0) {                            /* CLOSED plate on the door */
+          if (bi === 0) {
             ctx.fillStyle = 'rgba(139,32,32,' + 0.4 * dim + ')';
-            ctx.fillRect(b.x + b.w / 2 - 34, GROUND - 44, 68, 22);
+            ctx.fillRect(b.x + b.w / 2 - 44, GROUND - 44, 88, 22);
             ctx.strokeStyle = 'rgba(200,90,80,' + 0.85 * dim + ')'; ctx.lineWidth = 1.3;
-            ctx.strokeRect(b.x + b.w / 2 - 34, GROUND - 44, 68, 22);
+            ctx.strokeRect(b.x + b.w / 2 - 44, GROUND - 44, 88, 22);
             ctx.fillStyle = CREAM + 0.9 * dim + ')';
-            ctx.font = '600 11px "IBM Plex Mono", monospace';
-            ctx.fillText('CLOSED', b.x + b.w / 2, GROUND - 29);
+            ctx.font = '600 10px "IBM Plex Mono", monospace';
+            ctx.fillText('OFF HOURS', b.x + b.w / 2, GROUND - 29);
           }
 
           if (bi === 1) {
@@ -653,31 +754,88 @@
     });
   }
 
-  /* chat playback */
-  var chatBubbles = document.querySelectorAll('#chatBody .bub');
+  /* ---------- SMS pane · auto-playing conversation ----------
+     Nobody scrolls this: it deals itself out on timers, with a typing
+     indicator in front of every one of Lara's replies and a pause that scales
+     with how much she has to say, then holds the booking badge for three
+     seconds and starts again from an empty thread.
+
+     `think` is how long the sender sits there before the bubble lands;
+     `type`  is how long Lara's dots run before her bubble replaces them. */
+  var imsgBody = document.getElementById('imsgBody');
   var chatTimers = [];
+  var chatRun = 0;                    /* cancels a loop that is mid-flight */
+
+  var IMSG_SCRIPT = [
+    { from: 'them', text: 'Hi, is there an appointment available tomorrow?', think: 700 },
+    { from: 'us',   text: 'Hey! Yes, we have 10:30am or 2:15pm free. Which works for you?', think: 500, type: 1500 },
+    { from: 'them', text: '2:15 please', think: 1500 },
+    { from: 'us',   text: 'Perfect! Can I grab your name?', think: 420, type: 1000 },
+    { from: 'them', text: 'James', think: 1300 },
+    { from: 'us',   text: "Done! James you're booked for tomorrow at 2:15pm. See you then 😊", think: 460, type: 1700 },
+    { from: 'card', text: '✓ Booking confirmed · Tomorrow, 2:15pm', think: 750 }
+  ];
+
+  function bubble(cls, text) {
+    var el = document.createElement('div');
+    el.className = 'imsg-bub ' + cls;
+    el.textContent = text;
+    imsgBody.appendChild(el);
+    /* two frames: one to attach, one so the transition has a from-state */
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { el.classList.add('in'); });
+    });
+    return el;
+  }
+
   function resetChat() {
+    chatRun++;
     chatTimers.forEach(clearTimeout);
     chatTimers = [];
-    chatBubbles.forEach(function (b) { b.classList.remove('in'); });
+    if (imsgBody) imsgBody.innerHTML = '';
   }
+
   function playChat() {
     resetChat();
+    if (!imsgBody) return;
+
+    /* reduced motion: show the finished thread, no timers, no loop */
     if (reduceMotion) {
-      chatBubbles.forEach(function (b) { if (!b.classList.contains('typing')) b.classList.add('in'); });
+      IMSG_SCRIPT.forEach(function (m) {
+        bubble(m.from + ' in', m.text);
+      });
       return;
     }
-    var delay = 260;
-    chatBubbles.forEach(function (b, i) {
-      var isTyping = b.classList.contains('typing');
-      chatTimers.push(setTimeout(function () {
-        b.classList.add('in');
-        if (isTyping) {
-          chatTimers.push(setTimeout(function () { b.classList.remove('in'); }, 2200));
-        }
-      }, delay + i * 900));
+
+    var run = chatRun;
+    var at = 0;
+    var after = function (ms, fn) {
+      at += ms;
+      chatTimers.push(setTimeout(function () { if (run === chatRun) fn(); }, at));
+    };
+
+    IMSG_SCRIPT.forEach(function (m) {
+      if (m.from === 'us') {
+        /* Lara: dots appear on her side, then swap for the reply */
+        after(m.think, function () {
+          var dots = document.createElement('div');
+          dots.className = 'imsg-typing us';
+          dots.innerHTML = '<i></i><i></i><i></i>';
+          imsgBody.appendChild(dots);
+          requestAnimationFrame(function () { dots.classList.add('in'); });
+        });
+        after(m.type, function () {
+          var dots = imsgBody.querySelector('.imsg-typing');
+          if (dots) dots.remove();
+          bubble('us', m.text);
+        });
+      } else {
+        after(m.think, function () { bubble(m.from === 'card' ? 'card' : 'them', m.text); });
+      }
     });
-    chatTimers.push(setTimeout(playChat, delay + chatBubbles.length * 900 + 3600));
+
+    /* hold the confirmation, then run the whole thread again from empty */
+    after(3000, playChat);
   }
 
   vcTabs.forEach(function (tab) {
@@ -905,21 +1063,21 @@
     if (!phone) return;
     phone.dataset.state = 'idle';
     phRings.classList.remove('ringing');
-    phStatus.textContent = 'Incoming call';
+    phStatus.textContent = 'Incoming Call';
     phName.textContent = 'Lara';
-    phSub.textContent = 'Waiting for your request';
+    phSub.textContent = 'Prime Vocal';
   }
 
   function connectCall() {
     if (!phone) return;
     phone.dataset.state = 'connected';
     phRings.classList.remove('ringing');
-    phStatus.textContent = 'Connected';
-    phSub.textContent = 'Connected · 0:00';
+    phStatus.textContent = 'Prime Vocal';
+    phSub.textContent = '0:00';
     elapsed = 0;
     tickTimer = setInterval(function () {
       elapsed += 1;
-      phSub.textContent = 'Connected · ' + fmt(elapsed);
+      phSub.textContent = fmt(elapsed);
       if (elapsed >= CALL_LENGTH) endCall();
     }, 1000);
   }
@@ -942,9 +1100,9 @@
     clearTimeout(connectTimer); clearInterval(tickTimer);
     if (!phone) return;
     phone.dataset.state = 'ringing';
-    phStatus.textContent = 'Calling';
+    phStatus.textContent = 'Incoming Call';
     phName.textContent = name || 'Lara';
-    phSub.textContent = 'Ringing you now…';
+    phSub.textContent = 'Prime Vocal';
     phRings.classList.add('ringing');
     connectTimer = setTimeout(connectCall, CONNECT_AFTER);
   }

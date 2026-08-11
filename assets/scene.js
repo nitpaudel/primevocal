@@ -27,11 +27,17 @@ if (canvas && !window.pvStreet) boot();
 function boot() {
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer = new THREE.WebGLRenderer({
+      canvas, antialias: true, alpha: false,
+      powerPreference: 'high-performance'
+    });
   } catch (e) {
     return;                       /* no WebGL — CSS gradient carries the section */
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  /* 3x DPR on a phone means nine times the fragments for a scene nobody is
+     pixel-peeping; 1.75 is the point where the extra cost stops buying any
+     visible sharpness and starts costing frames, which is what reads as jitter */
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
   renderer.shadowMap.enabled = false;
 
   const scene = new THREE.Scene();
@@ -161,14 +167,14 @@ function boot() {
     draw(ctx) {
       /* CLOSED sign hanging on the door */
       ctx.fillStyle = 'rgba(139,32,32,.35)';
-      ctx.fillRect(214, 398, 88, 30);
+      ctx.fillRect(202, 398, 112, 30);
       ctx.strokeStyle = 'rgba(200,90,80,.9)';
       ctx.lineWidth = 1.6;
-      ctx.strokeRect(214, 398, 88, 30);
+      ctx.strokeRect(202, 398, 112, 30);
       ctx.fillStyle = '#F2EFE6';
-      ctx.font = '600 17px "IBM Plex Mono", monospace';
+      ctx.font = '600 15px "IBM Plex Mono", monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('CLOSED', 258, 419);
+      ctx.fillText('OFF HOURS', 258, 419);
     }
   });
 
@@ -578,6 +584,15 @@ function boot() {
   /* ---------- render loop ---------- */
   let progress = 0, target = 0, walked = 0, time = 0;
   let camZ = 27;
+  let prevMs = 0;
+  let idleMix = 1;      /* 0 = mid-walk pose, 1 = standing idle */
+
+  /* Frame-rate independent smoothing.
+     `a += (b - a) * k` is only correct at one refresh rate: on a 120Hz laptop
+     it converges twice as fast as on 60Hz, and on a stuttering frame it barely
+     moves at all — which is exactly the uneven, laggy feel the scroll had.
+     Weighting by elapsed time makes the response identical everywhere. */
+  const damp = (cur, tgt, lambda, dt) => cur + (tgt - cur) * (1 - Math.exp(-lambda * dt));
 
   /* How much street to hold in frame, in world units.
      A phone in portrait is ~0.46 aspect: fitting the desktop's 44 units there
@@ -607,12 +622,33 @@ function boot() {
     }
   }
 
-  function frame(ms) {
-    time = ms / 1000;
-    resize();
+  /* Reading clientWidth/clientHeight forces a layout, and doing that inside
+     the render loop meant one forced reflow per frame for a box that changes
+     a handful of times in a session. Poll it four times a second instead —
+     still catches mobile browser chrome collapsing, costs nothing. */
+  let resizeAt = -1e9;
 
-    /* ease toward the scroll target so the camera never snaps */
-    progress += (target - progress) * 0.09;
+  /* Nothing below the fold needs drawing. When the stage is off-screen the
+     loop keeps ticking but skips the update and the render entirely, which
+     hands the whole frame budget back to the rest of the page. */
+  let visible = true;
+
+  function frame(ms) {
+    requestAnimationFrame(frame);
+
+    /* clamped so a tab that was backgrounded for a minute does not resume
+       with a one-frame jump the size of the whole animation */
+    const dt = prevMs ? Math.min((ms - prevMs) / 1000, 0.05) : 0.016;
+    prevMs = ms;
+    time = ms / 1000;
+
+    if (ms - resizeAt > 250) { resizeAt = ms; resize(); }
+    if (!visible) return;
+
+    /* lambda 8 ≈ the old 0.12-per-frame feel at 60Hz, but identical on any
+       display and forgiving of a dropped frame */
+    progress = damp(progress, target, 8, dt);
+    if (Math.abs(target - progress) < 0.0004) progress = target;
     const p = progress;
 
     /* ---- James walks: -30 → -26 → 0 → 26 → 40 ---- */
@@ -631,15 +667,42 @@ function boot() {
 
     const moving = Math.abs(x - prevX) > 0.004;
     const stride = moving ? Math.sin(walked * 1.5) : 0;
+
+    /* ---- idle ----
+       The story plays once and then parks; main.js never hands progress back,
+       so this is the frame the reader sits on for as long as they linger, and
+       on the way back up. A frozen figure looks like a crash, so he keeps
+       breathing: a slow chest rise, a barely-there weight shift, and the free
+       arm drifting. Amplitudes are deliberately tiny — it should register as
+       "alive", never as "still animating". */
+    const idle = !moving;
+    const breath = Math.sin(time * 0.85);
+
     legL.rotation.x = stride * 0.75;
     legR.rotation.x = -stride * 0.75;
-    armFree.rotation.x = -stride * 0.5;
-    james.position.y = moving ? Math.abs(Math.sin(walked * 3)) * 0.07 : 0;
-    james.rotation.y = 0.32;
+
+    /* One damped weight cross-fades the whole pose between walking and
+       standing, so the walk cycle keeps its full amplitude and the hand-off
+       into the idle still has no pop in it. */
+    idleMix = damp(idleMix, idle ? 1 : 0, 4.5, dt);
+    const w = 1 - idleMix;
+
+    james.position.y   = Math.abs(Math.sin(walked * 3)) * 0.07 * w + breath * 0.022 * idleMix;
+    james.rotation.z   = Math.sin(time * 0.42) * 0.008 * idleMix;   /* weight shifting */
+    james.rotation.y   = 0.32 + Math.sin(time * 0.5) * 0.014 * idleMix;
+    armFree.rotation.x = -stride * 0.5 * w + Math.sin(time * 0.62) * 0.05 * idleMix;
+    armFree.rotation.z = Math.sin(time * 0.55) * 0.045 * idleMix;
+    torso.scale.set(
+      1 + breath * 0.012 * idleMix,
+      1 + breath * 0.016 * idleMix,   /* the chest rise */
+      1 + breath * 0.012 * idleMix
+    );
+    headMesh.position.y = 3.15 + breath * 0.018 * idleMix;
+    face.position.y = headMesh.position.y + 0.02;   /* the face rides the head */
 
     /* phone raised while calling */
     const calling = (p > 0.15 && p < 0.30) || (p > 0.42 && p < 0.57) || (p > 0.66 && p < 0.86);
-    armPhone.rotation.z = THREE.MathUtils.lerp(armPhone.rotation.z, calling ? -2.15 : -0.05, 0.1);
+    armPhone.rotation.z = damp(armPhone.rotation.z, calling ? -2.15 : -0.05, 7, dt);
     phoneGlow.material.opacity = calling ? 0.5 + Math.sin(time * 6) * 0.3 : 0.12;
 
     /* ---- camera follows horizontally ----
@@ -650,10 +713,10 @@ function boot() {
        instead and stops before it runs past Parkview. */
     const port = isPortrait();
     const camX = port ? x + 0.5 : Math.min(x + 3, 29);
-    camera.position.x += (camX - camera.position.x) * (port ? 0.09 : 0.06);
+    camera.position.x = damp(camera.position.x, camX, port ? 6 : 4, dt);
     const camY = port ? (p > 0.87 ? 7.4 : 6.4) : (p > 0.87 ? 8.8 : 7.5);
-    camera.position.y += (camY - camera.position.y) * 0.05;
-    camera.position.z += (camZ - camera.position.z) * 0.08;
+    camera.position.y = damp(camera.position.y, camY, 3.2, dt);
+    camera.position.z = damp(camera.position.z, camZ, 5, dt);
     camera.lookAt(camera.position.x - (port ? 0.5 : 2.4), port ? 4.6 : 5.2, 0);
 
     /* parallax: skyline drifts at 0.3x the camera */
@@ -733,17 +796,17 @@ function boot() {
     const dim = 1 - seg(p, 0.9, 1) * 0.4;
     [bmesh.a, bmesh.b].forEach(b => { b.front.emissiveIntensity = 0.42 * dim; });
 
-    /* dust drift */
+    /* dust drift — scaled by dt so it moves at one speed on every display */
+    const k = dt * 60;
     const pa = dustGeo.attributes.position;
     for (let i = 0; i < DUST; i++) {
-      const y = pa.array[i * 3 + 1] + 0.004 + Math.sin(time * 0.4 + dseed[i]) * 0.002;
+      const y = pa.array[i * 3 + 1] + (0.004 + Math.sin(time * 0.4 + dseed[i]) * 0.002) * k;
       pa.array[i * 3 + 1] = y > 23 ? 0 : y;
-      pa.array[i * 3] += Math.sin(time * 0.22 + dseed[i]) * 0.004;
+      pa.array[i * 3] += Math.sin(time * 0.22 + dseed[i]) * 0.004 * k;
     }
     pa.needsUpdate = true;
 
     renderer.render(scene, camera);
-    requestAnimationFrame(frame);
   }
   /* Size it up front and on every viewport change, not only inside the render
      loop — rAF is throttled on mobile (low-power mode, backgrounded tab), and
@@ -758,6 +821,16 @@ function boot() {
      out yet, so the first resize() finds a zero-width canvas. Retry off timers
      so sizing never depends on rAF or on event ordering. */
   [60, 250, 800, 2000].forEach(function (ms) { setTimeout(resize, ms); });
+
+  /* stop drawing once the street has left the viewport; the margin means it is
+     already a frame or two ahead by the time it scrolls back into view */
+  if ('IntersectionObserver' in window) {
+    const stage = canvas.closest('.street-stage') || canvas;
+    new IntersectionObserver(entries => {
+      visible = entries[0].isIntersecting;
+      if (visible) { prevMs = 0; resizeAt = -1e9; }   /* no dt spike on return */
+    }, { rootMargin: '150px 0px' }).observe(stage);
+  }
 
   requestAnimationFrame(frame);
 

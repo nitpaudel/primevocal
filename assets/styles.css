@@ -174,6 +174,79 @@ img,svg{ max-width:100%; display:block; }
   box-shadow:0 16px 28px -18px rgba(0,0,0,.8);
 }
 
+/* ---------- announcement bar ----------
+   Above the nav, in normal flow, so it scrolls out of the way rather than
+   eating a permanent 40px of a phone screen. Dark forest green in both
+   themes — it is a fixed brand block, not a surface that follows the paper. */
+.anno{
+  background:linear-gradient(100deg, #143d29 0%, #1E5B3F 46%, #17492F 100%);
+  color:#F2FBF5;
+  border-bottom:1px solid rgba(140,230,185,.18);
+  position:relative;
+  z-index:190;              /* under the sticky nav, which slides over it */
+}
+.anno[hidden]{ display:none; }
+.anno-row{
+  display:flex; align-items:center; justify-content:space-between; gap:18px;
+  padding-block:7px;
+  min-height:38px;
+}
+.anno-text{
+  margin:0;
+  font-size:.83rem;
+  line-height:1.35;
+  letter-spacing:.005em;
+  color:rgba(242,251,245,.92);
+  display:flex; align-items:baseline; gap:7px;
+  min-width:0;
+}
+.anno-text strong{ font-weight:600; color:#EAFBF1; white-space:nowrap; }
+.anno-bolt{ font-size:.92rem; line-height:1; flex:0 0 auto; }
+
+.anno-right{ display:flex; align-items:center; gap:12px; flex:0 0 auto; }
+.anno-timer{
+  font-size:.7rem;
+  line-height:1.45;        /* body's 1.6 made the pill tall enough to thicken the bar */
+  letter-spacing:.12em;
+  color:#DFF6E9;
+  background:rgba(6,20,13,.34);
+  border:1px solid rgba(140,230,185,.26);
+  border-radius:999px;
+  padding:4px 12px;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.anno-x{
+  width:26px; height:26px;
+  flex:0 0 auto;
+  display:grid; place-items:center;
+  background:transparent;
+  border:1px solid rgba(242,251,245,.24);
+  border-radius:50%;
+  color:rgba(242,251,245,.75);
+  padding:0;
+  transition:color .2s var(--ease), border-color .2s var(--ease),
+             transform .25s var(--spring), background .2s var(--ease);
+}
+.anno-x:hover{
+  color:#fff; border-color:rgba(242,251,245,.6);
+  background:rgba(242,251,245,.1);
+  transform:rotate(90deg);
+}
+.anno-x svg{ width:11px; height:11px; }
+
+@media (max-width:860px){
+  .anno-row{ gap:12px; padding-block:8px; }
+  .anno-text{ font-size:.75rem; }
+  .anno-timer{ font-size:.62rem; padding:4px 9px; letter-spacing:.08em; }
+}
+@media (max-width:560px){
+  /* the promise is the hook; the scarcity line is what gets dropped first */
+  .anno-text strong{ display:none; }
+  .anno-text{ font-size:.72rem; }
+  .anno-x{ width:24px; height:24px; }
+}
+
 /* ---------- nav ---------- */
 .nav{
   position:sticky; top:0; z-index:200;
@@ -193,25 +266,43 @@ img,svg{ max-width:100%; display:block; }
 /* the mark inherits colour, so one asset covers light and dark */
 .mark{ width:auto; color:currentColor; display:block; object-fit:contain; }
 
-/* Lara's avatar. The photo sits over the disc and fills it; the PV mark
-   underneath is only revealed if the image fails to load, in which case
+/* Lara's avatar · assets/lara-avatar.jpg
+   The source is a square head-and-shoulders portrait, so a plain
+   object-fit:cover would show the whole torso and leave the face as a small
+   detail near the top of the disc. Instead the image is laid out at 165% of
+   the (always square) holder and pulled up-left, which frames the head —
+   hair to collar, face dead centre, nothing clipped off the chin or ears.
+   The PV mark underneath only shows if the file fails to load, in which case
    main.js drops the <img> and adds .avatar-missing. */
 .avatar-img{
   position:absolute;
-  inset:0;
-  width:100%; height:100%;
+  /* Frames a 900x900 window on the 1254x1254 source, anchored at (146, 25):
+     hair-bun to collar, head dead centre horizontally, ~5% clearance above
+     the bun and ~20% below the chin, so nothing touches the circle's edge. */
+  width:139%; height:139%;
+  left:-16.2%; top:-2.8%;
+  max-width:none;          /* the global img{max-width:100%} would undo the zoom */
   object-fit:cover;
-  /* assets/lara-avatar.png is already a square 320x320 crop, so a centred
-     cover fills the disc with no cropping at all — full face, hair to chin */
   object-position:center center;
-  border-radius:50%;
   display:block;
   z-index:2;
 }
+/* every holder that carries a .avatar-img is a perfect circle with the
+   overflow clipped, so the crop above always lands as a clean round face */
+.imsg-av,
+.chat-av,
+.ph-avatar{
+  position:relative;
+  border-radius:50%;
+  overflow:hidden;
+  isolation:isolate;
+}
 /* the mark is the avatar fallback only */
+.imsg-av .mark,
 .chat-av .mark,
 .ph-avatar .mark{ display:none; }
-.chat-av.avatar-missing .mark{ display:block; }
+.imsg-av.avatar-missing .mark,
+.chat-av.avatar-missing .mark,
 .ph-avatar.avatar-missing .mark{ display:block; }
 
 /* ---------- header: wordmark only ----------
@@ -506,6 +597,133 @@ img,svg{ max-width:100%; display:block; }
 .bub.typing i:nth-child(3){ animation-delay:.36s; }
 @keyframes dots{ 0%,100%{transform:translateY(0); opacity:.35} 50%{transform:translateY(-4px); opacity:.9} }
 .chat-foot{ color:var(--dark-mut); text-align:center; margin:14px 0 0; }
+
+/* ---------- SMS pane · auto-playing conversation ----------
+   iMessage shape (rounded bubbles, tails, typing dots) in the site's own
+   palette: the card stays dark, Lara answers in green on the right, the
+   prospect writes in slate grey on the left. It never scrolls — the column
+   is bottom-anchored inside a fixed box and the top edge fades out, so the
+   thread rises on its own and the pane height never moves. */
+.imsg{
+  background:linear-gradient(170deg, rgba(245,243,236,.045) 0%, rgba(245,243,236,.015) 100%);
+  border:1px solid rgba(245,243,236,.1);
+  border-radius:16px;
+  overflow:hidden;
+  display:flex; flex-direction:column;
+  height:342px;
+}
+.imsg-head{
+  display:flex; align-items:center; gap:11px;
+  padding:11px 14px;
+  border-bottom:1px solid rgba(245,243,236,.1);
+  background:rgba(245,243,236,.03);
+  flex:0 0 auto;
+}
+.imsg-av{
+  width:34px; height:34px;
+  flex:0 0 34px;
+  display:grid; place-items:center;
+  color:#F5F3EC;
+}
+.imsg-av.avatar-missing{ background:linear-gradient(150deg, #4E9A6E, #1E5B3F); }
+.imsg-av .mark{ height:16px; }
+.imsg-who{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.imsg-name{
+  font-size:.88rem; font-weight:600;
+  color:var(--dark-fg);
+  line-height:1.15;
+}
+.imsg-role{
+  display:flex; align-items:center; gap:6px;
+  font-size:.56rem;
+  color:var(--dark-mut);
+}
+.imsg-role .live-dot{ width:6px; height:6px; }
+
+.imsg-body{
+  flex:1 1 auto;
+  display:flex; flex-direction:column; gap:5px;
+  padding:12px 12px 14px;
+  overflow:hidden;
+  justify-content:flex-end;
+  /* The column is bottom-anchored, so as the thread grows the opening lines
+     drift off the top edge exactly as they would in a real inbox. The fade
+     is what makes that read as "scrolled up" rather than "sliced off". */
+  -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 46px);
+          mask-image:linear-gradient(to bottom, transparent 0, #000 46px);
+}
+.imsg-bub{
+  max-width:78%;
+  padding:8px 13px;
+  border-radius:17px;
+  font-size:.8rem;
+  line-height:1.38;
+  opacity:0;
+  transform:translateY(10px) scale(.96);
+  transition:opacity .35s var(--ease), transform .42s var(--spring);
+  flex:0 0 auto;
+}
+.imsg-bub.in{ opacity:1; transform:none; }
+/* prospect · grey, left */
+.imsg-bub.them{
+  align-self:flex-start;
+  background:rgba(245,243,236,.11);
+  color:var(--dark-fg);
+  border-bottom-left-radius:6px;
+}
+/* Lara · green, right */
+.imsg-bub.us{
+  align-self:flex-end;
+  background:linear-gradient(155deg, #3f8f66 0%, #1E5B3F 100%);
+  color:#F3FBF6;
+  border-bottom-right-radius:6px;
+  box-shadow:0 8px 18px -14px rgba(30,91,63,.9);
+}
+/* booking confirmation badge */
+.imsg-bub.card{
+  align-self:stretch;
+  max-width:100%;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  background:rgba(78,154,110,.14);
+  border:1px solid rgba(140,230,185,.32);
+  border-radius:11px;
+  padding:9px 14px;
+  text-align:center;
+  font-family:var(--monoF);
+  font-size:.6rem; letter-spacing:.09em; text-transform:uppercase;
+  font-weight:500;
+  color:var(--glow);
+  margin-top:3px;
+}
+.imsg-typing{
+  align-self:flex-start;
+  display:flex; gap:4px; align-items:center;
+  background:rgba(245,243,236,.11);
+  padding:11px 15px;
+  border-radius:17px;
+  border-bottom-left-radius:6px;
+  opacity:0;
+  transform:translateY(6px);
+  transition:opacity .28s var(--ease), transform .28s var(--ease);
+  flex:0 0 auto;
+}
+/* Lara is typing, so her indicator sits on her side in her colour */
+.imsg-typing.us{
+  align-self:flex-end;
+  background:rgba(78,154,110,.24);
+  border-radius:17px;
+  border-bottom-right-radius:6px;
+  border-bottom-left-radius:17px;
+}
+.imsg-typing.in{ opacity:1; transform:none; }
+.imsg-typing i{
+  width:5px; height:5px; border-radius:50%;
+  background:var(--dark-fg); opacity:.5;
+  animation:dots 1.2s ease-in-out infinite;
+}
+.imsg-typing.us i{ background:var(--glow); opacity:.75; }
+.imsg-typing i:nth-child(2){ animation-delay:.18s; }
+.imsg-typing i:nth-child(3){ animation-delay:.36s; }
 
 .vc-actions{
   display:grid; grid-template-columns:1fr 1fr; gap:10px;
@@ -983,10 +1201,14 @@ img,svg{ max-width:100%; display:block; }
 .side-r{ right:-3px; top:150px; }
 .side-r i{ display:block; width:3px; height:56px; border-radius:2px; background:#4a4a4c; }
 
+/* iOS incoming-call screen: a flat, near-black wall with one soft lift behind
+   the caller. No icons, no widgets — caller, name, two buttons. */
 .phone-screen{
   position:relative;
-  background:#FFFFFF;
-  color:#111111;
+  background:
+    radial-gradient(120% 62% at 50% 26%, rgba(58,64,72,.5) 0%, rgba(20,22,26,0) 62%),
+    linear-gradient(180deg, #1B1D21 0%, #121317 34%, #0A0B0D 72%, #050506 100%);
+  color:#ffffff;
   border-radius:46px;
   padding:52px 20px 26px;
   min-height:600px;
@@ -1030,37 +1252,51 @@ img,svg{ max-width:100%; display:block; }
   letter-spacing:.02em;
   text-transform:none;
   z-index:2;
-  color:#111111;
+  color:#ffffff;
 }
 .sb-right{ display:flex; align-items:center; gap:5px; }
 .status-bar svg{ height:10px; width:auto; fill:currentColor; }
 
-.ph-status{ color:#111111; opacity:.45; margin:16px 0 30px; }
+/* "Incoming Call" — the one line of chrome at the top of the screen */
+.ph-status{
+  color:rgba(255,255,255,.62);
+  font-size:.62rem;
+  letter-spacing:.2em;
+  margin:26px 0 34px;
+}
 
 .ph-rings{
   position:relative;
   width:150px; height:150px;
   display:grid; place-items:center;
-  margin-bottom:28px;
+  margin-bottom:26px;
 }
 .ph-rings i{
   position:absolute;
-  border:1.5px solid #1E5B3F;
+  border:1.5px solid rgba(140,230,185,.55);
   border-radius:50%;
   width:100%; height:100%;
   opacity:0;
 }
+/* idle reads as an incoming call too — the screen says so — so the pulse
+   runs there as well and only stops once the call connects or ends */
+.phone[data-state="idle"] .ph-rings i,
 .ph-rings.ringing i{ animation:ring 2s ease-out infinite; }
+.phone[data-state="idle"] .ph-rings i:nth-child(2),
 .ph-rings.ringing i:nth-child(2){ animation-delay:.65s; }
+.phone[data-state="idle"] .ph-rings i:nth-child(3),
 .ph-rings.ringing i:nth-child(3){ animation-delay:1.3s; }
-@keyframes ring{ 0%{opacity:.6; transform:scale(.55)} 100%{opacity:0; transform:scale(1.15)} }
+/* starts flush with the 104px avatar inside the 150px box, so the pulse
+   reads as leaving her face rather than cutting across it */
+@keyframes ring{ 0%{opacity:.55; transform:scale(.7)} 100%{opacity:0; transform:scale(1.2)} }
 .ph-avatar{
   position:relative;
   border-radius:50%;
   overflow:hidden;
-  width:84px; height:84px;
+  width:104px; height:104px;
   display:grid; place-items:center;
   color:#F5F3EC;
+  box-shadow:0 18px 40px -18px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.09);
   animation:avatarBreath 4.5s var(--ease) infinite;
 }
 /* green disc only comes back if lara-avatar.png is missing */
@@ -1073,25 +1309,42 @@ img,svg{ max-width:100%; display:block; }
 .ph-rings.ringing .ph-avatar{ animation:nudge 2s ease-in-out infinite; }
 @keyframes nudge{ 0%,100%{transform:rotate(0)} 4%{transform:rotate(-7deg)} 8%{transform:rotate(6deg)} 12%{transform:rotate(-4deg)} 16%{transform:rotate(0)} }
 
+/* Apple sets the caller name large and light — that, and nothing else */
 .ph-name{
-  font-family:var(--serif);
-  font-size:1.55rem;
-  font-weight:500;
-  color:#111111;
-  margin:0 0 8px;
+  font-family:var(--sans);
+  font-size:2.05rem;
+  font-weight:400;
+  color:#ffffff;
+  margin:0 0 7px;
   max-width:100%;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  letter-spacing:-.015em;
+  line-height:1.1;
 }
-.ph-sub{ color:#111111; opacity:.45; margin:0 0 auto; font-variant-numeric:tabular-nums; }
-.phone[data-state="connected"] .ph-sub{ opacity:1; color:#1E5B3F; }
+.ph-sub{
+  color:rgba(255,255,255,.5);
+  opacity:1;
+  margin:0 0 auto;
+  font-size:.66rem;
+  letter-spacing:.14em;
+  font-variant-numeric:tabular-nums;
+}
+.phone[data-state="connected"] .ph-sub{ color:#34C759; letter-spacing:.1em; }
 
 .ph-actions{
-  display:flex; gap:52px;
+  display:flex; gap:56px;
   margin-top:34px;
-  align-items:center; justify-content:center;
+  align-items:flex-start; justify-content:center;
+}
+.ph-action-wrap{
+  display:flex; flex-direction:column; align-items:center; gap:7px;
+}
+.ph-btn-label{
+  font-family:var(--sans); font-size:.72rem; font-weight:400;
+  color:rgba(255,255,255,.7); letter-spacing:.01em;
 }
 .ph-btn{
-  width:58px; height:58px;
+  width:64px; height:64px;
   border:0;
   border-radius:50%;
   position:relative;
@@ -1104,14 +1357,14 @@ img,svg{ max-width:100%; display:block; }
   content:"";
   position:absolute; inset:0;
   margin:auto;
-  width:23px; height:23px;
+  width:26px; height:26px;
   background:currentColor;
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.24 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.6a1 1 0 01-.24 1l-2.23 2.2z'/%3E%3C/svg%3E") center/contain no-repeat;
           mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.24 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.6a1 1 0 01-.24 1l-2.23 2.2z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
-.ph-btn.decline, .ph-btn.end{ background:#C0452F; color:#fff; }
+.ph-btn.decline, .ph-btn.end{ background:#FF3B30; color:#fff; }
 .ph-btn.decline::after, .ph-btn.end::after{ transform:rotate(135deg); }
-.ph-btn.accept{ background:#1E5B3F; color:#F5F3EC; animation:jiggle 1.8s ease-in-out infinite; }
+.ph-btn.accept{ background:#34C759; color:#fff; animation:jiggle 1.8s ease-in-out infinite; }
 @keyframes jiggle{ 0%,86%,100%{transform:translateY(0)} 91%{transform:translateY(-5px)} 96%{transform:translateY(0)} }
 .ph-btn.end{ display:none; }
 .phone[data-state="connected"] .ph-btn.decline,
@@ -1120,7 +1373,7 @@ img,svg{ max-width:100%; display:block; }
 
 .home-bar{
   width:128px; height:5px; border-radius:3px;
-  background:rgba(17,17,17,.3);
+  background:rgba(255,255,255,.25);
   margin-top:20px;
 }
 
@@ -1431,9 +1684,20 @@ html.no-io .rv{ opacity:1; transform:none; }
 
   .phone{ width:286px; transform:none; }
   .hear-phone:hover .phone{ transform:translateY(-4px); }
-  .phone-screen{ min-height:560px; }
-  .ph-actions{ gap:44px; }
+  .phone-screen{ min-height:560px; padding:52px 16px 24px; }
+  .ph-status{ margin:22px 0 26px; }
+  .ph-avatar{ width:94px; height:94px; }
+  .ph-name{ font-size:1.85rem; }
+  .ph-actions{ gap:46px; margin-top:28px; }
+  .ph-btn{ width:60px; height:60px; }
   .vc-actions{ grid-template-columns:1fr; }
+
+  /* SMS pane: same box height as desktop, tighter type — that keeps the whole
+     exchange from the first reply to the booking badge on screen at once */
+  .imsg-body{ padding:11px 10px 12px; gap:5px; }
+  .imsg-bub{ font-size:.78rem; padding:8px 12px; max-width:82%; }
+  .imsg-bub.card{ font-size:.55rem; padding:8px 10px; }
+  .imsg-head{ padding:10px 12px; }
   .close{ padding:84px 0; }
   .close-actions{ gap:22px; }
   .foot-row{ flex-direction:column; align-items:flex-start; }

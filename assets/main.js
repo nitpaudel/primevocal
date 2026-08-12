@@ -133,7 +133,7 @@
        the story freezes on beat 1 and never plays. */
     function runway() {
       if (reduceMotion) return BEATS * 0.13 + 0.4;
-      return isCompact() ? BEATS * 0.14 + 0.42 : BEATS * 0.15 + 0.45;
+      return isCompact() ? BEATS * 0.22 + 0.50 : BEATS * 0.26 + 0.60;
     }
 
     var travelCache = 0;

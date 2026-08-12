@@ -133,7 +133,7 @@
        the story freezes on beat 1 and never plays. */
     function runway() {
       if (reduceMotion) return BEATS * 0.13 + 0.4;
-      return isCompact() ? BEATS * 0.22 + 0.50 : BEATS * 0.26 + 0.60;
+      return isCompact() ? BEATS * 0.14 + 0.42 : BEATS * 0.15 + 0.45;
     }
 
     var travelCache = 0;
@@ -210,8 +210,9 @@
     function onStreetScroll() {
       streetTicking = false;
       if (travelCache <= 0) { paint(0); return; }
-      var p = -street.getBoundingClientRect().top / travelCache;
-      paint(p < 0 ? 0 : p > 1 ? 1 : p);
+      var raw = -street.getBoundingClientRect().top / travelCache;
+      raw = raw < 0 ? 0 : raw > 1 ? 1 : raw;
+      paint(Math.pow(raw, 1.5));
     }
     function requestStreet() {
       if (streetTicking) return;

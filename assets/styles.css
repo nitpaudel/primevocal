@@ -150,6 +150,26 @@ img,svg{ max-width:100%; display:block; }
 }
 .btn:active{ transform:translateY(-1px) scale(.995); }
 .btn-sm{ padding:10px 18px; font-size:.86rem; border-radius:7px; }
+/* nav pill · the hero CTA at a smaller size */
+.nav .btn-sm{
+  background:var(--nav-fg);
+  color:var(--nav-bg);
+  border:0;
+  border-radius:980px;
+  padding:0.5rem 1.2rem;
+  font-size:.86rem;
+  font-weight:600;
+  letter-spacing:-.01em;
+  box-shadow:none;
+  transition:opacity 120ms ease-out;
+}
+.nav .btn-sm:hover{
+  background:var(--nav-fg);
+  color:var(--nav-bg);
+  opacity:.85;
+  transform:none;
+  box-shadow:none;
+}
 .btn-block{ width:100%; display:block; }
 
 .btn-outline{
@@ -175,15 +195,28 @@ img,svg{ max-width:100%; display:block; }
 }
 
 /* ---------- nav ---------- */
+/* Reads as transparent because it carries the hero's own base colour rather
+   than the page paper — a genuinely transparent bar would expose a strip of
+   cream above a near-black hero and show as a band across the top. Once
+   scrolled it keeps a blur so type stays legible over whatever passes under. */
 .nav{
   position:sticky; top:0; z-index:200;
-  background:color-mix(in srgb, var(--paper) 86%, transparent);
-  backdrop-filter:saturate(180%) blur(14px);
-  -webkit-backdrop-filter:saturate(180%) blur(14px);
+  --nav-bg:#f8f8f6;
+  --nav-fg:#0a0a0a;
+  background:var(--nav-bg);
   border-bottom:1px solid transparent;
   transition:border-color .3s var(--ease), background .35s var(--ease);
 }
-.nav.stuck{ border-bottom-color:var(--line); }
+[data-theme="dark"] .nav{
+  --nav-bg:#080808;
+  --nav-fg:#ffffff;
+}
+.nav.stuck{
+  background:color-mix(in srgb, var(--nav-bg) 82%, transparent);
+  backdrop-filter:saturate(180%) blur(14px);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-bottom-color:color-mix(in srgb, var(--nav-fg) 10%, transparent);
+}
 .nav-row{
   display:flex; align-items:center; justify-content:space-between; gap:24px;
   padding-block:20px;
@@ -250,9 +283,11 @@ img,svg{ max-width:100%; display:block; }
   transition:opacity .25s var(--ease);
 }
 .wordmark:hover{ opacity:.66; }
+/* Solid, not the green gradient: the redesigned bar is monochrome, logo and
+   links alike, so the only colour left up here is the pill. */
 .wordmark-text{
   font-family:'Poppins', var(--sans);
-  font-weight:600;
+  font-weight:500;
   font-size:.78em;         /* .78 x --logo-h */
   line-height:1;
   letter-spacing:-.022em;
@@ -260,45 +295,73 @@ img,svg{ max-width:100%; display:block; }
   display:block;
   align-self:center;
   flex:0 0 auto;
-  /* flat colour first, so it still reads if background-clip:text is unsupported */
-  color:var(--green);
-  background:linear-gradient(135deg, #2f8159 0%, #22603f 52%, #17452e 100%);
-  -webkit-background-clip:text;
-          background-clip:text;
-  -webkit-text-fill-color:transparent;
+  color:var(--nav-fg);
+  background:none;
+  -webkit-text-fill-color:var(--nav-fg);
 }
-[data-theme="dark"] .wordmark-text{
-  color:var(--gdk);
-  background:linear-gradient(135deg, #7fc79c 0%, #5FA97F 55%, #3f8b62 100%);
-  -webkit-background-clip:text;
-          background-clip:text;
-}
-/* dark mode: the brand green sinks into the dark paper, so use the lifted one */
-[data-theme="dark"] .wordmark-text{ color:var(--gdk); }
 
 .nav.stuck .wordmark{ --logo-h:30px; }
 .nav-right{ display:flex; align-items:center; gap:14px; }
 
 .theme-toggle{
-  background:none; border:1px solid var(--line-2); border-radius:7px;
+  background:none;
+  border:1px solid color-mix(in srgb, var(--nav-fg) 18%, transparent);
+  border-radius:980px;
   width:38px; height:38px;
   display:grid; place-items:center;
-  color:var(--muted);
+  color:color-mix(in srgb, var(--nav-fg) 55%, transparent);
   transition:color .2s var(--ease), border-color .2s var(--ease),
              transform .28s var(--spring);
 }
-.theme-toggle:hover{ color:var(--green); border-color:var(--green); transform:translateY(-2px); }
+.theme-toggle:hover{
+  color:var(--nav-fg);
+  border-color:color-mix(in srgb, var(--nav-fg) 40%, transparent);
+  transform:translateY(-2px);
+}
 .theme-toggle svg{ width:17px; height:17px; }
 .ico-moon{ display:none; }
 [data-theme="dark"] .ico-sun{ display:none; }
 [data-theme="dark"] .ico-moon{ display:block; }
 
-/* ---------- hero ---------- */
+/* ==========================================================
+   HERO
+   Two skins off one markup: the light one is the default, the dark one
+   rides the site's existing theme toggle. Every colour the hero uses is a
+   token declared here and re-declared under [data-theme="dark"], so the
+   whole section — background, type, glass, pills — flips together and
+   nothing outside .hero is touched.
+   ========================================================== */
 .hero{
+  /* light skin · almost white, barely warm */
+  --h-bg:          #f8f8f6;
+  --h-glow:        rgba(180, 210, 190, 0.3);
+  --h-head:        #0a0a0a;
+  --h-eyebrow:     rgba(0, 0, 0, 0.4);
+  --h-body:        rgba(0, 0, 0, 0.5);
+  --h-fg:          #0a0a0a;
+  --h-fg-soft:     rgba(0, 0, 0, 0.55);
+  --h-fg-mute:     rgba(0, 0, 0, 0.4);
+  --h-glass:       rgba(0, 0, 0, 0.04);
+  --h-glass-line:  rgba(0, 0, 0, 0.08);
+  --h-glass-shade: 0 24px 60px rgba(0, 0, 0, 0.1);
+  --h-fill:        rgba(0, 0, 0, 0.05);
+  --h-fill-2:      rgba(0, 0, 0, 0.08);
+  --h-line:        rgba(0, 0, 0, 0.1);
+  --h-track:       rgba(0, 0, 0, 0.05);
+  --h-pill-fg:     rgba(0, 0, 0, 0.6);
+  --h-cta-bg:      #0a0a0a;
+  --h-cta-fg:      #ffffff;
+  --h-ghost-line:  rgba(0, 0, 0, 0.18);
+  --h-bub:         #E5E5EA;
+  --h-bub-fg:      #1a1a1a;
+
   padding:80px 0 76px;
+  background:
+    radial-gradient(58% 62% at 65% 35%, var(--h-glow) 0%, transparent 70%),
+    var(--h-bg);
+  color:var(--h-fg);
   /* Own stacking context: the hero paints as one unit, so no later section —
-     the sticky street stage in particular — can interleave itself with the
-     card or the stage behind it. */
+     the sticky street stage in particular — can interleave itself with it. */
   position:relative;
   z-index:1;
   isolation:isolate;
@@ -306,6 +369,31 @@ img,svg{ max-width:100%; display:block; }
      if a child is mis-sized. clip is the intent; hidden is the fallback. */
   overflow:hidden;
   overflow:clip;
+  transition:background .4s var(--ease), color .4s var(--ease);
+}
+/* dark skin · one quiet green light source in a black room */
+[data-theme="dark"] .hero{
+  --h-bg:          #080808;
+  --h-glow:        rgba(20, 80, 50, 0.35);
+  --h-head:        #ffffff;
+  --h-eyebrow:     rgba(255, 255, 255, 0.4);
+  --h-body:        rgba(255, 255, 255, 0.55);
+  --h-fg:          #ffffff;
+  --h-fg-soft:     rgba(255, 255, 255, 0.6);
+  --h-fg-mute:     rgba(255, 255, 255, 0.4);
+  --h-glass:       rgba(255, 255, 255, 0.06);
+  --h-glass-line:  rgba(255, 255, 255, 0.12);
+  --h-glass-shade: 0 40px 100px rgba(0, 0, 0, 0.4);
+  --h-fill:        rgba(255, 255, 255, 0.08);
+  --h-fill-2:      rgba(255, 255, 255, 0.18);
+  --h-line:        rgba(255, 255, 255, 0.12);
+  --h-track:       rgba(255, 255, 255, 0.1);
+  --h-pill-fg:     rgba(255, 255, 255, 0.7);
+  --h-cta-bg:      #ffffff;
+  --h-cta-fg:      #0a0a0a;
+  --h-ghost-line:  rgba(255, 255, 255, 0.2);
+  --h-bub:         #3A3A3C;
+  --h-bub-fg:      #ffffff;
 }
 .hero-grid{
   display:grid;
@@ -313,101 +401,76 @@ img,svg{ max-width:100%; display:block; }
   gap:72px;
   align-items:center;
 }
-/* Both columns are placed by hand so the glow can share the card's cell
-   without auto-placement pushing the card down into a row of its own. */
 .hero-copy{ grid-area:1 / 1; position:relative; z-index:1; }
 .voice-card{ grid-area:1 / 2; }
 
-/* ---------- the stage the glass sits on ----------
-   Glass is only glass if there is something behind it to see through. This
-   is that something: three large, soft colour fields — teal, lavender, peach
-   — sitting behind the card. Clear glass over a flat colour just looks like
-   tinted plastic; it needs colour that varies across the panel for the blur
-   to have anything to smear.
-
-   Every blob's falloff reaches zero before the box edge, so there is no
-   rectangle here at all — just colour fading into the paper. Nothing to clip,
-   nothing to bleed into the section below. */
-.hero-grid::before{
-  content:"";
-  grid-area:1 / 2;
-  align-self:stretch;
-  justify-self:stretch;
-  margin:-86px -76px;
-  background:
-    radial-gradient(32% 30% at 30% 28%, rgba(78,205,196,.50) 0%, rgba(78,205,196,0) 100%),
-    radial-gradient(32% 32% at 70% 26%, rgba(139,126,200,.46) 0%, rgba(139,126,200,0) 100%),
-    radial-gradient(34% 32% at 52% 74%, rgba(240,168,144,.48) 0%, rgba(240,168,144,0) 100%);
-  z-index:0;
-  pointer-events:none;
+/* ---------- hero type ----------
+   One sans, no serif, no italic. SF Pro where it exists (Apple hardware);
+   Instrument Sans is kept in the stack ahead of the generic so Windows and
+   Android get the site's own geometric sans rather than dropping to Arial. */
+.hero-h1{
+  font-family:"SF Pro Display", -apple-system, BlinkMacSystemFont,
+              "Helvetica Neue", "Instrument Sans", sans-serif;
+  /* Capped below the 6vw/5.5rem originally asked for: the copy column is
+     676px at the shell's full width, and "Answer every call." only holds as
+     one line up to about 70px. Above that each sentence wraps again and the
+     two-line break stops meaning anything. */
+  font-size:clamp(2.6rem, 4.6vw, 4.35rem);
+  font-weight:700;
+  line-height:1.05;
+  letter-spacing:-0.035em;
+  color:var(--h-head);
+  margin:0 0 26px;
 }
-/* dark paper swallows pastels, so they come up in strength rather than the
-   card having to compensate with a heavier veil */
-[data-theme="dark"] .hero-grid::before{
-  background:
-    radial-gradient(30% 28% at 32% 30%, rgba(78,205,196,.58) 0%, rgba(78,205,196,0) 100%),
-    radial-gradient(30% 30% at 70% 28%, rgba(139,126,200,.54) 0%, rgba(139,126,200,0) 100%),
-    radial-gradient(32% 30% at 50% 72%, rgba(240,168,144,.54) 0%, rgba(240,168,144,0) 100%);
+.hero .kicker{
+  font-size:0.7rem;
+  letter-spacing:0.18em;
+  font-weight:500;
+  color:var(--h-eyebrow);
+  margin:0 0 28px;
 }
-.hero .display{ margin-bottom:26px; }
 .standfirst{
-  font-size:1.1rem;
-  line-height:1.65;
-  color:var(--ink-2);
+  font-size:1.05rem;
+  line-height:1.7;
+  color:var(--h-body);
   max-width:46ch;
-  margin:0 0 32px;
+  margin:0;
 }
-.hero-actions{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 
-/* ---------- hero demo card · liquid glass ----------
-   A sheet of glass over the stage above: a thin white veil, a wide backdrop
-   blur, one hairline edge and a tight contact shadow. No outward glow, no
-   spread — what you see through it is the stage, not light coming off it. */
+
+/* ---------- hero demo card · floating glass ----------
+   Barely-there fill, one hairline edge, and a deep soft shadow underneath so
+   it reads as a pane suspended in front of the hero rather than a panel
+   pasted onto it. */
 .voice-card{
   position:relative;
-  z-index:1;                 /* above the colour fields, and above anything a
-                                later section could paint into this box */
-  background:rgba(255, 255, 255, 0.15);
-  backdrop-filter:blur(40px) saturate(200%);
-  -webkit-backdrop-filter:blur(40px) saturate(200%);
-  color:#1a1a1a;             /* clear glass ⇒ everything inside reads dark */
-  border:1px solid rgba(255, 255, 255, 0.25);
-  border-radius:28px;
+  z-index:1;
+  background:var(--h-glass);
+  backdrop-filter:blur(40px) saturate(180%);
+  -webkit-backdrop-filter:blur(40px) saturate(180%);
+  color:var(--h-fg);
+  border:1px solid var(--h-glass-line);
+  border-radius:20px;
   overflow:hidden;           /* nothing inside can spill past the radius */
   padding:22px 22px 20px;
-  /* the inset hairline is the top edge catching light — it is what separates
-     glass from a translucent rectangle */
-  box-shadow:0 4px 24px rgba(0, 0, 0, 0.06),
-             inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow:var(--h-glass-shade);
   transition:transform .5s var(--ease), box-shadow .5s var(--ease),
-             opacity .8s var(--ease);
+             opacity .8s var(--ease), background .4s var(--ease);
 }
-/* dark paper: the veil comes up so the sheet stays light enough to carry
-   dark type, the way Control Center stays legible over any wallpaper */
-[data-theme="dark"] .voice-card{
-  background:rgba(255, 255, 255, 0.45);
-  border-color:rgba(255, 255, 255, 0.3);
-}
-.voice-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 10px 32px rgba(0, 0, 0, 0.09),
-             inset 0 1px 0 rgba(255, 255, 255, 0.45);
-}
-/* No backdrop-filter (old Safari, blur disabled for battery): 15% white over
-   raw colour fields leaves the type unreadable, so it thickens to frosted. */
+.voice-card:hover{ transform:translateY(-4px); }
+/* No backdrop-filter (old Safari, blur disabled for battery): a 4-6% fill
+   with nothing frosted behind it leaves the type on raw background. */
 @supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
-  .voice-card{ background:rgba(252, 252, 250, 0.86); }
-  [data-theme="dark"] .voice-card{ background:rgba(250, 250, 248, 0.82); }
+  .voice-card{ background:rgba(255,255,255,.72); }
+  [data-theme="dark"] .voice-card{ background:rgba(28,30,29,.88); }
 }
 
-/* the switcher is its own smaller sheet of glass sitting on the card */
+/* pill toggle · quiet track, brighter pill for the active side */
 .vc-switch{
   position:relative;
   display:flex;
-  background:rgba(255,255,255,.2);
-  backdrop-filter:blur(20px) saturate(180%);
-  -webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1px solid rgba(255,255,255,.3);
+  background:var(--h-track);
+  border:1px solid var(--h-line);
   border-radius:100px;
   padding:4px;
   margin-bottom:20px;
@@ -418,8 +481,7 @@ img,svg{ max-width:100%; display:block; }
   width:calc(50% - 4px);
   height:calc(100% - 8px);
   border-radius:100px;
-  background:rgba(255,255,255,.45);
-  box-shadow:0 2px 8px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.6);
+  background:var(--h-fill-2);
   transition:transform .42s var(--spring);
 }
 .vc-switch.sms .vc-thumb{ transform:translateX(100%); }
@@ -429,13 +491,13 @@ img,svg{ max-width:100%; display:block; }
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   background:none; border:0; border-radius:100px;
   padding:9px 0;
-  font-size:.86rem; font-weight:600;
-  color:#1a1a1a; opacity:.5;
-  transition:opacity .3s var(--ease), color .3s var(--ease);
+  font-size:.86rem; font-weight:500;
+  color:var(--h-fg); opacity:.45;
+  transition:opacity .3s var(--ease);
 }
-.vc-tab:hover{ opacity:.75; }
+.vc-tab:hover{ opacity:.7; }
 .vc-tab svg{ width:15px; height:15px; }
-.vc-tab.on, .vc-tab.on:hover{ color:#1a1a1a; opacity:1; }
+.vc-tab.on, .vc-tab.on:hover{ opacity:1; }
 
 /* Hard height, not min-height: both panes measure exactly the same, so the
    card cannot change size when the tab switches or as messages arrive. */
@@ -444,27 +506,30 @@ img,svg{ max-width:100%; display:block; }
 .vc-pane[hidden]{ display:none; }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
 
-/* waveform — always breathing, even at rest */
+/* Waveform · a slow breath rather than a bounce. Height and opacity move
+   together over four and a half seconds, and the negative delays stagger
+   neighbouring bars so the row swells in a wave instead of in unison. */
 .vc-wave{
   display:flex; align-items:center; justify-content:center; gap:3px;
   height:66px;
   margin-bottom:20px;
-  animation:waveBreath 5s var(--ease) infinite;
 }
-@keyframes waveBreath{ 0%,100%{opacity:.8} 50%{opacity:1} }
 .vc-wave span{
-  width:3px; height:7px; border-radius:2px;
-  background:#1E5B3F;       /* deep green: the light sheet needs weight, not glow */
-  opacity:.45;
-  animation:idlewv 2.6s ease-in-out infinite;
+  width:3px; height:8px; border-radius:2px;
+  background:var(--h-fg);
+  opacity:.4;
+  animation:barBreathe 4.5s ease-in-out infinite;
   transition:opacity .3s var(--ease);
 }
-/* negative delays so the bar row already reads as a waveform at rest */
-.vc-wave span:nth-child(2n){ animation-delay:-.42s; }
-.vc-wave span:nth-child(3n){ animation-delay:-.95s; }
-.vc-wave span:nth-child(5n){ animation-delay:-1.6s; }
-.vc-wave span:nth-child(7n){ animation-delay:-2.1s; }
-@keyframes idlewv{ 0%,100%{height:7px} 50%{height:24px} }
+@keyframes barBreathe{
+  0%,100% { height:8px;  opacity:.4 }
+  50%     { height:26px; opacity:1 }
+}
+/* alternating offsets — the row reads as a waveform even at rest */
+.vc-wave span:nth-child(2n){ animation-delay:-.65s; }
+.vc-wave span:nth-child(3n){ animation-delay:-1.5s; }
+.vc-wave span:nth-child(5n){ animation-delay:-2.4s; }
+.vc-wave span:nth-child(7n){ animation-delay:-3.3s; }
 .vc-wave.playing span{ opacity:1; animation:wv 1s ease-in-out infinite; }
 .vc-wave.playing span:nth-child(2n){ animation-duration:.72s; }
 .vc-wave.playing span:nth-child(3n){ animation-duration:1.24s; }
@@ -475,33 +540,32 @@ img,svg{ max-width:100%; display:block; }
 .vc-list{ display:flex; flex-direction:column; gap:9px; }
 .sample{
   display:flex; align-items:center; gap:13px;
-  background:rgba(255,255,255,.28);
-  border:1px solid rgba(255,255,255,.4);
+  background:var(--h-fill);
+  border:1px solid var(--h-line);
   border-radius:14px;
   padding:12px 14px;
-  color:#1a1a1a;
+  color:var(--h-fg);
   text-align:left;
   transition:background .25s var(--ease), border-color .25s var(--ease),
-             transform .3s var(--spring), box-shadow .3s var(--ease);
+             transform .3s var(--spring);
 }
 .sample:hover{
-  background:rgba(255,255,255,.45);
+  background:var(--h-fill-2);
   transform:translateY(-2px);
-  box-shadow:0 8px 18px -12px rgba(0,0,0,.25);
 }
 .sample.on{
-  border-color:rgba(30,91,63,.45);
-  background:rgba(255,255,255,.55);
+  border-color:rgba(52,199,89,.5);
+  background:var(--h-fill-2);
 }
+/* Apple system green, at full strength */
 .s-play{
   width:30px; height:30px; flex-shrink:0;
   border-radius:50%;
-  background:linear-gradient(135deg, #1E5B3F 0%, #2d7a55 100%);
-  box-shadow:0 0 20px rgba(30, 91, 63, 0.15);
+  background:rgba(52, 199, 89, 1);
   display:grid; place-items:center;
-  transition:transform .3s var(--spring), background .25s var(--ease);
+  transition:transform .3s var(--spring), filter .25s var(--ease);
 }
-.sample:hover .s-play{ transform:scale(1.09); background:linear-gradient(135deg, #2d7a55 0%, #3d8c65 100%); }
+.sample:hover .s-play{ transform:scale(1.09); filter:brightness(1.08); }
 .s-play i{
   width:0; height:0;
   margin-left:2px;
@@ -521,17 +585,17 @@ img,svg{ max-width:100%; display:block; }
   font-family:var(--monoF);
   font-size:.63rem; letter-spacing:.07em; text-transform:uppercase;
   font-weight:400;
-  color:rgba(26,26,26,.55);
+  color:var(--h-fg-mute);
   margin-top:3px;
 }
 .s-meta{ margin-left:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
-.s-wave{ width:34px; height:13px; color:#1E5B3F; opacity:.7; }
+.s-wave{ width:34px; height:13px; color:rgba(52,199,89,1); opacity:.8; }
 .sample.on .s-wave{ opacity:1; }
-.s-dur{ color:rgba(26,26,26,.5); opacity:1; }
+.s-dur{ color:var(--h-fg-mute); opacity:1; }
 
 .vc-status{
   text-align:center;
-  color:rgba(26,26,26,.5);
+  color:var(--h-fg-mute);
   opacity:1;
   margin:16px 0 0;
 }
@@ -616,8 +680,8 @@ img,svg{ max-width:100%; display:block; }
 /* A second, slightly brighter pane of glass inside the card, so the thread
    reads as a screen rather than as text floating on the sheet. */
 .imsg{
-  background:rgba(255,255,255,.24);
-  border:1px solid rgba(255,255,255,.38);
+  background:var(--h-fill);
+  border:1px solid var(--h-line);
   border-radius:16px;
   overflow:hidden;
   display:flex; flex-direction:column;
@@ -626,8 +690,8 @@ img,svg{ max-width:100%; display:block; }
 .imsg-head{
   display:flex; align-items:center; gap:11px;
   padding:11px 14px;
-  border-bottom:1px solid rgba(255,255,255,.4);
-  background:rgba(255,255,255,.22);
+  border-bottom:1px solid var(--h-line);
+  background:var(--h-fill);
   flex:0 0 auto;
 }
 .imsg-av{
@@ -641,13 +705,13 @@ img,svg{ max-width:100%; display:block; }
 .imsg-who{ display:flex; flex-direction:column; gap:2px; min-width:0; }
 .imsg-name{
   font-size:.88rem; font-weight:600;
-  color:#1a1a1a;
+  color:var(--h-fg);
   line-height:1.15;
 }
 .imsg-role{
   display:flex; align-items:center; gap:6px;
   font-size:.56rem;
-  color:rgba(26,26,26,.55);
+  color:var(--h-fg-mute);
 }
 .imsg-role .live-dot{ width:6px; height:6px; }
 
@@ -682,15 +746,15 @@ img,svg{ max-width:100%; display:block; }
   font-size:.52rem;
   letter-spacing:.1em;
   text-transform:uppercase;
-  color:rgba(26,26,26,.5);
+  color:var(--h-fg-mute);
 }
-.imsg-stamp b{ color:rgba(26,26,26,.72); font-weight:600; }
+.imsg-stamp b{ color:var(--h-fg-soft); font-weight:600; }
 /* The thread is five messages now rather than ten, so the type goes back up
    to a size that actually reads like a phone screen. */
 .imsg-bub{
   max-width:81%;
   padding:7px 12px;
-  border-radius:16px;
+  border-radius:18px;
   font-size:.78rem;
   line-height:1.4;
   opacity:0;
@@ -703,9 +767,17 @@ img,svg{ max-width:100%; display:block; }
    a glass card has nothing to sit against and the thread stops reading. */
 .imsg-bub.them{
   align-self:flex-start;
-  background:#E9E9EB;
-  color:#1a1a1a;
+  background:var(--h-bub);      /* iMessage grey, per skin */
+  color:var(--h-bub-fg);
   border-bottom-left-radius:6px;
+}
+/* the caller's email, masked the way a shared screenshot would be. Inline so
+   the line still wraps around it, and unselectable so it cannot be read back
+   off the page by copying. */
+.imsg-blur{
+  filter:blur(4px);
+  user-select:none;
+  -webkit-user-select:none;
 }
 /* Sent · Lara, iMessage green, right */
 .imsg-bub.us{
@@ -732,10 +804,27 @@ img,svg{ max-width:100%; display:block; }
   color:var(--glow);
   margin-top:3px;
 }
+/* photo attachment · no bubble chrome, the image is the message */
+.imsg-img{
+  align-self:flex-end;
+  flex:0 0 auto;
+  max-width:220px;
+  border-radius:12px;
+  overflow:hidden;
+  line-height:0;
+  margin-top:1px;
+  box-shadow:0 2px 10px rgba(0,0,0,.12);
+  opacity:0;
+  transform:translateY(10px) scale(.96);
+  transition:opacity .35s var(--ease), transform .42s var(--spring);
+}
+.imsg-img.in{ opacity:1; transform:none; }
+.imsg-img img{ width:100%; height:auto; display:block; }
+
 .imsg-typing{
   align-self:flex-start;
   display:flex; gap:4px; align-items:center;
-  background:#E9E9EB;
+  background:var(--h-bub);
   padding:9px 13px;
   border-radius:15px;
   border-bottom-left-radius:6px;
@@ -755,7 +844,7 @@ img,svg{ max-width:100%; display:block; }
 .imsg-typing.in{ opacity:1; transform:none; }
 .imsg-typing i{
   width:5px; height:5px; border-radius:50%;
-  background:#1a1a1a; opacity:.4;
+  background:var(--h-bub-fg); opacity:.5;
   animation:dots 1.2s ease-in-out infinite;
 }
 .imsg-typing.us i{ background:#FFFFFF; opacity:.85; }
@@ -770,21 +859,51 @@ img,svg{ max-width:100%; display:block; }
    everywhere else on the page is untouched. The label stays dark: white type
    on a 20% white pill over pale colour is unreadable, and the card's own rule
    is that everything inside it reads dark. */
+/* One CTA and one ghost. The pill is the only solid thing in the hero, which
+   is what makes it the thing you press. */
 .voice-card .vc-actions .btn{
-  background:rgba(255,255,255,.2);
-  backdrop-filter:blur(20px) saturate(180%);
-  -webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1px solid rgba(255,255,255,.35);
-  border-radius:14px;
-  color:#1a1a1a;
-  box-shadow:0 2px 10px rgba(0,0,0,.05), inset 0 1px 0 rgba(255,255,255,.45);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:0.7rem 1.6rem;
+  border-radius:980px;
+  border:0;
+  background:var(--h-cta-bg);
+  color:var(--h-cta-fg);
+  font-size:0.9rem;
+  font-weight:600;
+  letter-spacing:-0.01em;
+  box-shadow:none;
+  transition:opacity 120ms ease-out;
 }
 .voice-card .vc-actions .btn:hover{
-  background:rgba(255,255,255,.38);
-  border-color:rgba(255,255,255,.55);
-  color:#1a1a1a;
-  transform:translateY(-2px);
-  box-shadow:0 8px 20px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.55);
+  opacity:.85;
+  background:var(--h-cta-bg);
+  color:var(--h-cta-fg);
+  transform:none;
+}
+/* the secondary one is an outline and nothing more */
+.voice-card .vc-actions .btn-ghost{
+  background:transparent;
+  color:var(--h-fg);
+  border:1px solid var(--h-ghost-line);
+}
+.voice-card .vc-actions .btn-ghost:hover{
+  background:transparent;
+  color:var(--h-fg);
+  opacity:.7;
+}
+/* the north-east arrow that marks both as "this takes you somewhere" */
+.btn-arrow{
+  width:14px; height:14px;
+  flex:0 0 auto;
+  opacity:.6;
+  transition:transform .28s var(--spring), opacity .25s var(--ease);
+}
+.voice-card .vc-actions .btn:hover .btn-arrow{
+  opacity:.9;
+  transform:translate(2px, -2px);
 }
 
 .live-dot{
@@ -812,42 +931,35 @@ img,svg{ max-width:100%; display:block; }
 .badge{
   display:inline-flex; align-items:center; gap:10px;
   padding:11px 20px 11px 18px;
-  border-radius:999px;
-  font-size:.7rem;
+  border-radius:980px;
+  font-size:0.72rem;
   font-weight:500;
-  letter-spacing:.15em;
+  letter-spacing:0.12em;
   font-variant-numeric:tabular-nums;
-  color:var(--green);
-  background:rgba(255,255,255,.55);
-  backdrop-filter:blur(14px) saturate(160%);
-  -webkit-backdrop-filter:blur(14px) saturate(160%);
-  border:1px solid color-mix(in srgb, var(--green) 20%, transparent);
-  box-shadow:0 1px 2px rgba(23,21,15,.04),
-             0 10px 22px -16px rgba(23,21,15,.45),
-             inset 0 1px 0 rgba(255,255,255,.65);
-  transition:transform .3s var(--spring), box-shadow .3s var(--ease),
-             background .25s var(--ease), border-color .25s var(--ease);
+  color:var(--h-pill-fg);
+  background:var(--h-fill);
+  border:1px solid var(--h-line);
+  box-shadow:none;
+  transition:transform .3s var(--spring), background .25s var(--ease),
+             border-color .25s var(--ease);
 }
 /* the live dot is optical, not metric — nudge it onto the cap height */
 .badge .live-dot{ margin-top:-1px; }
 .badge:hover{
   transform:translateY(-3px);
-  background:rgba(255,255,255,.72);
-  border-color:color-mix(in srgb, var(--green) 34%, transparent);
-  box-shadow:0 2px 4px rgba(23,21,15,.05),
-             0 18px 30px -18px rgba(30,91,63,.5),
-             inset 0 1px 0 rgba(255,255,255,.8);
+  background:var(--h-fill-2);
 }
-[data-theme="dark"] .badge{
-  color:var(--gdk);
-  background:rgba(245,243,236,.05);
-  border-color:color-mix(in srgb, var(--gdk) 24%, transparent);
-  box-shadow:0 10px 22px -16px rgba(0,0,0,.85),
-             inset 0 1px 0 rgba(255,255,255,.07);
+/* Apple system green, in the hero only — the other live dot on the page
+   (the form's "Live" label) keeps the brand green it already had */
+.hero .live-dot{
+  background:rgba(52, 199, 89, 1);
+  box-shadow:0 0 0 0 rgba(52,199,89,.5);
+  animation:pulseDotHero 2.4s var(--ease) infinite;
 }
-[data-theme="dark"] .badge:hover{
-  background:rgba(245,243,236,.1);
-  border-color:color-mix(in srgb, var(--gdk) 40%, transparent);
+@keyframes pulseDotHero{
+  0%  { box-shadow:0 0 0 0 rgba(52,199,89,.45); opacity:1 }
+  70% { box-shadow:0 0 0 7px rgba(52,199,89,0); opacity:.75 }
+  100%{ box-shadow:0 0 0 0 rgba(52,199,89,0); opacity:1 }
 }
 
 /* ---------- sections ---------- */
@@ -1762,17 +1874,6 @@ html.no-io .rv{ opacity:1; transform:none; }
      without the auto margins it hugs the left edge instead of sitting
      under the headline it belongs to */
   .voice-card{ grid-area:2 / 1; max-width:480px; margin-inline:auto; }
-  /* Stacked, the stage follows the card into the second row and stays a
-     contained tile — never a full-bleed band. Width is capped rather than
-     stretched because the card shrink-wraps to about 335px here instead of
-     filling the column. */
-  .hero-grid::before{
-    grid-area:2 / 1;
-    justify-self:center;
-    width:min(100%, 400px);
-    margin:-22px -16px;
-    border-radius:28px;
-  }
   .hear-grid{ grid-template-columns:1fr; gap:52px; }
   .hear-phone{ justify-content:center; }
   .demo-box{ max-width:520px; margin-inline:auto; }

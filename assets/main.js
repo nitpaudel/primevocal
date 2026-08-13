@@ -746,17 +746,31 @@
                                          is never played or cleared again */
 
   /* A patient in pain getting an appointment, the way it actually goes: short
-     lines, no sales pitch, and it stops the moment the job is booked. Eight
-     messages, roughly 1–2s apart, played exactly once. */
+     lines, no sales pitch, and it stops the moment the job is booked.
+
+     One message lands every STEP ms. Lara's lines spend that gap showing the
+     typing indicator, so the cadence is identical either way.
+
+     `html` is used where a line needs markup rather than plain text — the
+     caller's email is masked behind a blur, the way a real screenshot of
+     someone's inbox would be. */
+  var STEP = 1200;
+
   var IMSG_SCRIPT = [
-    { from: 'them', text: 'Hi, is this Parkview Dental?', think: 700 },
-    { from: 'us',   text: "Hey! Yes it is, I'm Lara. How can I help?", think: 400, type: 1200 },
-    { from: 'them', text: "I've been having some tooth pain for a few days, wanted to get it checked", think: 1600 },
-    { from: 'us',   text: 'Sorry to hear that. Let me find you a slot — are mornings or afternoons better?', think: 400, type: 1500 },
-    { from: 'them', text: 'Afternoons if possible', think: 1500 },
-    { from: 'us',   text: "I've got Thursday at 3pm or Friday at 4:30pm. Either work?", think: 400, type: 1300 },
-    { from: 'them', text: 'Thursday 3pm works', think: 1500 },
-    { from: 'us',   text: "Done! You're booked for Thursday 3pm with Dr. Chen. I'll send a reminder the day before. Take care!", think: 400, type: 1700 }
+    { from: 'them', text: 'Hi, is this Parkview Dental?' },
+    { from: 'us',   text: "Hey! Yes it is, I'm Lara, an AI Assistant for Parkview Dental. How can I help?" },
+    { from: 'them', text: "I've been having some tooth pain for a few days, wanted to get it checked" },
+    { from: 'us',   text: 'Sorry to hear that. Let me find you a slot, are mornings or afternoons better?' },
+    { from: 'them', text: 'Afternoons if possible' },
+    { from: 'us',   text: "I've got Thursday at 3pm or Friday at 4:30pm. Either work?" },
+    { from: 'them', text: 'Thursday 3pm works' },
+    { from: 'us',   text: "Before I lock that in, what's your name and email so I can send a confirmation?" },
+    { from: 'them', html: 'Kristi, and it\'s <span class="imsg-blur">kristiejonnah1996@gmail.com</span>' },
+    /* the calendar lands first and the confirmation reads underneath it, the
+       way a real thread shows the attachment then the note about it */
+    { from: 'image', src: 'assets/sms-booking.svg', alt: 'Calendar showing Thursday 3pm booked with Dr. Chen' },
+    { from: 'us',   text: "Done! You're booked for Thursday 3pm with Dr. Chen. I'll send a reminder the day before." },
+    { from: 'us',   text: 'Take care Kristi!' }
   ];
 
   /* the frame never grows, so every new line scrolls the thread instead */
@@ -764,10 +778,9 @@
     if (imsgBody) imsgBody.scrollTop = imsgBody.scrollHeight;
   }
 
-  function bubble(cls, text) {
-    var el = document.createElement('div');
-    el.className = 'imsg-bub ' + cls;
-    el.textContent = text;
+  /* fades an element in on the next frame and keeps the thread pinned to its
+     newest line — shared by every kind of message */
+  function land(el) {
     imsgBody.appendChild(el);
     toBottom();
     /* two frames: one to attach, one so the transition has a from-state */
@@ -775,6 +788,30 @@
       requestAnimationFrame(function () { el.classList.add('in'); toBottom(); });
     });
     return el;
+  }
+
+  function bubble(cls, m) {
+    var el = document.createElement('div');
+    el.className = 'imsg-bub ' + cls;
+    /* html only ever carries markup written here in this file, never
+       anything typed by a visitor */
+    if (m.html) el.innerHTML = m.html; else el.textContent = m.text;
+    return land(el);
+  }
+
+  /* a photo attachment, the way iMessage shows one: no bubble chrome, just
+     the image itself with its own corner radius */
+  function photo(cls, m) {
+    var el = document.createElement('div');
+    el.className = 'imsg-img ' + cls;
+    var img = document.createElement('img');
+    img.src = m.src;
+    img.alt = m.alt || '';
+    img.decoding = 'async';
+    /* a missing asset should leave a gap, never a broken-image icon */
+    img.addEventListener('error', function () { el.remove(); });
+    el.appendChild(img);
+    return land(el);
   }
 
   /* one day stamp at the head of the thread, as iMessage does it */
@@ -800,8 +837,10 @@
     /* reduced motion: show the finished thread, no timers, no loop */
     if (reduceMotion) {
       IMSG_SCRIPT.forEach(function (m) {
-        bubble(m.from + ' in', m.text);
+        if (m.from === 'image') photo('us in', m);
+        else bubble(m.from + ' in', m);
       });
+      chatDone = true;
       return;
     }
 
@@ -814,22 +853,22 @@
 
     IMSG_SCRIPT.forEach(function (m) {
       if (m.from === 'us') {
-        /* Lara: dots appear on her side, then swap for the reply */
-        after(m.think, function () {
+        /* Lara: her dots occupy the gap, then the reply replaces them */
+        after(0, function () {
           var dots = document.createElement('div');
           dots.className = 'imsg-typing us';
           dots.innerHTML = '<i></i><i></i><i></i>';
-          imsgBody.appendChild(dots);
-          toBottom();
-          requestAnimationFrame(function () { dots.classList.add('in'); toBottom(); });
+          land(dots);
         });
-        after(m.type, function () {
+        after(STEP, function () {
           var dots = imsgBody.querySelector('.imsg-typing');
           if (dots) dots.remove();
-          bubble('us', m.text);
+          bubble('us', m);
         });
+      } else if (m.from === 'image') {
+        after(STEP, function () { photo('us', m); });
       } else {
-        after(m.think, function () { bubble(m.from === 'card' ? 'card' : 'them', m.text); });
+        after(STEP, function () { bubble('them', m); });
       }
     });
 

@@ -729,8 +729,9 @@
 
   /* ---------- SMS pane · auto-playing conversation ----------
      Nobody scrolls this: it deals itself out on timers, with a typing
-     indicator in front of every one of Lara's replies, then holds the booking
-     badge and starts again from an empty thread.
+     indicator in front of every one of Lara's replies, and then it is over —
+     it ends on the caller's sign-off and stays there. Re-entering the tab
+     replays it from empty; nothing loops on its own.
 
      `think` is how long the sender sits there before the bubble lands;
      `type`  is how long Lara's dots run before her bubble replaces them.
@@ -740,33 +741,42 @@
      starts moving as soon as the tab is opened. */
   var imsgBody = document.getElementById('imsgBody');
   var chatTimers = [];
-  var chatRun = 0;                    /* cancels a loop that is mid-flight */
-  var CHAT_LOOP_PAUSE = 4000;         /* hold on the badge before replaying */
+  var chatRun = 0;                    /* cancels a run that is mid-flight */
 
+  /* A caller booking a cleaning, the way it actually goes: short lines, no
+     sales pitch, and it stops the moment the job is booked. */
   var IMSG_SCRIPT = [
-    { from: 'them', text: 'Hi is this Prime Vocal?', think: 800 },
-    { from: 'us',   text: "Hey! Yes, I'm Lara. How can I help?", think: 500, type: 1300 },
-    { from: 'them', text: 'We run a dental clinic and keep missing patient calls', think: 2100 },
-    { from: 'us',   text: 'I can handle that. I answer every call and book them straight into your calendar.', think: 600, type: 1700 },
-    { from: 'them', text: 'Even after hours?', think: 1600 },
-    { from: 'us',   text: '24/7. No call goes unanswered.', think: 500, type: 1400 },
-    { from: 'them', text: "Okay that's actually what we need. How do we get started?", think: 2400 },
-    { from: 'us',   text: "Quick 15 min call and you're live within 72 - 96 hours. Tomorrow 10am work?", think: 600, type: 1900 },
-    { from: 'them', text: 'Yeah 10am works', think: 1700 },
-    { from: 'us',   text: 'Perfect. Booked for tomorrow 10am. Talk soon 👋', think: 500, type: 1800 },
-    { from: 'card', text: '✓ Booking confirmed · Tomorrow, 10:00am', think: 1500 }
+    { from: 'them', text: 'Hey do you guys have anything open this week for a cleaning?', think: 700 },
+    { from: 'us',   text: "Yep! I've got Thursday 2pm or Friday 10am open. Either work?", think: 500, type: 1500 },
+    { from: 'them', text: 'Friday works better', think: 1900 },
+    { from: 'us',   text: "Perfect, you're booked for Friday 10am. I'll text a reminder the day before. Anything else?", think: 500, type: 1900 },
+    { from: 'them', text: "Nope that's all, thanks!", think: 1800 }
   ];
+
+  /* the frame never grows, so every new line scrolls the thread instead */
+  function toBottom() {
+    if (imsgBody) imsgBody.scrollTop = imsgBody.scrollHeight;
+  }
 
   function bubble(cls, text) {
     var el = document.createElement('div');
     el.className = 'imsg-bub ' + cls;
     el.textContent = text;
     imsgBody.appendChild(el);
+    toBottom();
     /* two frames: one to attach, one so the transition has a from-state */
     requestAnimationFrame(function () {
-      requestAnimationFrame(function () { el.classList.add('in'); });
+      requestAnimationFrame(function () { el.classList.add('in'); toBottom(); });
     });
     return el;
+  }
+
+  /* one day stamp at the head of the thread, as iMessage does it */
+  function stamp() {
+    var el = document.createElement('p');
+    el.className = 'imsg-stamp';
+    el.innerHTML = '<b>Today</b> 9:41 AM';
+    imsgBody.appendChild(el);
   }
 
   function resetChat() {
@@ -779,6 +789,7 @@
   function playChat() {
     resetChat();
     if (!imsgBody) return;
+    stamp();
 
     /* reduced motion: show the finished thread, no timers, no loop */
     if (reduceMotion) {
@@ -803,7 +814,8 @@
           dots.className = 'imsg-typing us';
           dots.innerHTML = '<i></i><i></i><i></i>';
           imsgBody.appendChild(dots);
-          requestAnimationFrame(function () { dots.classList.add('in'); });
+          toBottom();
+          requestAnimationFrame(function () { dots.classList.add('in'); toBottom(); });
         });
         after(m.type, function () {
           var dots = imsgBody.querySelector('.imsg-typing');
@@ -815,8 +827,8 @@
       }
     });
 
-    /* hold the confirmation, then run the whole thread again from empty */
-    after(CHAT_LOOP_PAUSE, playChat);
+    /* No replay. The thread plays once and stops on the closing line, so it
+       reads as a booking that is done rather than a demo on a loop. */
   }
 
   vcTabs.forEach(function (tab) {
@@ -866,17 +878,15 @@
   var clkDig = document.getElementById('clkDig');
   var clkCards = document.getElementById('clkCards');
 
+  /* One booking per target niche, cycled in a random order every loop, so
+     the dial always shows all three rather than reading as a dental demo.
+     The hours are spread across the clock — small hours, morning, evening —
+     because the point of the section is that the phone answers at any of
+     them. */
   var BOOKINGS = [
-    { h: 2,    label: '2:00 AM',  who: 'HVAC emergency', what: 'No heating' },
-    { h: 4,    label: '4:00 AM',  who: 'Plumbing',       what: 'Burst pipe' },
-    { h: 6.5,  label: '6:30 AM',  who: 'Dental',         what: 'Early appointment' },
-    { h: 8,    label: '8:00 AM',  who: 'Real estate',    what: 'Property enquiry' },
-    { h: 10,   label: '10:00 AM', who: 'Legal',          what: 'Consultation request' },
-    { h: 12,   label: '12:00 PM', who: 'Med spa',        what: 'Booking rescheduled' },
-    { h: 14,   label: '2:00 PM',  who: 'HVAC',           what: 'Maintenance call' },
-    { h: 17,   label: '5:00 PM',  who: 'Dental',         what: 'After-hours enquiry' },
-    { h: 20,   label: '8:00 PM',  who: 'Real estate',    what: 'Late viewing' },
-    { h: 23,   label: '11:00 PM', who: 'Plumbing',       what: 'Emergency callout' }
+    { h: 2,  label: '2:00 AM', who: 'HVAC emergency', what: 'No heating · service call' },
+    { h: 9,  label: '9:00 AM', who: 'Real estate',    what: 'Inspection request' },
+    { h: 19, label: '7:00 PM', who: 'Dental clinic',  what: 'New patient cleaning' }
   ];
   var SLOTS = ['pos-n','pos-ne','pos-e','pos-se','pos-s','pos-sw','pos-w','pos-nw'];
 
@@ -1013,19 +1023,11 @@
      assistantId } · Retell: POST /v2/create-phone-call). Never put the key here. */
   var form = document.getElementById('demoForm');
   var successBox = document.getElementById('demoSuccess');
-  var phone = document.getElementById('phone');
-  var phName = document.getElementById('phName');
-  var phSub = document.getElementById('phSub');
-  var phStatus = document.getElementById('phStatus');
   var phClock = document.getElementById('phClock');
 
-  /* The screen has exactly two states, and data-state on .phone is what picks
-     between them: "idle" is the incoming-call screen, "active" is the live
-     call. Nothing runs on a timer to move between them — only the visitor
-     does, by submitting the form, sliding to answer, or hitting End. */
-  var CALL_STOP = 13;          /* the timer counts to 0:13 and then holds */
-  var tickTimer = null, elapsed = 0;
-
+  /* The screen has one state and stays in it: the incoming call, holding on
+     "slide to answer". The live-call screen it used to flip to — timer,
+     mute, FaceTime, end — was removed deliberately; nothing here answers. */
   function phoneClock() {
     if (!phClock) return;
     var d = new Date();
@@ -1034,50 +1036,6 @@
   }
   phoneClock();
   setInterval(phoneClock, 20000);
-
-  function fmt(s) {
-    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
-  }
-
-  /* STATE 1 · the incoming-call screen */
-  function resetPhone() {
-    clearInterval(tickTimer);
-    tickTimer = null;
-    elapsed = 0;
-    if (!phone) return;
-    phone.dataset.state = 'idle';
-    phStatus.textContent = 'Incoming call';   /* .mono uppercases it on screen */
-    phName.textContent = 'Lara';
-    phSub.textContent = 'Prime Vocal';
-    /* the form comes back with the idle screen, so the demo can be run again */
-    if (form && successBox) { form.hidden = false; successBox.hidden = true; }
-  }
-
-  /* STATE 2 · the live call. The timer counts a second at a time up to 0:13
-     and then simply stops — long enough to read as a real connected call,
-     short enough that it is never still climbing when the visitor looks back. */
-  function startCall(name) {
-    clearInterval(tickTimer);
-    if (!phone) return;
-    phone.dataset.state = 'active';
-    phStatus.textContent = 'calling mobile...';
-    phName.textContent = name || 'Lara';
-    elapsed = 0;
-    phSub.textContent = fmt(0);
-    tickTimer = setInterval(function () {
-      elapsed += 1;
-      phSub.textContent = fmt(elapsed);
-      if (elapsed >= CALL_STOP) { clearInterval(tickTimer); tickTimer = null; }
-    }, 1000);
-  }
-
-  /* slide-to-answer takes the incoming screen straight to the live call */
-  var phSlide = document.getElementById('phSlide');
-  var phEnd = document.getElementById('phEnd');
-  if (phSlide) phSlide.addEventListener('click', function () {
-    if (phone && phone.dataset.state !== 'active') startCall('Lara');
-  });
-  if (phEnd) phEnd.addEventListener('click', resetPhone);
 
   if (form && successBox) {
     form.addEventListener('submit', function (e) {
@@ -1091,11 +1049,10 @@
       });
       if (!ok) return;
 
-      /* first name only on the call screen */
-      var first = document.getElementById('dName').value.trim().split(/\s+/)[0];
+      /* the confirmation replaces the form; the phone screen deliberately
+         does not react — it holds on the incoming call */
       form.hidden = true;
       successBox.hidden = false;
-      startCall(first);
     });
     form.querySelectorAll('input').forEach(function (input) {
       input.addEventListener('input', function () {

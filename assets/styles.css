@@ -294,12 +294,60 @@ img,svg{ max-width:100%; display:block; }
 [data-theme="dark"] .ico-moon{ display:block; }
 
 /* ---------- hero ---------- */
-.hero{ padding:80px 0 76px; }
+.hero{
+  padding:80px 0 76px;
+  /* Own stacking context: the hero paints as one unit, so no later section —
+     the sticky street stage in particular — can interleave itself with the
+     card or the stage behind it. */
+  position:relative;
+  z-index:1;
+  isolation:isolate;
+  /* belt and braces: nothing in this section can reach the page edges even
+     if a child is mis-sized. clip is the intent; hidden is the fallback. */
+  overflow:hidden;
+  overflow:clip;
+}
 .hero-grid{
   display:grid;
   grid-template-columns:1fr 452px;
   gap:72px;
   align-items:center;
+}
+/* Both columns are placed by hand so the glow can share the card's cell
+   without auto-placement pushing the card down into a row of its own. */
+.hero-copy{ grid-area:1 / 1; position:relative; z-index:1; }
+.voice-card{ grid-area:1 / 2; }
+
+/* ---------- the stage the glass sits on ----------
+   Glass is only glass if there is something behind it to see through. This
+   is that something: a flat, crisp-edged gradient tile — no blur, no glow,
+   nothing radiating outward — sitting behind the card and inset from it on
+   every side.
+
+   It is fully contained: it never bleeds to the page edge, because a dark
+   band running off the viewport merges with the dark street section below it
+   and that reads as one broken block with other sections showing through.
+   Cream on all four sides is what keeps the hero a hero.
+
+   It carries deliberate structure: a cool highlight top-left, a deeper pool
+   bottom-right, over a forest gradient. That variation is what the card's
+   backdrop blur actually frosts — a flat fill would blur to nothing and the
+   card would just look tinted. */
+.hero-grid::before{
+  content:"";
+  grid-area:1 / 2;
+  align-self:stretch;
+  justify-self:stretch;
+  /* 24px is the widest the sides can go and still clear the viewport at the
+     narrowest two-column width, where the shell's own padding is only 32px */
+  margin:-30px -24px;
+  border-radius:32px;
+  background:
+    radial-gradient(46% 42% at 24% 14%, rgba(146,224,181,.28) 0%, rgba(146,224,181,0) 64%),
+    radial-gradient(58% 54% at 88% 86%, rgba(12,32,21,.62) 0%, rgba(12,32,21,0) 68%),
+    linear-gradient(158deg, #1E4531 0%, #153122 48%, #0D2016 100%);
+  z-index:0;
+  pointer-events:none;
 }
 .hero .display{ margin-bottom:26px; }
 .standfirst{
@@ -311,20 +359,35 @@ img,svg{ max-width:100%; display:block; }
 }
 .hero-actions{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 
-/* ---------- hero demo card (dark) ---------- */
+/* ---------- hero demo card · liquid glass ----------
+   A sheet of glass over the stage above: a thin white veil, a wide backdrop
+   blur, one hairline edge and a tight contact shadow. No outward glow, no
+   spread — what you see through it is the stage, not light coming off it. */
 .voice-card{
-  background:var(--dark);
+  position:relative;
+  z-index:1;                 /* above the stage, and above anything a later
+                                section could try to paint into this box */
+  background:rgba(20, 35, 28, 0.35);
+  backdrop-filter:blur(30px) saturate(180%);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
   color:var(--dark-fg);
-  border:1px solid rgba(245,243,236,.1);
-  border-radius:22px;
+  border:1px solid rgba(255, 255, 255, 0.15);
+  border-radius:24px;
+  overflow:hidden;           /* nothing inside can spill past the radius */
   padding:22px 22px 20px;
-  box-shadow:0 40px 90px -44px rgba(23,21,15,.6);
+  box-shadow:0 8px 32px rgba(0, 0, 0, 0.15);
   transition:transform .5s var(--ease), box-shadow .5s var(--ease),
              opacity .8s var(--ease);
 }
 .voice-card:hover{
-  transform:translateY(-5px);
-  box-shadow:0 56px 110px -46px rgba(23,21,15,.7);
+  transform:translateY(-4px);
+  box-shadow:0 14px 40px rgba(0, 0, 0, 0.18);
+}
+/* No backdrop-filter (old Safari, blur disabled for battery): a 35% tint
+   with nothing frosted behind it leaves the type sitting on raw gradient,
+   so it falls back to a near-solid version of the same colour. */
+@supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
+  .voice-card{ background:rgba(17, 34, 26, 0.93); }
 }
 
 .vc-switch{
@@ -360,7 +423,9 @@ img,svg{ max-width:100%; display:block; }
 .vc-tab svg{ width:15px; height:15px; }
 .vc-tab.on, .vc-tab.on:hover{ color:var(--dark); opacity:1; }
 
-.vc-pane{ display:none; min-height:342px; }
+/* Hard height, not min-height: both panes measure exactly the same, so the
+   card cannot change size when the tab switches or as messages arrive. */
+.vc-pane{ display:none; height:342px; }
 .vc-pane.on{ display:block; animation:fadeUp .5s var(--ease) both; }
 .vc-pane[hidden]{ display:none; }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
@@ -531,13 +596,15 @@ img,svg{ max-width:100%; display:block; }
    prospect writes in slate grey on the left. It never scrolls — the column
    is bottom-anchored inside a fixed box and the top edge fades out, so the
    thread rises on its own and the pane height never moves. */
+/* Darker than the glass it sits in, so the thread reads as a screen inside
+   the card rather than as text floating on it. */
 .imsg{
-  background:linear-gradient(170deg, rgba(245,243,236,.045) 0%, rgba(245,243,236,.015) 100%);
-  border:1px solid rgba(245,243,236,.1);
+  background:linear-gradient(170deg, rgba(6,16,11,.34) 0%, rgba(6,16,11,.2) 100%);
+  border:1px solid rgba(245,243,236,.12);
   border-radius:16px;
   overflow:hidden;
   display:flex; flex-direction:column;
-  height:342px;
+  height:100%;              /* fills the fixed pane — never sized by content */
 }
 .imsg-head{
   display:flex; align-items:center; gap:11px;
@@ -569,45 +636,72 @@ img,svg{ max-width:100%; display:block; }
 
 .imsg-body{
   flex:1 1 auto;
+  min-height:0;             /* without this a flex item refuses to shrink
+                               below its content and the thread pushes out */
   display:flex; flex-direction:column; gap:4px;
   padding:10px 11px 12px;
-  overflow:hidden;
-  justify-content:flex-end;
-  /* The column is bottom-anchored, so as the thread grows the opening lines
-     drift off the top edge exactly as they would in a real inbox. The fade
-     is what makes that read as "scrolled up" rather than "sliced off". */
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(245,243,236,.18) transparent;
+  /* The top edge fades, so a thread scrolled up its own frame reads as a
+     real inbox rather than as text sliced off. */
   -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 46px);
           mask-image:linear-gradient(to bottom, transparent 0, #000 46px);
 }
-/* Small type on purpose: the thread is ten messages long, and this is what
-   lets most of the exchange sit on screen at once instead of one line at a
-   time. Sized down from .8rem when the conversation was rewritten. */
+/* An auto-margin spacer bottom-anchors a short thread. justify-content:
+   flex-end would do the same but makes the top of an overflowing column
+   unreachable once the box actually scrolls. */
+.imsg-body::before{ content:""; margin-top:auto; }
+.imsg-body::-webkit-scrollbar{ width:4px; }
+.imsg-body::-webkit-scrollbar-track{ background:transparent; }
+.imsg-body::-webkit-scrollbar-thumb{
+  background:rgba(245,243,236,.18);
+  border-radius:2px;
+}
+
+/* iMessage day stamp — one line at the head of the thread, nothing more */
+.imsg-stamp{
+  align-self:center;
+  flex:0 0 auto;
+  margin:2px 0 6px;
+  font-family:var(--monoF);
+  font-size:.52rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--dark-mut);
+  opacity:.75;
+}
+.imsg-stamp b{ color:var(--dark-fg); font-weight:600; opacity:.8; }
+/* The thread is five messages now rather than ten, so the type goes back up
+   to a size that actually reads like a phone screen. */
 .imsg-bub{
   max-width:81%;
-  padding:6px 11px;
-  border-radius:15px;
-  font-size:.7rem;
-  line-height:1.36;
+  padding:7px 12px;
+  border-radius:16px;
+  font-size:.78rem;
+  line-height:1.4;
   opacity:0;
   transform:translateY(10px) scale(.96);
   transition:opacity .35s var(--ease), transform .42s var(--spring);
   flex:0 0 auto;
 }
 .imsg-bub.in{ opacity:1; transform:none; }
-/* prospect · grey, left */
+/* Received · solid grey, left. Opaque on purpose: a translucent bubble on a
+   glass card has nothing to sit against and the thread stops reading. */
 .imsg-bub.them{
   align-self:flex-start;
-  background:rgba(245,243,236,.11);
-  color:var(--dark-fg);
+  background:#39423F;
+  color:#F2F1EC;
   border-bottom-left-radius:6px;
 }
-/* Lara · green, right */
+/* Sent · Lara, green, right */
 .imsg-bub.us{
   align-self:flex-end;
-  background:linear-gradient(155deg, #3f8f66 0%, #1E5B3F 100%);
-  color:#F3FBF6;
+  background:linear-gradient(180deg, #35A462 0%, #1E7444 100%);
+  color:#FFFFFF;
   border-bottom-right-radius:6px;
-  box-shadow:0 8px 18px -14px rgba(30,91,63,.9);
+  box-shadow:0 6px 16px -12px rgba(0,0,0,.8);
 }
 /* booking confirmation badge */
 .imsg-bub.card{
@@ -629,7 +723,7 @@ img,svg{ max-width:100%; display:block; }
 .imsg-typing{
   align-self:flex-start;
   display:flex; gap:4px; align-items:center;
-  background:rgba(245,243,236,.11);
+  background:#39423F;
   padding:9px 13px;
   border-radius:15px;
   border-bottom-left-radius:6px;
@@ -641,7 +735,7 @@ img,svg{ max-width:100%; display:block; }
 /* Lara is typing, so her indicator sits on her side in her colour */
 .imsg-typing.us{
   align-self:flex-end;
-  background:rgba(78,154,110,.24);
+  background:linear-gradient(180deg, #35A462 0%, #1E7444 100%);
   border-radius:15px;
   border-bottom-right-radius:6px;
   border-bottom-left-radius:15px;
@@ -679,22 +773,50 @@ img,svg{ max-width:100%; display:block; }
   display:flex; gap:10px; flex-wrap:wrap;
   margin-top:56px;
 }
+/* Stat pills. Frosted rather than tinted, so they belong to the same glass
+   family as the demo card, with the figures set in the mono face on tabular
+   numerals — "<30 SEC" and "24/7 · 365" are data, and they should read like
+   data rather than like body copy. */
 .badge{
-  display:inline-flex; align-items:center; gap:9px;
-  background:color-mix(in srgb, var(--green) 7%, transparent);
-  border:1px solid color-mix(in srgb, var(--green) 26%, transparent);
+  display:inline-flex; align-items:center; gap:10px;
+  padding:11px 20px 11px 18px;
   border-radius:999px;
-  padding:9px 18px;
+  font-size:.7rem;
+  font-weight:500;
+  letter-spacing:.15em;
+  font-variant-numeric:tabular-nums;
   color:var(--green);
+  background:rgba(255,255,255,.55);
+  backdrop-filter:blur(14px) saturate(160%);
+  -webkit-backdrop-filter:blur(14px) saturate(160%);
+  border:1px solid color-mix(in srgb, var(--green) 20%, transparent);
+  box-shadow:0 1px 2px rgba(23,21,15,.04),
+             0 10px 22px -16px rgba(23,21,15,.45),
+             inset 0 1px 0 rgba(255,255,255,.65);
   transition:transform .3s var(--spring), box-shadow .3s var(--ease),
-             background .25s var(--ease);
+             background .25s var(--ease), border-color .25s var(--ease);
 }
+/* the live dot is optical, not metric — nudge it onto the cap height */
+.badge .live-dot{ margin-top:-1px; }
 .badge:hover{
   transform:translateY(-3px);
-  background:color-mix(in srgb, var(--green) 12%, transparent);
-  box-shadow:0 12px 22px -14px rgba(30,91,63,.6);
+  background:rgba(255,255,255,.72);
+  border-color:color-mix(in srgb, var(--green) 34%, transparent);
+  box-shadow:0 2px 4px rgba(23,21,15,.05),
+             0 18px 30px -18px rgba(30,91,63,.5),
+             inset 0 1px 0 rgba(255,255,255,.8);
 }
-[data-theme="dark"] .badge{ color:var(--gdk); }
+[data-theme="dark"] .badge{
+  color:var(--gdk);
+  background:rgba(245,243,236,.05);
+  border-color:color-mix(in srgb, var(--gdk) 24%, transparent);
+  box-shadow:0 10px 22px -16px rgba(0,0,0,.85),
+             inset 0 1px 0 rgba(255,255,255,.07);
+}
+[data-theme="dark"] .badge:hover{
+  background:rgba(245,243,236,.1);
+  border-color:color-mix(in srgb, var(--gdk) 40%, transparent);
+}
 
 /* ---------- sections ---------- */
 .sec{
@@ -1169,10 +1291,6 @@ img,svg{ max-width:100%; display:block; }
   background:#141416;
   box-shadow:inset 0 0 2px rgba(80,120,220,.45);
 }
-.phone[data-state="active"] .island-cam{
-  background:#2E8B57;
-  box-shadow:0 0 7px rgba(46,139,87,.9);
-}
 
 .status-bar{
   position:absolute; top:17px; left:0; right:0;
@@ -1188,22 +1306,15 @@ img,svg{ max-width:100%; display:block; }
 .sb-right{ display:flex; align-items:center; gap:5px; }
 .status-bar svg{ height:10px; width:auto; fill:currentColor; }
 
-/* the one line of chrome at the top of the screen. Incoming reads as spaced
-   caps ("INCOMING CALL"); the live call keeps its lowercase "calling mobile…" */
+/* the one line of chrome at the top of the screen — "INCOMING CALL" in
+   spaced caps, and it never says anything else */
 .ph-status{
   color:rgba(255,255,255,.62);
   font-size:.62rem;
-  line-height:18px;          /* pinned so the two states measure identically */
+  line-height:18px;          /* pinned, so the line box can never shift */
   letter-spacing:.2em;
   margin:26px 0 34px;
   transition:color .3s var(--ease);
-}
-.phone[data-state="active"] .ph-status{
-  text-transform:none;
-  letter-spacing:.06em;
-  font-size:.68rem;
-  line-height:18px;
-  color:rgba(255,255,255,.5);
 }
 
 .ph-rings{
@@ -1263,47 +1374,28 @@ img,svg{ max-width:100%; display:block; }
   opacity:1;
   margin:0 0 auto;
   font-size:.66rem;
-  /* fixed line box: the live-call timer is set larger than "PRIME VOCAL", and
-     without this the whole screen — and so the phone frame — grew a few pixels
-     taller the moment the call connected */
-  line-height:24px;
+  line-height:24px;          /* fixed line box, so nothing here can move */
   letter-spacing:.14em;
   font-variant-numeric:tabular-nums;
 }
-/* live call: the subtitle becomes the running timer, in Apple's call green */
-.phone[data-state="active"] .ph-sub{
-  color:#34C759;
-  letter-spacing:.06em;
-  font-size:.95rem;
-  line-height:24px;
-  font-weight:500;
-}
 
-/* ---------- phone · the two control decks ----------
-   Both stack in the same box and cross-fade, so the screen changes state
-   without a single pixel of layout shift. The box is tall enough for the
-   taller of the two (the six-button call pad). */
+/* ---------- phone · the incoming-call deck ----------
+   One deck, held at the bottom of the screen. The live-call deck that used
+   to cross-fade in here was removed; the height stays fixed so the frame
+   still can't move. */
 .ph-controls{
   position:relative;
   width:100%;
   height:196px;
   flex:0 0 196px;
 }
-.ph-incoming,
-.ph-live{
+.ph-incoming{
   position:absolute;
   left:0; right:0; bottom:0;
   display:flex; flex-direction:column; align-items:center;
-  transition:opacity .38s var(--ease), transform .45s var(--ease),
-             visibility .38s var(--ease);
 }
-.ph-live{ opacity:0; visibility:hidden; transform:translateY(16px); }
-.phone[data-state="active"] .ph-incoming{
-  opacity:0; visibility:hidden; transform:translateY(-14px);
-}
-.phone[data-state="active"] .ph-live{ opacity:1; visibility:visible; transform:none; }
 
-/* STATE 1 · Message / Voicemail, then slide to answer */
+/* Message / Voicemail, then slide to answer */
 .ph-quick{
   display:flex; justify-content:center; gap:74px;
   margin-bottom:22px;
@@ -1327,22 +1419,25 @@ img,svg{ max-width:100%; display:block; }
   color:rgba(255,255,255,.72);
 }
 
+/* Glass track, as iOS draws it: the control is a frosted trough over the
+   wallpaper, not a painted green pill. It answers nothing — the screen holds
+   here — so it carries no hover lift either. */
 .ph-slide{
   position:relative;
   width:100%;
   max-width:246px;
   height:60px;
-  border:0;
+  border:1px solid rgba(255, 255, 255, 0.1);
   border-radius:999px;
   padding:0;
   display:flex; align-items:center;
-  background:linear-gradient(135deg, #34a76b 0%, #1E5B3F 100%);
-  box-shadow:0 12px 26px -14px rgba(30,91,63,.95), inset 0 1px 0 rgba(255,255,255,.14);
+  background:rgba(20, 20, 20, 0.5);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  box-shadow:0 6px 20px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255,255,255,.1);
   overflow:hidden;
-  transition:transform .28s var(--spring), box-shadow .3s var(--ease);
+  cursor:default;
 }
-.ph-slide:hover{ transform:translateY(-2px); box-shadow:0 18px 32px -16px rgba(30,91,63,1); }
-.ph-slide:active{ transform:translateY(0) scale(.99); }
 .ph-slide-knob{
   position:relative; z-index:2;
   flex:0 0 auto;
@@ -1376,43 +1471,6 @@ img,svg{ max-width:100%; display:block; }
   z-index:1;
 }
 @keyframes slideShine{ 0%,30%{ transform:translateX(-100%) } 75%,100%{ transform:translateX(100%) } }
-
-/* STATE 2 · the six call controls */
-.ph-pad{
-  display:grid;
-  grid-template-columns:repeat(3, 1fr);
-  gap:20px 30px;
-  width:100%;
-  max-width:250px;
-}
-.ph-pad-btn{
-  display:flex; flex-direction:column; align-items:center; gap:7px;
-  background:none; border:0; padding:0;
-  cursor:default;
-}
-.ph-pad-btn#phEnd{ cursor:pointer; }
-.ph-pad-ico{
-  width:58px; height:58px;
-  border-radius:50%;
-  display:grid; place-items:center;
-  background:rgba(255,255,255,.16);
-  color:#fff;
-  transition:background .22s var(--ease), transform .26s var(--spring);
-}
-.ph-pad-ico svg{ width:24px; height:24px; }
-.ph-pad-btn:hover .ph-pad-ico{ background:rgba(255,255,255,.24); }
-.ph-pad-label{
-  font-family:var(--sans);
-  font-size:.66rem; font-weight:400;
-  color:rgba(255,255,255,.75);
-  white-space:nowrap;
-}
-.ph-pad-end .ph-pad-ico{
-  background:#FF3B30;
-  box-shadow:0 8px 18px -8px rgba(255,59,48,.8);
-}
-.ph-pad-end .ph-pad-ico svg{ transform:rotate(135deg); }
-.ph-pad-end:hover .ph-pad-ico{ background:#ff5147; transform:scale(1.06); }
 
 .home-bar{
   width:128px; height:5px; border-radius:3px;
@@ -1671,7 +1729,18 @@ html.no-io .rv{ opacity:1; transform:none; }
   /* once the grid stacks the card is a lone block in a full-width row —
      without the auto margins it hugs the left edge instead of sitting
      under the headline it belongs to */
-  .voice-card{ max-width:480px; margin-inline:auto; }
+  .voice-card{ grid-area:2 / 1; max-width:480px; margin-inline:auto; }
+  /* Stacked, the stage follows the card into the second row and stays a
+     contained tile — never a full-bleed band. Width is capped rather than
+     stretched because the card shrink-wraps to about 335px here instead of
+     filling the column. */
+  .hero-grid::before{
+    grid-area:2 / 1;
+    justify-self:center;
+    width:min(100%, 400px);
+    margin:-22px -16px;
+    border-radius:28px;
+  }
   .hear-grid{ grid-template-columns:1fr; gap:52px; }
   .hear-phone{ justify-content:center; }
   .demo-box{ max-width:520px; margin-inline:auto; }
@@ -1736,9 +1805,6 @@ html.no-io .rv{ opacity:1; transform:none; }
   .ph-quick-btn{ width:44px; height:44px; }
   .ph-slide{ height:56px; max-width:228px; }
   .ph-slide-knob{ width:44px; height:44px; }
-  .ph-pad{ gap:16px 24px; max-width:236px; }
-  .ph-pad-ico{ width:54px; height:54px; }
-  .ph-pad-label{ font-size:.62rem; }
   .vc-actions{ grid-template-columns:1fr; }
 
   /* SMS pane: same box height as desktop, tighter still so the long thread

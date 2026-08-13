@@ -320,34 +320,34 @@ img,svg{ max-width:100%; display:block; }
 
 /* ---------- the stage the glass sits on ----------
    Glass is only glass if there is something behind it to see through. This
-   is that something: a flat, crisp-edged gradient tile — no blur, no glow,
-   nothing radiating outward — sitting behind the card and inset from it on
-   every side.
+   is that something: three large, soft colour fields — teal, lavender, peach
+   — sitting behind the card. Clear glass over a flat colour just looks like
+   tinted plastic; it needs colour that varies across the panel for the blur
+   to have anything to smear.
 
-   It is fully contained: it never bleeds to the page edge, because a dark
-   band running off the viewport merges with the dark street section below it
-   and that reads as one broken block with other sections showing through.
-   Cream on all four sides is what keeps the hero a hero.
-
-   It carries deliberate structure: a cool highlight top-left, a deeper pool
-   bottom-right, over a forest gradient. That variation is what the card's
-   backdrop blur actually frosts — a flat fill would blur to nothing and the
-   card would just look tinted. */
+   Every blob's falloff reaches zero before the box edge, so there is no
+   rectangle here at all — just colour fading into the paper. Nothing to clip,
+   nothing to bleed into the section below. */
 .hero-grid::before{
   content:"";
   grid-area:1 / 2;
   align-self:stretch;
   justify-self:stretch;
-  /* 24px is the widest the sides can go and still clear the viewport at the
-     narrowest two-column width, where the shell's own padding is only 32px */
-  margin:-30px -24px;
-  border-radius:32px;
+  margin:-86px -76px;
   background:
-    radial-gradient(46% 42% at 24% 14%, rgba(146,224,181,.28) 0%, rgba(146,224,181,0) 64%),
-    radial-gradient(58% 54% at 88% 86%, rgba(12,32,21,.62) 0%, rgba(12,32,21,0) 68%),
-    linear-gradient(158deg, #1E4531 0%, #153122 48%, #0D2016 100%);
+    radial-gradient(32% 30% at 30% 28%, rgba(78,205,196,.50) 0%, rgba(78,205,196,0) 100%),
+    radial-gradient(32% 32% at 70% 26%, rgba(139,126,200,.46) 0%, rgba(139,126,200,0) 100%),
+    radial-gradient(34% 32% at 52% 74%, rgba(240,168,144,.48) 0%, rgba(240,168,144,0) 100%);
   z-index:0;
   pointer-events:none;
+}
+/* dark paper swallows pastels, so they come up in strength rather than the
+   card having to compensate with a heavier veil */
+[data-theme="dark"] .hero-grid::before{
+  background:
+    radial-gradient(30% 28% at 32% 30%, rgba(78,205,196,.58) 0%, rgba(78,205,196,0) 100%),
+    radial-gradient(30% 30% at 70% 28%, rgba(139,126,200,.54) 0%, rgba(139,126,200,0) 100%),
+    radial-gradient(32% 30% at 50% 72%, rgba(240,168,144,.54) 0%, rgba(240,168,144,0) 100%);
 }
 .hero .display{ margin-bottom:26px; }
 .standfirst{
@@ -365,37 +365,50 @@ img,svg{ max-width:100%; display:block; }
    spread — what you see through it is the stage, not light coming off it. */
 .voice-card{
   position:relative;
-  z-index:1;                 /* above the stage, and above anything a later
-                                section could try to paint into this box */
-  background:rgba(20, 35, 28, 0.35);
-  backdrop-filter:blur(30px) saturate(180%);
-  -webkit-backdrop-filter:blur(30px) saturate(180%);
-  color:var(--dark-fg);
-  border:1px solid rgba(255, 255, 255, 0.15);
-  border-radius:24px;
+  z-index:1;                 /* above the colour fields, and above anything a
+                                later section could paint into this box */
+  background:rgba(255, 255, 255, 0.15);
+  backdrop-filter:blur(40px) saturate(200%);
+  -webkit-backdrop-filter:blur(40px) saturate(200%);
+  color:#1a1a1a;             /* clear glass ⇒ everything inside reads dark */
+  border:1px solid rgba(255, 255, 255, 0.25);
+  border-radius:28px;
   overflow:hidden;           /* nothing inside can spill past the radius */
   padding:22px 22px 20px;
-  box-shadow:0 8px 32px rgba(0, 0, 0, 0.15);
+  /* the inset hairline is the top edge catching light — it is what separates
+     glass from a translucent rectangle */
+  box-shadow:0 4px 24px rgba(0, 0, 0, 0.06),
+             inset 0 1px 0 rgba(255, 255, 255, 0.4);
   transition:transform .5s var(--ease), box-shadow .5s var(--ease),
              opacity .8s var(--ease);
 }
+/* dark paper: the veil comes up so the sheet stays light enough to carry
+   dark type, the way Control Center stays legible over any wallpaper */
+[data-theme="dark"] .voice-card{
+  background:rgba(255, 255, 255, 0.45);
+  border-color:rgba(255, 255, 255, 0.3);
+}
 .voice-card:hover{
   transform:translateY(-4px);
-  box-shadow:0 14px 40px rgba(0, 0, 0, 0.18);
+  box-shadow:0 10px 32px rgba(0, 0, 0, 0.09),
+             inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
-/* No backdrop-filter (old Safari, blur disabled for battery): a 35% tint
-   with nothing frosted behind it leaves the type sitting on raw gradient,
-   so it falls back to a near-solid version of the same colour. */
+/* No backdrop-filter (old Safari, blur disabled for battery): 15% white over
+   raw colour fields leaves the type unreadable, so it thickens to frosted. */
 @supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
-  .voice-card{ background:rgba(17, 34, 26, 0.93); }
+  .voice-card{ background:rgba(252, 252, 250, 0.86); }
+  [data-theme="dark"] .voice-card{ background:rgba(250, 250, 248, 0.82); }
 }
 
+/* the switcher is its own smaller sheet of glass sitting on the card */
 .vc-switch{
   position:relative;
   display:flex;
-  background:rgba(245,243,236,.06);
-  border:1px solid rgba(245,243,236,.12);
-  border-radius:999px;
+  background:rgba(255,255,255,.2);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid rgba(255,255,255,.3);
+  border-radius:100px;
   padding:4px;
   margin-bottom:20px;
 }
@@ -404,8 +417,9 @@ img,svg{ max-width:100%; display:block; }
   top:4px; left:4px;
   width:calc(50% - 4px);
   height:calc(100% - 8px);
-  border-radius:999px;
-  background:var(--dark-fg);
+  border-radius:100px;
+  background:rgba(255,255,255,.45);
+  box-shadow:0 2px 8px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.6);
   transition:transform .42s var(--spring);
 }
 .vc-switch.sms .vc-thumb{ transform:translateX(100%); }
@@ -413,15 +427,15 @@ img,svg{ max-width:100%; display:block; }
   position:relative; z-index:1;
   flex:1;
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  background:none; border:0; border-radius:999px;
+  background:none; border:0; border-radius:100px;
   padding:9px 0;
   font-size:.86rem; font-weight:600;
-  color:var(--dark-fg); opacity:.55;
+  color:#1a1a1a; opacity:.5;
   transition:opacity .3s var(--ease), color .3s var(--ease);
 }
-.vc-tab:hover{ opacity:.85; }
+.vc-tab:hover{ opacity:.75; }
 .vc-tab svg{ width:15px; height:15px; }
-.vc-tab.on, .vc-tab.on:hover{ color:var(--dark); opacity:1; }
+.vc-tab.on, .vc-tab.on:hover{ color:#1a1a1a; opacity:1; }
 
 /* Hard height, not min-height: both panes measure exactly the same, so the
    card cannot change size when the tab switches or as messages arrive. */
@@ -440,7 +454,7 @@ img,svg{ max-width:100%; display:block; }
 @keyframes waveBreath{ 0%,100%{opacity:.8} 50%{opacity:1} }
 .vc-wave span{
   width:3px; height:7px; border-radius:2px;
-  background:var(--gdk);
+  background:#1E5B3F;       /* deep green: the light sheet needs weight, not glow */
   opacity:.45;
   animation:idlewv 2.6s ease-in-out infinite;
   transition:opacity .3s var(--ease);
@@ -461,21 +475,24 @@ img,svg{ max-width:100%; display:block; }
 .vc-list{ display:flex; flex-direction:column; gap:9px; }
 .sample{
   display:flex; align-items:center; gap:13px;
-  background:rgba(245,243,236,.05);
-  border:1px solid rgba(245,243,236,.12);
-  border-radius:13px;
+  background:rgba(255,255,255,.28);
+  border:1px solid rgba(255,255,255,.4);
+  border-radius:14px;
   padding:12px 14px;
-  color:var(--dark-fg);
+  color:#1a1a1a;
   text-align:left;
   transition:background .25s var(--ease), border-color .25s var(--ease),
              transform .3s var(--spring), box-shadow .3s var(--ease);
 }
 .sample:hover{
-  background:rgba(245,243,236,.1);
+  background:rgba(255,255,255,.45);
   transform:translateY(-2px);
-  box-shadow:0 12px 22px -14px rgba(0,0,0,.9);
+  box-shadow:0 8px 18px -12px rgba(0,0,0,.25);
 }
-.sample.on{ border-color:var(--gdk); background:rgba(78,154,110,.16); }
+.sample.on{
+  border-color:rgba(30,91,63,.45);
+  background:rgba(255,255,255,.55);
+}
 .s-play{
   width:30px; height:30px; flex-shrink:0;
   border-radius:50%;
@@ -504,18 +521,18 @@ img,svg{ max-width:100%; display:block; }
   font-family:var(--monoF);
   font-size:.63rem; letter-spacing:.07em; text-transform:uppercase;
   font-weight:400;
-  color:var(--dark-mut);
+  color:rgba(26,26,26,.55);
   margin-top:3px;
 }
 .s-meta{ margin-left:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
-.s-wave{ width:34px; height:13px; color:var(--gdk); opacity:.8; }
+.s-wave{ width:34px; height:13px; color:#1E5B3F; opacity:.7; }
 .sample.on .s-wave{ opacity:1; }
-.s-dur{ opacity:.5; }
+.s-dur{ color:rgba(26,26,26,.5); opacity:1; }
 
 .vc-status{
   text-align:center;
-  color:var(--dark-fg);
-  opacity:.45;
+  color:rgba(26,26,26,.5);
+  opacity:1;
   margin:16px 0 0;
 }
 
@@ -596,11 +613,11 @@ img,svg{ max-width:100%; display:block; }
    prospect writes in slate grey on the left. It never scrolls — the column
    is bottom-anchored inside a fixed box and the top edge fades out, so the
    thread rises on its own and the pane height never moves. */
-/* Darker than the glass it sits in, so the thread reads as a screen inside
-   the card rather than as text floating on it. */
+/* A second, slightly brighter pane of glass inside the card, so the thread
+   reads as a screen rather than as text floating on the sheet. */
 .imsg{
-  background:linear-gradient(170deg, rgba(6,16,11,.34) 0%, rgba(6,16,11,.2) 100%);
-  border:1px solid rgba(245,243,236,.12);
+  background:rgba(255,255,255,.24);
+  border:1px solid rgba(255,255,255,.38);
   border-radius:16px;
   overflow:hidden;
   display:flex; flex-direction:column;
@@ -609,8 +626,8 @@ img,svg{ max-width:100%; display:block; }
 .imsg-head{
   display:flex; align-items:center; gap:11px;
   padding:11px 14px;
-  border-bottom:1px solid rgba(245,243,236,.1);
-  background:rgba(245,243,236,.03);
+  border-bottom:1px solid rgba(255,255,255,.4);
+  background:rgba(255,255,255,.22);
   flex:0 0 auto;
 }
 .imsg-av{
@@ -624,13 +641,13 @@ img,svg{ max-width:100%; display:block; }
 .imsg-who{ display:flex; flex-direction:column; gap:2px; min-width:0; }
 .imsg-name{
   font-size:.88rem; font-weight:600;
-  color:var(--dark-fg);
+  color:#1a1a1a;
   line-height:1.15;
 }
 .imsg-role{
   display:flex; align-items:center; gap:6px;
   font-size:.56rem;
-  color:var(--dark-mut);
+  color:rgba(26,26,26,.55);
 }
 .imsg-role .live-dot{ width:6px; height:6px; }
 
@@ -642,8 +659,9 @@ img,svg{ max-width:100%; display:block; }
   padding:10px 11px 12px;
   overflow-y:auto;
   overscroll-behavior:contain;
-  scrollbar-width:thin;
-  scrollbar-color:rgba(245,243,236,.18) transparent;
+  /* scrolls, but the bar is hidden the way iOS hides its own — a 4px grey
+     rail down a sheet of glass is the one thing that breaks the illusion */
+  scrollbar-width:none;
   /* The top edge fades, so a thread scrolled up its own frame reads as a
      real inbox rather than as text sliced off. */
   -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 46px);
@@ -653,12 +671,7 @@ img,svg{ max-width:100%; display:block; }
    flex-end would do the same but makes the top of an overflowing column
    unreachable once the box actually scrolls. */
 .imsg-body::before{ content:""; margin-top:auto; }
-.imsg-body::-webkit-scrollbar{ width:4px; }
-.imsg-body::-webkit-scrollbar-track{ background:transparent; }
-.imsg-body::-webkit-scrollbar-thumb{
-  background:rgba(245,243,236,.18);
-  border-radius:2px;
-}
+.imsg-body::-webkit-scrollbar{ width:0; height:0; }
 
 /* iMessage day stamp — one line at the head of the thread, nothing more */
 .imsg-stamp{
@@ -669,10 +682,9 @@ img,svg{ max-width:100%; display:block; }
   font-size:.52rem;
   letter-spacing:.1em;
   text-transform:uppercase;
-  color:var(--dark-mut);
-  opacity:.75;
+  color:rgba(26,26,26,.5);
 }
-.imsg-stamp b{ color:var(--dark-fg); font-weight:600; opacity:.8; }
+.imsg-stamp b{ color:rgba(26,26,26,.72); font-weight:600; }
 /* The thread is five messages now rather than ten, so the type goes back up
    to a size that actually reads like a phone screen. */
 .imsg-bub{
@@ -687,21 +699,21 @@ img,svg{ max-width:100%; display:block; }
   flex:0 0 auto;
 }
 .imsg-bub.in{ opacity:1; transform:none; }
-/* Received · solid grey, left. Opaque on purpose: a translucent bubble on a
-   glass card has nothing to sit against and the thread stops reading. */
+/* Received · iMessage grey, left. Opaque on purpose: a translucent bubble on
+   a glass card has nothing to sit against and the thread stops reading. */
 .imsg-bub.them{
   align-self:flex-start;
-  background:#39423F;
-  color:#F2F1EC;
+  background:#E9E9EB;
+  color:#1a1a1a;
   border-bottom-left-radius:6px;
 }
-/* Sent · Lara, green, right */
+/* Sent · Lara, iMessage green, right */
 .imsg-bub.us{
   align-self:flex-end;
-  background:linear-gradient(180deg, #35A462 0%, #1E7444 100%);
+  background:#34C759;
   color:#FFFFFF;
   border-bottom-right-radius:6px;
-  box-shadow:0 6px 16px -12px rgba(0,0,0,.8);
+  box-shadow:0 4px 12px -8px rgba(52,199,89,.9);
 }
 /* booking confirmation badge */
 .imsg-bub.card{
@@ -723,7 +735,7 @@ img,svg{ max-width:100%; display:block; }
 .imsg-typing{
   align-self:flex-start;
   display:flex; gap:4px; align-items:center;
-  background:#39423F;
+  background:#E9E9EB;
   padding:9px 13px;
   border-radius:15px;
   border-bottom-left-radius:6px;
@@ -735,7 +747,7 @@ img,svg{ max-width:100%; display:block; }
 /* Lara is typing, so her indicator sits on her side in her colour */
 .imsg-typing.us{
   align-self:flex-end;
-  background:linear-gradient(180deg, #35A462 0%, #1E7444 100%);
+  background:#34C759;
   border-radius:15px;
   border-bottom-right-radius:6px;
   border-bottom-left-radius:15px;
@@ -743,16 +755,36 @@ img,svg{ max-width:100%; display:block; }
 .imsg-typing.in{ opacity:1; transform:none; }
 .imsg-typing i{
   width:5px; height:5px; border-radius:50%;
-  background:var(--dark-fg); opacity:.5;
+  background:#1a1a1a; opacity:.4;
   animation:dots 1.2s ease-in-out infinite;
 }
-.imsg-typing.us i{ background:var(--glow); opacity:.75; }
+.imsg-typing.us i{ background:#FFFFFF; opacity:.85; }
 .imsg-typing i:nth-child(2){ animation-delay:.18s; }
 .imsg-typing i:nth-child(3){ animation-delay:.36s; }
 
 .vc-actions{
   display:grid; grid-template-columns:1fr 1fr; gap:10px;
   margin-top:18px;
+}
+/* Both buttons become glass too, scoped to this card so the solid green CTA
+   everywhere else on the page is untouched. The label stays dark: white type
+   on a 20% white pill over pale colour is unreadable, and the card's own rule
+   is that everything inside it reads dark. */
+.voice-card .vc-actions .btn{
+  background:rgba(255,255,255,.2);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid rgba(255,255,255,.35);
+  border-radius:14px;
+  color:#1a1a1a;
+  box-shadow:0 2px 10px rgba(0,0,0,.05), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.voice-card .vc-actions .btn:hover{
+  background:rgba(255,255,255,.38);
+  border-color:rgba(255,255,255,.55);
+  color:#1a1a1a;
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.55);
 }
 
 .live-dot{

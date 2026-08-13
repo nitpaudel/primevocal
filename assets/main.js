@@ -742,15 +742,21 @@
   var imsgBody = document.getElementById('imsgBody');
   var chatTimers = [];
   var chatRun = 0;                    /* cancels a run that is mid-flight */
+  var chatDone = false;               /* set once the thread has finished; it
+                                         is never played or cleared again */
 
-  /* A caller booking a cleaning, the way it actually goes: short lines, no
-     sales pitch, and it stops the moment the job is booked. */
+  /* A patient in pain getting an appointment, the way it actually goes: short
+     lines, no sales pitch, and it stops the moment the job is booked. Eight
+     messages, roughly 1–2s apart, played exactly once. */
   var IMSG_SCRIPT = [
-    { from: 'them', text: 'Hey do you guys have anything open this week for a cleaning?', think: 700 },
-    { from: 'us',   text: "Yep! I've got Thursday 2pm or Friday 10am open. Either work?", think: 500, type: 1500 },
-    { from: 'them', text: 'Friday works better', think: 1900 },
-    { from: 'us',   text: "Perfect, you're booked for Friday 10am. I'll text a reminder the day before. Anything else?", think: 500, type: 1900 },
-    { from: 'them', text: "Nope that's all, thanks!", think: 1800 }
+    { from: 'them', text: 'Hi, is this Parkview Dental?', think: 700 },
+    { from: 'us',   text: "Hey! Yes it is, I'm Lara. How can I help?", think: 400, type: 1200 },
+    { from: 'them', text: "I've been having some tooth pain for a few days, wanted to get it checked", think: 1600 },
+    { from: 'us',   text: 'Sorry to hear that. Let me find you a slot — are mornings or afternoons better?', think: 400, type: 1500 },
+    { from: 'them', text: 'Afternoons if possible', think: 1500 },
+    { from: 'us',   text: "I've got Thursday at 3pm or Friday at 4:30pm. Either work?", think: 400, type: 1300 },
+    { from: 'them', text: 'Thursday 3pm works', think: 1500 },
+    { from: 'us',   text: "Done! You're booked for Thursday 3pm with Dr. Chen. I'll send a reminder the day before. Take care!", think: 400, type: 1700 }
   ];
 
   /* the frame never grows, so every new line scrolls the thread instead */
@@ -827,8 +833,15 @@
       }
     });
 
-    /* No replay. The thread plays once and stops on the closing line, so it
-       reads as a booking that is done rather than a demo on a loop. */
+    /* Latch it shut. Once the last bubble lands the run is over for the life
+       of the page: every timer is cleared, chatDone stops the tab handler
+       from ever starting or clearing it again, and the finished thread just
+       sits there. No replay, no restart, no loop. */
+    after(500, function () {
+      chatDone = true;
+      chatTimers.forEach(clearTimeout);
+      chatTimers = [];
+    });
   }
 
   vcTabs.forEach(function (tab) {
@@ -846,6 +859,8 @@
         pane.hidden = !isOn;
         pane.classList.toggle('on', isOn);
       });
+      /* a finished thread is left exactly as it is, in both directions */
+      if (chatDone) return;
       if (mode === 'sms') playChat(); else resetChat();
     });
   });

@@ -332,32 +332,39 @@ img,svg{ max-width:100%; display:block; }
    nothing outside .hero is touched.
    ========================================================== */
 .hero{
-  /* light skin · almost white, barely warm */
-  --h-bg:          #f8f8f6;
-  --h-glow:        rgba(180, 210, 190, 0.3);
-  --h-head:        #0a0a0a;
-  --h-eyebrow:     rgba(0, 0, 0, 0.4);
-  --h-body:        rgba(0, 0, 0, 0.5);
-  --h-fg:          #0a0a0a;
-  --h-fg-soft:     rgba(0, 0, 0, 0.55);
-  --h-fg-mute:     rgba(0, 0, 0, 0.4);
-  --h-glass:       rgba(0, 0, 0, 0.04);
-  --h-glass-line:  rgba(0, 0, 0, 0.08);
-  --h-glass-shade: 0 24px 60px rgba(0, 0, 0, 0.1);
-  --h-fill:        rgba(0, 0, 0, 0.05);
-  --h-fill-2:      rgba(0, 0, 0, 0.08);
-  --h-line:        rgba(0, 0, 0, 0.1);
-  --h-track:       rgba(0, 0, 0, 0.05);
-  --h-pill-fg:     rgba(0, 0, 0, 0.6);
-  --h-cta-bg:      #0a0a0a;
-  --h-cta-fg:      #ffffff;
-  --h-ghost-line:  rgba(0, 0, 0, 0.18);
-  --h-bub:         #E5E5EA;
-  --h-bub-fg:      #1a1a1a;
+  --h-bg:          #08080f;
+  --h-fg:          #ffffff;
+  /* SF on Apple hardware; Instrument Sans keeps Windows and Android off the
+     generic (which resolves to Arial) without displacing SF anywhere */
+  --h-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+          "Instrument Sans", sans-serif;
 
-  padding:80px 0 76px;
+  --h-eyebrow:     rgba(255, 255, 255, 0.36);
+  --h-body:        rgba(255, 255, 255, 0.5);
+  --h-fg-mute:     rgba(255, 255, 255, 0.36);
+  --h-fg-soft:     rgba(255, 255, 255, 0.55);
+  --h-glass:       rgba(255, 255, 255, 0.05);
+  --h-glass-line:  rgba(255, 255, 255, 0.09);
+  --h-fill:        rgba(255, 255, 255, 0.06);
+  --h-fill-2:      rgba(255, 255, 255, 0.1);
+  --h-line:        rgba(255, 255, 255, 0.1);
+  --h-track:       rgba(255, 255, 255, 0.07);
+  --h-track-on:    rgba(255, 255, 255, 0.16);
+  --h-glass-pill:  rgba(255, 255, 255, 0.08);
+  --h-glass-pill-line: rgba(255, 255, 255, 0.15);
+  --h-bub:         #3A3A3C;
+  --h-bub-fg:      #ffffff;
+
+  /* Pulled up behind the sticky header and padded back out, so the bloom
+     runs under a genuinely transparent nav instead of leaving a strip of
+     page paper above it. */
+  margin-top:-84px;
+  padding:164px 0 76px;
+  /* the bloom rises from behind the bottom-left corner and is spent by the
+     middle of the section; the top-right one is atmosphere only */
   background:
-    radial-gradient(58% 62% at 65% 35%, var(--h-glow) 0%, transparent 70%),
+    radial-gradient(85% 78% at 6% 104%, rgba(72, 32, 180, 0.45) 0%, transparent 62%),
+    radial-gradient(65% 58% at 96% -6%, rgba(40, 20, 120, 0.2) 0%, transparent 64%),
     var(--h-bg);
   color:var(--h-fg);
   /* Own stacking context: the hero paints as one unit, so no later section —
@@ -369,31 +376,6 @@ img,svg{ max-width:100%; display:block; }
      if a child is mis-sized. clip is the intent; hidden is the fallback. */
   overflow:hidden;
   overflow:clip;
-  transition:background .4s var(--ease), color .4s var(--ease);
-}
-/* dark skin · one quiet green light source in a black room */
-[data-theme="dark"] .hero{
-  --h-bg:          #080808;
-  --h-glow:        rgba(20, 80, 50, 0.35);
-  --h-head:        #ffffff;
-  --h-eyebrow:     rgba(255, 255, 255, 0.4);
-  --h-body:        rgba(255, 255, 255, 0.55);
-  --h-fg:          #ffffff;
-  --h-fg-soft:     rgba(255, 255, 255, 0.6);
-  --h-fg-mute:     rgba(255, 255, 255, 0.4);
-  --h-glass:       rgba(255, 255, 255, 0.06);
-  --h-glass-line:  rgba(255, 255, 255, 0.12);
-  --h-glass-shade: 0 40px 100px rgba(0, 0, 0, 0.4);
-  --h-fill:        rgba(255, 255, 255, 0.08);
-  --h-fill-2:      rgba(255, 255, 255, 0.18);
-  --h-line:        rgba(255, 255, 255, 0.12);
-  --h-track:       rgba(255, 255, 255, 0.1);
-  --h-pill-fg:     rgba(255, 255, 255, 0.7);
-  --h-cta-bg:      #ffffff;
-  --h-cta-fg:      #0a0a0a;
-  --h-ghost-line:  rgba(255, 255, 255, 0.2);
-  --h-bub:         #3A3A3C;
-  --h-bub-fg:      #ffffff;
 }
 .hero-grid{
   display:grid;
@@ -405,34 +387,44 @@ img,svg{ max-width:100%; display:block; }
 .voice-card{ grid-area:1 / 2; }
 
 /* ---------- hero type ----------
-   One sans, no serif, no italic. SF Pro where it exists (Apple hardware);
-   Instrument Sans is kept in the stack ahead of the generic so Windows and
-   Android get the site's own geometric sans rather than dropping to Arial. */
+   The two lines are deliberately not the same: a bold roman declaration,
+   then an italic at book weight. That contrast is the design — everything
+   else in the section is the system UI face, kept quiet underneath it. */
 .hero-h1{
-  font-family:"SF Pro Display", -apple-system, BlinkMacSystemFont,
-              "Helvetica Neue", "Instrument Sans", sans-serif;
-  /* Capped below the 6vw/5.5rem originally asked for: the copy column is
-     676px at the shell's full width, and "Answer every call." only holds as
-     one line up to about 70px. Above that each sentence wraps again and the
-     two-line break stops meaning anything. */
-  font-size:clamp(2.6rem, 4.6vw, 4.35rem);
+  font-family:'Playfair Display', serif;
+  /* Held under the 5.5vw/5.4rem asked for: the copy column is 612px and
+     Playfair is wide, so "Answer every call." only holds as a single line up
+     to about 62px. Past that each sentence wraps and the two-line break
+     stops meaning anything. */
+  font-size:clamp(2.4rem, 4.1vw, 3.85rem);
   font-weight:700;
-  line-height:1.05;
-  letter-spacing:-0.035em;
-  color:var(--h-head);
+  font-style:normal;
+  line-height:1.06;
+  letter-spacing:-0.02em;
+  color:#ffffff;
   margin:0 0 26px;
 }
+.hero-h1 em{
+  font-weight:400;
+  font-style:italic;
+  color:rgba(255, 255, 255, 0.92);
+}
 .hero .kicker{
-  font-size:0.7rem;
-  letter-spacing:0.18em;
-  font-weight:500;
-  color:var(--h-eyebrow);
+  font-family:var(--h-ui);
+  font-size:0.67rem;
+  letter-spacing:0.16em;
+  font-weight:400;
+  text-transform:uppercase;
+  color:rgba(255, 255, 255, 0.36);
   margin:0 0 28px;
 }
 .standfirst{
-  font-size:1.05rem;
-  line-height:1.7;
-  color:var(--h-body);
+  font-family:var(--h-ui);
+  font-size:0.97rem;
+  line-height:1.75;
+  font-weight:400;
+  letter-spacing:0;
+  color:rgba(255, 255, 255, 0.5);
   max-width:46ch;
   margin:0;
 }
@@ -445,15 +437,16 @@ img,svg{ max-width:100%; display:block; }
 .voice-card{
   position:relative;
   z-index:1;
-  background:var(--h-glass);
-  backdrop-filter:blur(40px) saturate(180%);
-  -webkit-backdrop-filter:blur(40px) saturate(180%);
+  background:rgba(255, 255, 255, 0.05);
+  backdrop-filter:blur(48px) saturate(160%);
+  -webkit-backdrop-filter:blur(48px) saturate(160%);
   color:var(--h-fg);
-  border:1px solid var(--h-glass-line);
-  border-radius:20px;
+  border:1px solid rgba(255, 255, 255, 0.09);
+  border-radius:22px;
   overflow:hidden;           /* nothing inside can spill past the radius */
   padding:22px 22px 20px;
-  box-shadow:var(--h-glass-shade);
+  box-shadow:0 48px 96px rgba(0, 0, 0, 0.55),
+             inset 0 0 0 0.5px rgba(255, 255, 255, 0.05);
   transition:transform .5s var(--ease), box-shadow .5s var(--ease),
              opacity .8s var(--ease), background .4s var(--ease);
 }
@@ -471,7 +464,7 @@ img,svg{ max-width:100%; display:block; }
   display:flex;
   background:var(--h-track);
   border:1px solid var(--h-line);
-  border-radius:100px;
+  border-radius:980px;
   padding:4px;
   margin-bottom:20px;
 }
@@ -480,8 +473,8 @@ img,svg{ max-width:100%; display:block; }
   top:4px; left:4px;
   width:calc(50% - 4px);
   height:calc(100% - 8px);
-  border-radius:100px;
-  background:var(--h-fill-2);
+  border-radius:980px;
+  background:var(--h-track-on);
   transition:transform .42s var(--spring);
 }
 .vc-switch.sms .vc-thumb{ transform:translateX(100%); }
@@ -489,15 +482,18 @@ img,svg{ max-width:100%; display:block; }
   position:relative; z-index:1;
   flex:1;
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  background:none; border:0; border-radius:100px;
+  background:none; border:0; border-radius:980px;
   padding:9px 0;
-  font-size:.86rem; font-weight:500;
-  color:var(--h-fg); opacity:.45;
-  transition:opacity .3s var(--ease);
+  font-family:var(--h-ui);
+  font-size:0.82rem;
+  font-weight:500;
+  letter-spacing:-0.01em;
+  color:rgba(255, 255, 255, 0.38);
+  transition:color .3s var(--ease);
 }
-.vc-tab:hover{ opacity:.7; }
+.vc-tab:hover{ color:rgba(255,255,255,.62); }
 .vc-tab svg{ width:15px; height:15px; }
-.vc-tab.on, .vc-tab.on:hover{ opacity:1; }
+.vc-tab.on, .vc-tab.on:hover{ color:#ffffff; }
 
 /* Hard height, not min-height: both panes measure exactly the same, so the
    card cannot change size when the tab switches or as messages arrive. */

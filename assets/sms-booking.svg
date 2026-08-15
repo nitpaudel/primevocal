@@ -1,63 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 300" width="440" height="300" role="img" aria-label="Calendar week view with Thursday 3pm booked with Dr. Chen">
-  <!-- Stand-in for the calendar screenshot shared in the thread. Drawn rather
-       than photographed so it stays crisp at any size and carries the actual
-       booking from the conversation. Swap in a real screenshot by pointing
-       the img in main.js at it. -->
-  <rect width="440" height="300" rx="14" fill="#FFFFFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 148" width="300" height="148" role="img" aria-label="Google Calendar confirmation: Dental check-up with Dr. Chen, Thursday 2pm">
+  <!-- Compact booking confirmation, as it would land in the thread. Drawn in
+       SVG so it stays crisp at any size and carries the actual booking from
+       the conversation above it. -->
+  <rect width="300" height="148" rx="14" fill="#FFFFFF"/>
 
-  <!-- title bar -->
-  <rect x="0" y="0" width="440" height="42" rx="14" fill="#F4F6F5"/>
-  <rect x="0" y="30" width="440" height="12" fill="#F4F6F5"/>
-  <circle cx="24" cy="21" r="7" fill="#1E5B3F"/>
-  <path d="M20.5 21.2l2.4 2.4 4.6-4.8" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="40" y="26" font-family="Instrument Sans, Segoe UI, sans-serif" font-size="14" font-weight="600" fill="#17150F">November</text>
-  <text x="404" y="26" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="#807B69">WEEK</text>
-  <line x1="0" y1="42" x2="440" y2="42" stroke="#E4E1D8" stroke-width="1"/>
+  <!-- top rail with the app mark -->
+  <rect x="0" y="0" width="300" height="34" fill="#F7F7F8"/>
+  <path d="M0 34 L300 34" stroke="#EAEAEC" stroke-width="1"/>
+  <!-- multi-colour "31" glyph as a stand-in for the Google Calendar mark -->
+  <rect x="14" y="10" width="16" height="16" rx="3" fill="#FFFFFF" stroke="#DADCE0" stroke-width="1"/>
+  <path d="M18 13h8" stroke="#4285F4" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M18 17.5h8" stroke="#EA4335" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M18 22h5" stroke="#34A853" stroke-width="1.4" stroke-linecap="round"/>
+  <text x="38" y="22" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'General Sans', sans-serif" font-size="11" font-weight="500" fill="#3C4043" letter-spacing="-0.1">Google Calendar</text>
+  <!-- checkmark badge on the right, confirming the invite was accepted -->
+  <circle cx="278" cy="17" r="9" fill="#34A853"/>
+  <path d="M274 17.4l2.6 2.4 5-4.8" fill="none" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
 
-  <!-- day headings -->
-  <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#807B69" text-anchor="middle">
-    <text x="60" y="62">MON</text>
-    <text x="148" y="62">TUE</text>
-    <text x="236" y="62">WED</text>
-    <text x="324" y="62">THU</text>
-    <text x="412" y="62">FRI</text>
+  <!-- coloured stripe on the left, the way Calendar tags an event -->
+  <rect x="18" y="52" width="4" height="72" rx="2" fill="#039BE5"/>
+
+  <!-- event details -->
+  <text x="34" y="66" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'General Sans', sans-serif" font-size="14" font-weight="600" fill="#202124" letter-spacing="-0.2">Dental check-up · Kristie</text>
+  <text x="34" y="86" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'General Sans', sans-serif" font-size="12" font-weight="400" fill="#3C4043">Thursday · 2:00–2:30 PM</text>
+
+  <!-- meta lines with icons -->
+  <g transform="translate(34,100)">
+    <circle cx="6" cy="6" r="5.4" fill="none" stroke="#5F6368" stroke-width="1.2"/>
+    <path d="M6 3v3.4l2 1.3" fill="none" stroke="#5F6368" stroke-width="1.2" stroke-linecap="round"/>
+    <text x="18" y="10" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'General Sans', sans-serif" font-size="11" fill="#5F6368">Reminder set · 1 day before</text>
   </g>
-
-  <!-- Thursday column highlight -->
-  <rect x="286" y="70" width="76" height="214" rx="9" fill="#1E5B3F" opacity="0.06"/>
-
-  <!-- hour rules -->
-  <g stroke="#ECE9E0" stroke-width="1">
-    <line x1="16" y1="92" x2="424" y2="92"/>
-    <line x1="16" y1="134" x2="424" y2="134"/>
-    <line x1="16" y1="176" x2="424" y2="176"/>
-    <line x1="16" y1="218" x2="424" y2="218"/>
-    <line x1="16" y1="260" x2="424" y2="260"/>
-  </g>
-
-  <!-- existing appointments, kept quiet -->
-  <g opacity="0.5">
-    <rect x="24" y="98" width="72" height="26" rx="6" fill="#D9E4DC"/>
-    <rect x="112" y="140" width="72" height="30" rx="6" fill="#E4DED2"/>
-    <rect x="200" y="98" width="72" height="34" rx="6" fill="#D9E4DC"/>
-    <rect x="200" y="224" width="72" height="26" rx="6" fill="#E4DED2"/>
-    <rect x="376" y="140" width="48" height="30" rx="6" fill="#D9E4DC"/>
-    <rect x="24" y="224" width="72" height="30" rx="6" fill="#E4DED2"/>
-  </g>
-
-  <!-- the booking itself -->
-  <rect x="292" y="176" width="64" height="72" rx="8" fill="#1E5B3F"/>
-  <text x="300" y="196" font-family="IBM Plex Mono, monospace" font-size="9" fill="#9FE3BC">3:00 PM</text>
-  <text x="300" y="214" font-family="Instrument Sans, Segoe UI, sans-serif" font-size="11" font-weight="600" fill="#FFFFFF">Kristi</text>
-  <text x="300" y="230" font-family="Instrument Sans, Segoe UI, sans-serif" font-size="10" fill="#CDE8D8">Dr. Chen</text>
-  <text x="300" y="243" font-family="IBM Plex Mono, monospace" font-size="8" fill="#9FE3BC">CHECK UP</text>
-
-  <!-- hour gutter -->
-  <g font-family="IBM Plex Mono, monospace" font-size="8" fill="#A9A395" text-anchor="end">
-    <text x="14" y="96">9</text>
-    <text x="14" y="138">11</text>
-    <text x="14" y="180">1</text>
-    <text x="14" y="222">3</text>
-    <text x="14" y="264">5</text>
+  <g transform="translate(34,120)">
+    <path d="M6 1a4 4 0 014 4c0 2.7-4 6-4 6S2 7.7 2 5a4 4 0 014-4z" fill="none" stroke="#5F6368" stroke-width="1.2" stroke-linejoin="round"/>
+    <circle cx="6" cy="5" r="1.4" fill="#5F6368"/>
+    <text x="18" y="10" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'General Sans', sans-serif" font-size="11" fill="#5F6368">Parkview Dental · with Dr. Chen</text>
   </g>
 </svg>

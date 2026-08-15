@@ -441,11 +441,12 @@ img,svg{ max-width:100%; display:block; }
 .hero{
   --h-bg:          #f5f0e8;
   --h-fg:          #141310;
-  /* One accent across both tabs: iMessage blue. Every play button, waveform
-     bar, active-tab tint, outgoing bubble and pill icon in this section
-     resolves here — there is no green left anywhere inside .hero. */
-  --h-accent:      #007AFF;
-  --h-accent-soft: rgba(0, 122, 255, 0.14);
+  /* Voice AI's accent is deliberately neutral, not blue: play buttons, the
+     waveform, the mini row waves, the active-row edge — all resolve here.
+     Blue is now exclusive to the SMS bubbles (hard-coded below) so each tab
+     carries its own identity. */
+  --h-accent:      #1a1a1a;
+  --h-accent-soft: rgba(20, 19, 16, 0.14);
   /* Everything in the hero that is not the headline — kicker, body, card
      labels, row names, buttons, badges — resolves to General Sans, so the
      section reads in one UI voice. Capped at 600: the face is loaded at
@@ -503,21 +504,26 @@ img,svg{ max-width:100%; display:block; }
 /* Copy hard left, card hard right, and everything left over becomes the gap
    in the middle. The copy is capped so it cannot sprawl across the wider
    measure and close that gap back up. */
+/* Text hard left, card hard right. Copy fills the leftover up to a 60%
+   cap; the card is a fixed 460px working panel — sizing it larger just
+   leaves dead space inside it. `margin-left:auto` on the card pushes it
+   to the right edge of the row and hands any surplus back to the gap,
+   which measures ~7–9% at 1440+ and holds a 40px minimum below that. */
 .hero-grid{
-  display:grid;
-  grid-template-columns:minmax(0, 1fr) 420px;
-  justify-content:space-between;
-  gap:64px;
+  display:flex;
   align-items:center;
+  gap:40px;
 }
 .hero-copy{
-  grid-area:1 / 1;
   position:relative;
   z-index:1;
-  max-width:700px;
-  justify-self:start;
+  flex:1 1 auto;
+  max-width:60%;
 }
-.voice-card{ grid-area:1 / 2; justify-self:end; }
+.voice-card{
+  flex:0 0 460px;
+  margin-left:auto;
+}
 
 /* ---------- hero type ----------
    Hierarchy is built out of weight, not out of a second typeface. One family
@@ -639,9 +645,17 @@ img,svg{ max-width:100%; display:block; }
 .vc-tab.on, .vc-tab.on:hover{ color:#141310; font-weight:600; }
 
 /* Hard height, not min-height: both panes measure exactly the same, so the
-   card cannot change size when the tab switches or as messages arrive. */
-.vc-pane{ display:none; height:342px; }
-.vc-pane.on{ display:block; animation:fadeUp .5s var(--ease) both; }
+   card cannot change size when the tab switches. Layout is flex-column so
+   the status line auto-margins itself to the bottom of the pane and never
+   overflows into the CTA row below. overflow:hidden is a safety net if a
+   future edit adds content that would exceed the 440px pane. */
+.vc-pane{
+  display:none;
+  height:440px;
+  flex-direction:column;
+  overflow:hidden;
+}
+.vc-pane.on{ display:flex; animation:fadeUp .5s var(--ease) both; }
 .vc-pane[hidden]{ display:none; }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
 
@@ -651,8 +665,8 @@ img,svg{ max-width:100%; display:block; }
    green light off the bars, nothing more. */
 .vc-wave{
   display:flex; align-items:center; justify-content:center; gap:3px;
-  height:66px;
-  margin-bottom:20px;
+  height:96px;
+  margin:8px 0 26px;
 }
 /* The silhouette is static and it does not repeat.
    Each bar's resting height is the sum of four sine layers at deliberately
@@ -668,7 +682,7 @@ img,svg{ max-width:100%; display:block; }
   height:28%;
   border-radius:2px;
   background:var(--h-accent);
-  filter:drop-shadow(0 0 3px rgba(0, 122, 255, 0.35));
+  filter:drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
   transform-origin:50% 50%;
   animation:barIdle 3.6s ease-in-out infinite alternate;
 }
@@ -708,15 +722,16 @@ img,svg{ max-width:100%; display:block; }
 .vc-wave span:nth-child(34){ height:30.6%; }
 .vc-wave span:nth-child(35){ height:35.6%; }
 
-/* Idle · a resting heartbeat. 8% of travel over ~4s is deliberately near the
-   threshold of perception — it should read as alive, not as busy. */
+/* Idle · one shared 3.6s ease-in-out cycle across every bar — every bar
+   runs the SAME curve at the SAME duration. Fixed stagger delays step the
+   phase per bar so the swell travels the row, but the pattern repeats
+   exactly every 3.6s. No mixed durations, no drift, no drama — a slow
+   breath that loops predictably. Amplitude stays at 8% of travel so it
+   reads as alive rather than as attention-grabbing. */
 @keyframes barIdle{
   from { transform:scaleY(0.92) }
   to   { transform:scaleY(1) }
 }
-/* three slightly different periods, so the row never pulses in lockstep */
-.vc-wave span:nth-child(3n+2){ animation-duration:3.8s; }
-.vc-wave span:nth-child(3n+3){ animation-duration:4s; }
 /* stepped delays, wrapped every eighth bar, so the swell travels the row */
 .vc-wave span:nth-child(8n+1){ animation-delay:-.10s; }
 .vc-wave span:nth-child(8n+2){ animation-delay:-.32s; }
@@ -727,42 +742,29 @@ img,svg{ max-width:100%; display:block; }
 .vc-wave span:nth-child(8n+7){ animation-delay:-1.42s; }
 .vc-wave span:nth-child(8n+8){ animation-delay:-1.64s; }
 
-/* Playing · same silhouette, modestly livelier and on a shorter cycle.
-   The swing was 0.42→1.30 (0.88 of travel); it is now 0.87→1.40 — 0.53, or
-   ~60% of what it was. Loud enough to read as playback, quiet enough not to
-   look synthetic. */
+/* Playing · the one moment the row is allowed to look less uniform.
+   Fuller swing (0.65 → 1.55) and three staggered durations (1.4 / 1.65 /
+   1.9s) so neighbouring bars fall out of phase quickly and the row reads
+   as real audio rather than as a metronome. */
 .vc-wave.playing span{
   opacity:1;
-  animation:barPlay 1.7s ease-in-out infinite alternate;
+  animation:barPlay 1.65s ease-in-out infinite alternate;
 }
-.vc-wave.playing span:nth-child(3n+2){ animation-duration:1.5s; }
+.vc-wave.playing span:nth-child(3n+2){ animation-duration:1.4s; }
 .vc-wave.playing span:nth-child(3n+3){ animation-duration:1.9s; }
 @keyframes barPlay{
-  from { transform:scaleY(0.87) }
-  to   { transform:scaleY(1.4) }
-}
-
-/* Stopping · a damped ring-down between the two states, so playback does not
-   snap back to rest. main.js hangs .settling on the row for 700ms when a clip
-   ends, then drops it and the idle breath resumes. */
-.vc-wave.settling span{
-  animation:barSettle .7s var(--ease) both;
-}
-@keyframes barSettle{
-  0%   { transform:scaleY(1.12) }
-  38%  { transform:scaleY(0.9) }
-  68%  { transform:scaleY(1.03) }
-  100% { transform:scaleY(0.96) }
+  from { transform:scaleY(0.65) }
+  to   { transform:scaleY(1.55) }
 }
 
 /* samples · the row is unlit until you point at it */
-.vc-list{ display:flex; flex-direction:column; gap:9px; }
+.vc-list{ display:flex; flex-direction:column; gap:11px; }
 .sample{
   display:flex; align-items:center; gap:13px;
   background:transparent;
   border:1px solid transparent;
   border-radius:10px;
-  padding:12px 14px;
+  padding:14px 14px;
   color:var(--h-fg);
   text-align:left;
   transition:background 120ms ease, border-color 120ms ease;
@@ -770,7 +772,7 @@ img,svg{ max-width:100%; display:block; }
 .sample:hover{ background:rgba(0, 0, 0, 0.03); }
 .sample.on{
   background:rgba(255, 255, 255, 0.6);
-  border-color:rgba(0, 122, 255, .45);
+  border-color:rgba(20, 19, 16, 0.28);
 }
 /* the one accent, at full strength */
 .s-play{
@@ -786,13 +788,13 @@ img,svg{ max-width:100%; display:block; }
   margin-left:2px;
   border-style:solid;
   border-width:5px 0 5px 8px;
-  border-color:transparent transparent transparent #ffffff;
+  border-color:transparent transparent transparent var(--h-play-fg, #ffffff);
 }
 .sample.on .s-play i{
   border:0; margin-left:0;
   width:9px; height:10px;
-  border-left:3px solid #ffffff;
-  border-right:3px solid #ffffff;
+  border-left:3px solid var(--h-play-fg, #ffffff);
+  border-right:3px solid var(--h-play-fg, #ffffff);
 }
 .s-name{
   font-family:var(--h-ui);
@@ -830,16 +832,23 @@ img,svg{ max-width:100%; display:block; }
 }
 
 .vc-status{
+  flex:0 0 auto;
   font-family:var(--h-display);
-  font-size:0.76rem;
+  font-size:0.78rem;
   letter-spacing:0;
   font-weight:500;
   text-transform:none;
   text-align:center;
   color:rgba(20, 19, 16, 0.45);
   opacity:1;
-  margin:16px 0 0;
+  /* margin-top:auto pins the status line to the bottom of the pane. Combined
+     with overflow:hidden on the pane, the line can never overflow into the
+     CTA row below the card. */
+  margin:auto 0 0;
+  padding-top:14px;
 }
+.vc-list{ flex:0 0 auto; }
+.vc-wave{ flex:0 0 auto; }
 
 /* chat · legacy markup, superseded by the .imsg pane below */
 .chat{ display:flex; flex-direction:column; }
@@ -1091,6 +1100,15 @@ img,svg{ max-width:100%; display:block; }
   color:var(--h-bub-fg);
   border-bottom-left-radius:6px;
 }
+/* Kristie's email is masked the way a shared screenshot would be: blurred
+   inline so the name still reads plainly, and unselectable so it cannot be
+   copied out of the DOM. */
+.imsg-blur{
+  filter:blur(5px);
+  user-select:none;
+  -webkit-user-select:none;
+}
+
 /* Sent · Lara, iMessage blue, right.
    Blue, not green: the header above this thread says "iMessage · Encrypted",
    and in iOS green means the message went as SMS. Green bubbles under an
@@ -1167,8 +1185,13 @@ img,svg{ max-width:100%; display:block; }
 .imsg-typing i:nth-child(3){ animation-delay:.36s; }
 
 .vc-actions{
-  display:grid; grid-template-columns:1fr 1fr; gap:10px;
-  margin-top:18px;
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+  /* explicit clearance from the pane above — the status line sits at the
+     pane's bottom edge, and this keeps a hairline of air between it and
+     the CTA row so nothing can ever visually overlap */
+  margin-top:28px;
+  position:relative;
+  z-index:1;
 }
 /* Two pills, scoped to this card so the solid green CTA everywhere else on
    the page is untouched: one solid ink, one outlined. Both answer on press
@@ -1254,48 +1277,49 @@ img,svg{ max-width:100%; display:block; }
   100%{ box-shadow:0 0 0 0 rgba(78,154,110,0); opacity:1 }
 }
 
-/* Trust pills · icon-led and cut to their content. Sized by the text plus
-   one icon and nothing else: no padded-out block, no tracked caps, and set
-   in the UI sans rather than anything decorative. */
-/* The row spans the container, so the first pill sits on the left edge and
-   the last on the right — the same two edges as the headline and the card.
-   The pills grow with it, but stay cut to their own text rather than being
-   stretched into three equal blocks. */
+/* Trust strip · ONE pill spanning the row, divided into three equal
+   segments by 1px rules. Reads as a single horizontal bar with real
+   visual weight, not as three chips floating in space. */
 .badges{
   display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:16px;
-  flex-wrap:wrap;
-  margin-top:44px;
+  align-items:stretch;
+  margin-top:52px;
+  border-radius:980px;
+  border:1px solid rgba(20, 19, 16, 0.12);
+  background:rgba(255, 255, 255, 0.55);
+  overflow:hidden;                     /* keeps the ends clipped to the pill */
+  box-shadow:0 1px 3px rgba(0, 0, 0, 0.05);
+  transition:background .25s var(--ease), border-color .25s var(--ease);
 }
 .badge{
-  display:inline-flex; align-items:center; gap:10px;
-  width:auto; flex:0 0 auto;
-  padding:13px 26px 13px 21px;
-  border-radius:980px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+  padding:18px 28px;
+  flex:1 1 0;                          /* equal-width segments */
+  border:0;
+  background:transparent;
+  border-radius:0;
+  box-shadow:none;
+  border-right:1px solid rgba(20, 19, 16, 0.10);
   font-family:var(--h-ui);
-  font-size:0.94rem;
+  font-size:1.02rem;
   font-weight:500;
   letter-spacing:-0.008em;
   line-height:1.2;
   white-space:nowrap;
   font-variant-numeric:tabular-nums;
-  color:rgba(20, 19, 16, 0.75);
-  background:rgba(255, 255, 255, 0.55);
-  border:1px solid rgba(20, 19, 16, 0.12);
-  box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-  transition:transform .3s var(--spring), background .25s var(--ease),
-             border-color .25s var(--ease);
+  color:rgba(20, 19, 16, 0.78);
+  transition:background .2s var(--ease), color .2s var(--ease);
 }
+.badge:last-child{ border-right:0; }
 .badge-ico{
-  width:18px; height:18px;
+  width:20px; height:20px;
   flex:0 0 auto;
   color:var(--h-accent);
 }
 .badge:hover{
-  transform:translateY(-3px);
-  background:rgba(255, 255, 255, 0.82);
 }
 /* Apple system green, in the hero only — the other live dot on the page
    (the form's "Live" label) keeps the brand green it already had */
@@ -1335,6 +1359,11 @@ img,svg{ max-width:100%; display:block; }
   --h-fg:          #ffffff;
   --h-fg-mute:     rgba(255, 255, 255, 0.4);
   --h-fg-soft:     rgba(255, 255, 255, 0.55);
+  /* Voice AI accent, dark. Nearly-white so the play button and waveform
+     stay legible against the near-black card. The triangle inside the
+     button flips back to black via --h-play-fg. */
+  --h-accent:      #f2f2f2;
+  --h-play-fg:     #0a0a0a;
   --h-card:        rgba(255, 255, 255, 0.05);
   --h-fill:        rgba(255, 255, 255, 0.04);
   --h-line:        rgba(255, 255, 255, 0.08);
@@ -1470,13 +1499,21 @@ img,svg{ max-width:100%; display:block; }
   color:#ffffff;
 }
 
-[data-theme="dark"] .badge{
-  color:rgba(255, 255, 255, 0.8);
-  background:rgba(255, 255, 255, 0.05);
-  border-color:rgba(255, 255, 255, 0.14);
+/* dark · the outer pill inverts, the inner dividers stay hairline-white */
+[data-theme="dark"] .badges{
+  background:rgba(255, 255, 255, 0.04);
+  border-color:rgba(255, 255, 255, 0.12);
   box-shadow:none;
 }
-[data-theme="dark"] .badge:hover{ background:rgba(255, 255, 255, 0.1); }
+[data-theme="dark"] .badge{
+  color:rgba(255, 255, 255, 0.82);
+  background:transparent;
+  border-right-color:rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .badge:hover{
+  background:rgba(255, 255, 255, 0.06);
+  color:#ffffff;
+}
 [data-theme="dark"] .badge-ico{ color:#0A84FF; }
 
 /* ---------- nav · only while it is over the hero ----------
@@ -1628,6 +1665,14 @@ img,svg{ max-width:100%; display:block; }
   background:linear-gradient(135deg, #2d6a4f 0%, #3d8c65 100%);
   transform:translateY(-3px) scale(1.03);
   animation-play-state:paused;
+}
+/* on mobile, main.js flips this on while the demo card is on-screen so the
+   fixed FAB cannot sit on top of the card's "Book a call" pill */
+.talk-fab.is-hidden{
+  opacity:0;
+  transform:translateY(20px) scale(0.9);
+  pointer-events:none;
+  transition:opacity .3s var(--ease), transform .3s var(--ease);
 }
 .talk-fab svg{ width:17px; height:17px; flex:0 0 auto; }
 @keyframes fabGlow{
@@ -2398,11 +2443,15 @@ html.no-io .rv{ opacity:1; transform:none; }
 
 /* ---------- responsive ---------- */
 @media (max-width:1020px){
-  .hero-grid{ grid-template-columns:1fr; gap:52px; }
-  /* once the grid stacks the card is a lone block in a full-width row —
-     without the auto margins it hugs the left edge instead of sitting
-     under the headline it belongs to */
-  .voice-card{ grid-area:2 / 1; max-width:480px; margin-inline:auto; }
+  /* the grid is flex now; stacking is just flex-direction:column */
+  .hero-grid{
+    flex-direction:column;
+    align-items:stretch;
+    gap:44px;
+  }
+  .hero-copy{ max-width:none; }
+  /* full-width in the stacked layout, but capped so it does not sprawl */
+  .voice-card{ width:100%; max-width:480px; align-self:center; }
   /* The card drops below the copy here, so the grid follows it down and
      across. The edge light rides on the card itself and needs no move. */
   [data-theme="dark"] .hero::after{
@@ -2450,18 +2499,61 @@ html.no-io .rv{ opacity:1; transform:none; }
 }
 
 @media (max-width:760px){
-  .shell{ padding-inline:22px; }
+  /* Global gutter · nothing in the hero (or anywhere else) touches the
+     viewport edge on mobile. 24px matches the visual rhythm of a modern
+     iOS layout — big enough to breathe, small enough to keep type sizes
+     readable. */
+  .shell{ padding-inline:24px; }
   /* one variable steps the whole lockup down so it stays in proportion */
   .wordmark{ --logo-h:29px; }
   .nav.stuck .wordmark{ --logo-h:26px; }
   .nav-right{ gap:10px; }
-  .hero{ padding:56px 0 64px; }
+  /* Vertical rhythm: consistent 28–36px between blocks. Padding at the top
+     accounts for the sticky nav's height plus a real breathing gap; padding
+     at the bottom leaves room for the FAB without letting it collide with
+     the trust strip. */
+  .hero{ padding:120px 0 88px; }
+  .hero-grid{ gap:36px; }
+  .hero .kicker{ margin:0 0 22px; }
+  .hero-h1{ margin:0 0 24px; }
   .hero .display{ margin-bottom:22px; }
-  .badges{ margin-top:44px; }
+  .badges{ margin-top:36px; }
   .sec{ padding:66px 0 72px; }
   .sec-tight{ padding:60px 0 64px; }
   .sec-label{ padding-bottom:30px; }
   .street-label{ top:18px; font-size:.6rem; right:18px; }
+
+  /* Trust strip goes vertical on mobile — three horizontal segments in a
+     ~330px viewport would compress the text to nothing. Same rounded
+     container, same 1px dividers, just rotated to row-per-segment. */
+  .badges{
+    flex-direction:column;
+    align-items:stretch;
+    border-radius:22px;
+  }
+  .badge{
+    justify-content:flex-start;
+    padding:16px 22px;
+    border-right:0;
+    border-bottom:1px solid rgba(20, 19, 16, 0.10);
+    font-size:0.98rem;
+  }
+  .badge:last-child{ border-bottom:0; }
+  [data-theme="dark"] .badge{ border-bottom-color:rgba(255, 255, 255, 0.1); border-right-color:transparent; }
+
+  /* the card gets its own gutter inside the mobile shell, so bubbles don't
+     touch the card edge and the CTAs sit inset from the pill's rim */
+  .voice-card{ padding:22px 22px 20px; }
+  /* Kicker pill wraps on narrow screens rather than pushing horizontal
+     scroll; the badge is decorative so line-height matters more than the
+     stretched pill shape. */
+  .kicker-badge{
+    padding:11px 18px;
+    font-size:0.9rem;
+    white-space:normal;
+    text-align:left;
+    line-height:1.35;
+  }
 
   .phone{ width:286px; transform:none; }
   .hear-phone:hover .phone{ transform:translateY(-4px); }
@@ -2474,7 +2566,13 @@ html.no-io .rv{ opacity:1; transform:none; }
   .ph-quick-btn{ width:44px; height:44px; }
   .ph-slide{ height:56px; max-width:228px; }
   .ph-slide-knob{ width:44px; height:44px; }
-  .vc-actions{ grid-template-columns:1fr; }
+  /* On mobile the two card CTAs stack vertically with a real gap between
+     them — a horizontal pair at 285px card width would leave each button
+     too small to hit comfortably. */
+  .vc-actions{ grid-template-columns:1fr; gap:10px; margin-top:24px; }
+  /* the FAB stays out of the way of anything in the card while the hero is
+     visible; this is the physical clearance baseline main.js enforces */
+  .talk-fab{ right:16px; bottom:16px; }
 
   /* SMS pane: same box height as desktop, tighter still so the long thread
      keeps as much of itself on screen as it does on a wide display */

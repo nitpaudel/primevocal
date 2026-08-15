@@ -687,25 +687,15 @@
     var simTimer = null;
     var current = null;
 
-    /* Playback never snaps back to the idle breath. .settling runs a 700ms
-       damped ring-down between the two amplitudes, then hands the row back
-       to the idle animation. */
-    var settleTimer = null;
+    /* The row snaps back to the calm idle loop the instant playback ends —
+       no damped ring-down between the two amplitudes. */
     stopPlayback = function () {
       audio.pause();
       if (simTimer) { clearTimeout(simTimer); simTimer = null; }
-      var wasPlaying = vcWave.classList.contains('playing');
       vcWave.classList.remove('playing');
-      if (wasPlaying && !reduceMotion) {
-        clearTimeout(settleTimer);
-        vcWave.classList.add('settling');
-        settleTimer = setTimeout(function () {
-          vcWave.classList.remove('settling');
-        }, 700);
-      }
       samples.forEach(function (s) { s.classList.remove('on'); });
       current = null;
-      vcStatus.textContent = 'Pick a call to hear it';
+      vcStatus.textContent = 'Press play to hear it happen';
     };
 
     samples.forEach(function (sample) {
@@ -714,8 +704,6 @@
         stopPlayback();
         current = sample;
         sample.classList.add('on');
-        clearTimeout(settleTimer);
-        vcWave.classList.remove('settling');
         vcWave.classList.add('playing');
         var label = sample.querySelector('.s-name').firstChild.textContent.trim();
         vcStatus.textContent = 'Playing: ' + label;
@@ -764,14 +752,25 @@
 
   var IMSG_SCRIPT = [
     { from: 'them', text: 'Hi, is this Parkview Dental?' },
-    { from: 'us',   text: "Hey! Yes it is, I'm Lara, an AI Assistant for Parkview Dental. How can I help?" },
-    { from: 'them', text: "I've been having some tooth pain for a few days, wanted to get it checked" },
-    { from: 'us',   text: 'Sorry to hear that. Let me find you a slot, are mornings or afternoons better?' },
-    { from: 'us',   text: "Done! You're booked for Thursday 3pm with Dr. Chen. I'll send a reminder the day before." },
+    { from: 'us',   text: "Hey! Yes it is, I’m Lara, an AI assistant for Parkview Dental. How can I help you today?" },
+    { from: 'them', text: "Hi Lara, I’ve been having some tooth pain for a few days and wanted to get it checked out." },
+    { from: 'us',   text: "Sorry to hear that! Let’s get you in as soon as we can. Do mornings or afternoons work better for you?" },
+    { from: 'them', text: 'Afternoons would be better for me.' },
+    { from: 'us',   text: "Perfect, we’ve got two openings Thursday afternoon: 2pm and 4pm. Which works best?" },
+    { from: 'them', text: '2pm works for me!' },
+    { from: 'us',   text: 'Great, just need your first name and email to lock that in.' },
+    /* Only the email is blurred — the name reads plainly. Wrapped in .imsg-blur
+       which is unselectable so it cannot be read back off the page. */
+    { from: 'them', html: 'It’s Kristie, <span class="imsg-blur">kristiejohnson1997@gmail.com</span>' },
+    /* The calendar confirmation lands as its own image bubble, before the
+       written confirmation — the way iOS puts a screenshot attachment ahead
+       of the note that references it. */
+    { from: 'image', src: 'assets/sms-booking.svg', alt: 'Calendar confirmation showing Thursday 2pm booked with Dr. Chen' },
+    { from: 'us',   text: "Done, Kristie! You’re booked for Thursday at 2pm with Dr. Chen. I’ll send a reminder the day before." },
     { from: 'them', text: 'Thank you so much, I was desperate for an appointment. I couldn’t find anywhere available.' },
-    { from: 'us',   text: "I'm glad I got the chance to help you out." },
+    { from: 'us',   text: 'I’m so glad I could help. Hope that tooth pain eases up soon once you see Dr. Chen!' },
     { from: 'them', text: 'Aww, thank you!' },
-    { from: 'us',   text: 'Take care, Kristi.' }
+    { from: 'us',   text: 'Take care, Kristie.' }
   ];
 
   /* the frame never grows, so every new line scrolls the thread instead */
@@ -1204,6 +1203,24 @@
      ========================================================== */
   var fab = document.getElementById('talkFab');
   var modal = document.getElementById('talkModal');
+
+  /* The FAB and the demo card's "Book a call" pill live in the same corner
+     on mobile, so if both were visible the FAB would sit on top of the pill.
+     Hide the FAB while the hero card is on-screen — that is the whole
+     reason the FAB exists in the first place. On desktop the two are in
+     completely different regions and never collide, so this only kicks in
+     at mobile widths. */
+  var heroCard = document.getElementById('voiceCard');
+  if (fab && heroCard && 'IntersectionObserver' in window) {
+    var fabObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var mobile = window.matchMedia('(max-width: 760px)').matches;
+        fab.classList.toggle('is-hidden', mobile && entry.intersectionRatio > 0.05);
+      });
+    }, { threshold: [0, 0.05, 0.5, 1] });
+    fabObs.observe(heroCard);
+  }
+
   if (fab && modal) {
     var talkForm = document.getElementById('talkForm');
     var talkDone = document.getElementById('talkDone');

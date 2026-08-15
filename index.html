@@ -33,7 +33,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
 <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=55">
+<link rel="stylesheet" href="assets/styles.css?v=56">
 </head>
 <body>
 
@@ -146,31 +146,64 @@
         <p class="mono vc-status" id="vcStatus">Pick a call to hear it</p>
       </div>
 
-      <!-- SMS · auto-playing conversation, no scrolling, no camera icon.
-           Dark card + green (Lara) / grey (prospect) bubbles, so it belongs to
-           the site rather than borrowing Apple's white sheet. -->
+      <!-- SMS · auto-playing conversation, no scrolling.
+           The chrome above the thread is a literal iOS Messages header:
+           status bar, back chevron with unread count, centred contact avatar,
+           FaceTime button, then the number and the encryption line. Only the
+           chrome is a screenshot — the bubbles below are the site's own. -->
       <div class="vc-pane" id="modeSms" data-pane="sms" role="tabpanel" hidden>
         <div class="imsg" id="imsg">
-          <div class="imsg-head">
-            <span class="imsg-av">
-              <img class="avatar-img" src="assets/lara-avatar.jpg" alt="Lara" width="72" height="72" decoding="async">
-              <svg class="mark" viewBox="20 18 66 64" aria-hidden="true"><use href="#pvMark"/></svg>
+
+          <!-- iOS status bar -->
+          <div class="ios-status" aria-hidden="true">
+            <span class="ios-status-l">
+              <span class="ios-time">9:41</span>
+              <svg class="ios-dnd" viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 14.9A8.5 8.5 0 019.1 3.7a8.5 8.5 0 1011.2 11.2z"/></svg>
             </span>
-            <span class="imsg-who">
-              <span class="imsg-name">Lara</span>
-              <span class="imsg-role mono"><span class="live-dot" aria-hidden="true"></span>Prime Vocal · SMS</span>
+            <span class="ios-status-r">
+              <svg class="ios-cell" viewBox="0 0 18 11" fill="currentColor"><rect x="0" y="7.6" width="3" height="3.4" rx="1"/><rect x="5" y="5.4" width="3" height="5.6" rx="1"/><rect x="10" y="2.8" width="3" height="8.2" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1"/></svg>
+              <svg class="ios-wifi" viewBox="0 0 16 11.5" fill="currentColor"><path d="M8 11.5l1.85-2.3a2.85 2.85 0 00-3.7 0L8 11.5zM8 6.2c1.32 0 2.55.5 3.48 1.36l1.5-1.86A7.55 7.55 0 008 3.75c-1.9 0-3.63.7-4.98 1.95l1.5 1.86A5.06 5.06 0 018 6.2zM8 1.2c2.2 0 4.22.83 5.75 2.2l1.45-1.8A10.9 10.9 0 008 0C5.06 0 2.37 1.05.8 1.6l1.45 1.8A8.72 8.72 0 018 1.2z"/></svg>
+              <span class="ios-batt-pct">82%</span>
+              <span class="ios-batt" role="img">
+                <span class="ios-batt-fill"></span>
+              </span>
             </span>
           </div>
+
+          <!-- nav row: back + unread count · avatar · FaceTime -->
+          <div class="imsg-head">
+            <button class="imsg-back" type="button" tabindex="-1" aria-label="Back to 122 conversations">
+              <svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 1.5L2 10l8.5 8.5"/></svg>
+              <span class="imsg-count">122</span>
+            </button>
+
+            <span class="imsg-contact">
+              <span class="imsg-av" aria-hidden="true"><span class="imsg-initial">K</span></span>
+              <span class="imsg-num">+1&nbsp;(420)&nbsp;<span class="imsg-blur">235-5120</span></span>
+              <span class="imsg-enc">
+                <span class="imsg-enc-row">
+                  <svg viewBox="0 0 10 13" fill="currentColor" aria-hidden="true"><path d="M5 0a3 3 0 00-3 3v2h1.6V3a1.4 1.4 0 012.8 0v2H8V3a3 3 0 00-3-3z"/><rect x="0.6" y="5" width="8.8" height="8" rx="2.2"/></svg>
+                  iMessage
+                </span>
+                <span class="imsg-enc-row">Encrypted</span>
+              </span>
+            </span>
+
+            <button class="imsg-facetime" type="button" tabindex="-1" aria-label="FaceTime">
+              <svg viewBox="0 0 24 16" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="15.5" height="16" rx="4.4"/><path d="M17.4 6.1l4.5-3.3a1.3 1.3 0 012.1 1.05v8.3a1.3 1.3 0 01-2.1 1.05l-4.5-3.3z"/></svg>
+            </button>
+          </div>
+
           <div class="imsg-body" id="imsgBody"></div>
         </div>
       </div>
 
       <div class="vc-actions">
-        <button class="btn btn-block liquid-glass" type="button" id="talkToAi">
+        <button class="btn btn-block" type="button" id="talkToAi">
           Talk to AI
           <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
         </button>
-        <a class="btn btn-ghost btn-block liquid-glass" href="https://cal.com/paudel" target="_blank" rel="noopener">
+        <a class="btn btn-ghost btn-block" href="https://cal.com/paudel" target="_blank" rel="noopener">
           Book a call
           <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
         </a>
@@ -194,9 +227,6 @@
 
     <div class="street-grade" aria-hidden="true"></div>
 
-    <div class="rec mono" aria-hidden="true">
-      <span class="rec-dot"></span>REC <span id="recTime">09:00 PM</span>
-    </div>
     <div class="street-label mono" aria-hidden="true"><span>01</span><span>The problem</span></div>
 
     <div class="beats" aria-hidden="true">
@@ -230,12 +260,6 @@
     <h2 class="h2 rv">While you sleep, <em>your phone still answers.</em></h2>
 
     <div class="clock-wrap rv">
-      <!-- The dial is a real pane of glass, not a painted circle: a 2px conic
-           rim underneath so light bends around the edge, the .liquid-glass
-           disc over it, and the SVG face on top with its own fill removed so
-           the material shows through. -->
-      <div class="clk-dial">
-        <span class="clk-rim" aria-hidden="true"><span class="clk-glass liquid-glass"></span></span>
       <svg class="clock-svg" viewBox="0 0 420 420" aria-hidden="true">
         <circle class="clk-halo" cx="210" cy="210" r="196"/>
         <circle class="clk-face" cx="210" cy="210" r="196"/>
@@ -261,7 +285,6 @@
         <circle class="clk-pin-in" cx="210" cy="210" r="2.2"/>
         <text class="clk-dig" id="clkDig" x="210" y="300" text-anchor="middle">2:00 AM</text>
       </svg>
-      </div>
 
       <!-- booking cards are injected here, random slot + random order -->
       <div class="clk-cards" id="clkCards"></div>
@@ -411,7 +434,7 @@
         <p class="fine mono roi-note">Assumes half of missed callers would have booked.</p>
       </div>
 
-      <div class="roi-out liquid-glass">
+      <div class="roi-out">
         <div class="ro">
           <span class="ro-n" id="roiM">$0</span>
           <span class="ro-c mono">walking out every month</span>
@@ -420,7 +443,7 @@
           <span class="ro-n" id="roiY">$0</span>
           <span class="ro-c mono">every year</span>
         </div>
-        <a class="btn liquid-glass" href="https://cal.com/paudel" target="_blank" rel="noopener">Stop the leak by Booking a call.</a>
+        <a class="btn" href="https://cal.com/paudel" target="_blank" rel="noopener">Stop the leak by Booking a call.</a>
       </div>
     </div>
   </div>
@@ -536,7 +559,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Primevocal","description":"AI voice receptionist that answers calls, books appointments, and follows up leads 24/7.","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://primevocal.ai","provider":{"@type":"Organization","name":"Primevocal","url":"https://primevocal.ai","email":"primevocal.ai@gmail.com"}}
 </script>
-<script src="assets/main.js?v=55"></script>
+<script src="assets/main.js?v=56"></script>
 
 <!-- Section 01's 3D street. Loads as an ES module, so the page must be served
      over http(s) — opening index.html straight off disk blocks module imports.

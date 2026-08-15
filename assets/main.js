@@ -100,7 +100,6 @@
   if (street) {
     var stage = street.querySelector('.street-stage');
     var beats = street.querySelectorAll('.beat');
-    var recTime = document.getElementById('recTime');
     var hint = document.getElementById('streetHint');
     var BEATS = beats.length;                 /* 7 */
     var streetTicking = false;
@@ -164,7 +163,7 @@
        breathing) — so progress is clamped to the furthest point reached and
        never given back. Everything downstream reads maxP, never the raw
        scroll position. */
-    var lastBeat = -1, lastMins = -1, lastHint = -1;
+    var lastBeat = -1, lastHint = -1;
 
     function paint(p) {
       if (p <= maxP) {
@@ -187,13 +186,6 @@
         street.dataset.beat = String(idx + 1);
       }
 
-      if (recTime) {
-        var mins = Math.floor(dp * 14);
-        if (mins !== lastMins) {
-          lastMins = mins;
-          recTime.textContent = '09:' + String(mins).padStart(2, '0') + ' PM';
-        }
-      }
       if (hint) {
         var h = dp > 0.04 ? 0 : 1;
         if (h !== lastHint) { lastHint = h; hint.style.opacity = h ? '' : '0'; }
@@ -973,7 +965,7 @@
     var lastSlot = -1;
 
     var card = document.createElement('div');
-    card.className = 'clk-card liquid-glass';
+    card.className = 'clk-card';
     card.innerHTML =
       '<span class="clk-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
       'stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>' +
@@ -996,7 +988,7 @@
       var s;
       do { s = Math.floor(Math.random() * SLOTS.length); } while (s === lastSlot && SLOTS.length > 1);
       lastSlot = s;
-      card.className = 'clk-card liquid-glass ' + SLOTS[s];
+      card.className = 'clk-card ' + SLOTS[s];
     }
 
     function nextCard() {
@@ -1072,7 +1064,7 @@
       render(0);
       cardWho.textContent = BOOKINGS[0].who;
       cardSub.textContent = BOOKINGS[0].label + ' · ' + BOOKINGS[0].what + ' · Booked';
-      card.className = 'clk-card liquid-glass pos-ne show';
+      card.className = 'clk-card pos-ne show';
     } else if ('IntersectionObserver' in window) {
       render(0);
       new IntersectionObserver(function (entries) {
@@ -1141,12 +1133,10 @@
 
     var money = function (n) { return '$' + Math.round(n).toLocaleString('en-US'); };
 
-    /* backgroundImage, not background: the track's glass tint lives in
-       background-color, and the shorthand would wipe it out. */
     var paintRange = function (input) {
       var p = (input.value - input.min) / (input.max - input.min) * 100;
-      input.style.backgroundImage =
-        'linear-gradient(to right, var(--green) ' + p + '%, transparent ' + p + '%)';
+      input.style.background =
+        'linear-gradient(to right, var(--green) ' + p + '%, var(--line-2) ' + p + '%)';
     };
 
     var tween = function () {

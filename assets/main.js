@@ -695,7 +695,7 @@
       vcWave.classList.remove('playing');
       samples.forEach(function (s) { s.classList.remove('on'); });
       current = null;
-      vcStatus.textContent = 'Press play to hear it happen';
+      vcStatus.textContent = 'Pick a call to hear it';
     };
 
     samples.forEach(function (sample) {

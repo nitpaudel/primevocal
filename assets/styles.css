@@ -195,29 +195,28 @@ img,svg{ max-width:100%; display:block; }
 .btn-sm{ padding:10px 18px; font-size:.86rem; border-radius:7px; }
 /* the one solid element up here, deliberately — everything else in the bar
    is transparent, so the pill is the only thing that reads as pressable.
-   It inverts with the bar: ink on the cream hero, white once the bar itself
-   has gone dark on scroll. */
+   Solid forest green in both bar states, so it never dissolves into the
+   cream hero or the near-black stuck bar. */
 .nav .btn-sm{
-  background:rgba(255, 255, 255, 0.12);
-  color:var(--nav-fg);
-  border-radius:980px;
-  padding:0.5rem 1.2rem;
-  font-family:var(--gsans);
-  font-size:.86rem;
+  background:var(--green);
+  color:#F5F3EC;
+  border:1px solid transparent;
+  border-radius:8px;
+  padding:0.6rem 1.3rem;
+  font-family:var(--sans);
+  font-size:.88rem;
   font-weight:600;
   letter-spacing:-.01em;
-  transition:background 130ms ease-out, color .35s var(--ease);
+  box-shadow:0 6px 18px -12px rgba(23,21,15,.8);
+  transition:background 130ms ease-out, transform .28s var(--spring),
+             box-shadow .3s var(--ease);
 }
 .nav .btn-sm:hover{
-  background:rgba(255, 255, 255, 0.26);
-  color:var(--nav-fg);
-  transform:none;
+  background:var(--green-h);
+  color:#F5F3EC;
+  transform:translateY(-2px);
+  box-shadow:0 16px 28px -16px rgba(30,91,63,.6);
 }
-/* over the cream hero the glass needs a denser pour to read at all; once the
-   bar goes dark on scroll the base 12% is plenty */
-.nav .btn-sm{ background:rgba(255, 255, 255, 0.5); }
-.nav.stuck .btn-sm{ background:rgba(255, 255, 255, 0.14); }
-.nav.stuck .btn-sm:hover{ background:rgba(255, 255, 255, 0.26); }
 .btn-block{ width:100%; display:block; }
 
 .btn-outline{
@@ -385,11 +384,12 @@ img,svg{ max-width:100%; display:block; }
   transition:opacity .25s var(--ease);
 }
 .wordmark:hover{ opacity:.66; }
-/* Solid, not the green gradient: the redesigned bar is monochrome, logo and
-   links alike, so the only colour left up here is the pill. */
+/* Serif wordmark in the brand green — the mark is the one piece of colour in
+   the bar, and its face is the same display serif the headline uses, so the
+   logo and the h1 read as one voice. */
 .wordmark-text{
-  font-family:'Poppins', var(--sans);
-  font-weight:500;
+  font-family:var(--display-serif);
+  font-weight:700;
   font-size:.78em;         /* .78 x --logo-h */
   line-height:1;
   letter-spacing:-.022em;
@@ -397,10 +397,16 @@ img,svg{ max-width:100%; display:block; }
   display:block;
   align-self:center;
   flex:0 0 auto;
-  color:var(--nav-fg);
+  color:var(--green);
   background:none;
-  -webkit-text-fill-color:var(--nav-fg);
+  -webkit-text-fill-color:var(--green);
   transition:color .35s var(--ease), -webkit-text-fill-color .35s var(--ease);
+}
+/* once the bar goes near-black the green would sink into it, so the mark
+   lifts to the lighter dark-surface green */
+.nav.stuck .wordmark-text{
+  color:var(--gdk);
+  -webkit-text-fill-color:var(--gdk);
 }
 
 .nav.stuck .wordmark{ --logo-h:30px; }
@@ -445,24 +451,33 @@ img,svg{ max-width:100%; display:block; }
      waveform, the mini row waves, the active-row edge — all resolve here.
      Blue is now exclusive to the SMS bubbles (hard-coded below) so each tab
      carries its own identity. */
-  --h-accent:      #1a1a1a;
-  --h-accent-soft: rgba(20, 19, 16, 0.14);
-  /* Everything in the hero that is not the headline — kicker, body, card
-     labels, row names, buttons, badges — resolves to General Sans, so the
-     section reads in one UI voice. Capped at 600: the face is loaded at
-     400/500/600 only. */
+  --h-accent:      #2E9E5B;
+  --h-accent-soft: rgba(46, 158, 91, 0.16);
+  /* The card chrome and the trust pills resolve to General Sans. Capped at
+     600: the face is loaded at 400/500/600 only. The headline is Playfair,
+     the body copy Instrument Sans, and the tracked caps IBM Plex Mono. */
   --h-ui: var(--gsans);
-  /* The headline is the one exception. It needs a real 800, which General
-     Sans does not ship, so it keeps the SF → Instrument Sans stack. */
-  --h-display: -apple-system, BlinkMacSystemFont, "SF Pro Text",
-               "Helvetica Neue", "Instrument Sans", sans-serif;
 
   --h-fg-mute:     rgba(20, 19, 16, 0.4);
   --h-fg-soft:     rgba(20, 19, 16, 0.55);
-  --h-card:        #e8edf3;                  /* soft blue card fill */
-  --h-fill:        rgba(255, 255, 255, 0.55);
+  /* The card is the one dark object on the cream page, in either theme. Its
+     internals resolve to the --c-* tokens below, not to the page's --h-fg. */
+  --h-card:        #12120F;
+  /* opaque, not a white pour: the SMS pane is a phone screen sitting inside
+     the dark card, and at 55% alpha over near-black its ink type drops to
+     about 2:1 */
+  --h-fill:        #F2F2F4;
   --h-line:        rgba(20, 19, 16, 0.08);
   --h-track:       rgba(0, 0, 0, 0.05);
+
+  /* card-internal palette · everything inside .voice-card reads off these */
+  --c-fg:          #FFFFFF;
+  --c-fg-soft:     rgba(255, 255, 255, 0.62);
+  --c-fg-mute:     rgba(255, 255, 255, 0.42);
+  --c-row:         rgba(255, 255, 255, 0.05);
+  --c-row-line:    rgba(255, 255, 255, 0.07);
+  --c-row-on:      rgba(255, 255, 255, 0.1);
+  --h-play-fg:     #FFFFFF;
   --h-bub:         #e9e9eb;                  /* iMessage grey, light skin */
   --h-bub-fg:      #141310;
 
@@ -526,12 +541,11 @@ img,svg{ max-width:100%; display:block; }
 }
 
 /* ---------- hero type ----------
-   Hierarchy is built out of weight, not out of a second typeface. One family
-   across both lines: the declaration lands at 800, the follow-through drops
-   to 500 and steps back in tone. No serif, no italic — the contrast is the
-   design. */
+   Two registers of one display serif: the declaration in roman 700, the
+   follow-through in italic 400. The italic is the whole point — it turns the
+   second line into an aside rather than a repeat of the first. */
 .hero-h1{
-  font-family:var(--h-display);
+  font-family:var(--display-serif);
   /* Measured, not guessed: the copy column is 664px at the 1200px shell, and
      "Answer every call." is the longer line. The max below is the largest
      size that still clears it on one line — go past it and the forced <br>
@@ -540,52 +554,81 @@ img,svg{ max-width:100%; display:block; }
      pushes "Answer every call." to 338px, which breaks it into four lines.
      The growth is in the ceiling, where there is room for it. */
   font-size:clamp(2.5rem, 5.7vw, 5.05rem);
-  font-weight:800;
+  font-weight:700;
   font-style:normal;
   line-height:1.02;
-  letter-spacing:-0.032em;
+  letter-spacing:-0.022em;
   color:#141310;
   margin:0 0 26px;
 }
-/* second line — same family, quiet weight, stepped-back tone */
+/* second line — same serif, turned italic and dropped to 400 */
 .hero-h1 em{
-  font-weight:500;
-  font-style:normal;
-  color:rgba(20, 19, 16, 0.55);
+  font-weight:400;
+  font-style:italic;
+  color:#141310;
 }
-/* Eyebrow · a contained pill rather than a floating line of tracked caps.
-   Hairline edge, faint fill, and a five-bar level meter on the left so the
-   badge carries the product's own mark instead of a generic sparkle. */
+/* Eyebrow · a single line of tracked-out mono caps, sitting free above the
+   headline. No pill, no fill, no border. */
 .hero .kicker{
   margin:0 0 26px;
-  line-height:1;
-}
-.kicker-badge{
-  display:inline-flex;
-  align-items:center;
-  padding:11px 22px;
-  border-radius:980px;
-  border:1px solid rgba(20, 19, 16, 0.12);
-  background:rgba(255, 255, 255, 0.55);
-  font-family:var(--h-ui);
-  font-size:0.96rem;
-  font-weight:500;
-  letter-spacing:-0.008em;
-  text-transform:none;
-  line-height:1.25;
-  color:rgba(20, 19, 16, 0.8);
-  box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+  font-family:var(--monoF);
+  font-size:.72rem;
+  font-weight:400;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  line-height:1.4;
+  color:rgba(20, 19, 16, 0.42);
 }
 /* body register · a step up in size and presence from the old 0.6 grey */
 .standfirst{
-  font-family:var(--h-ui);
-  font-size:1.03rem;
+  font-family:var(--sans);
+  font-size:1.05rem;
   line-height:1.65;
   font-weight:400;
   letter-spacing:-0.003em;
   color:rgba(20, 19, 16, 0.72);
   max-width:46ch;
   margin:0;
+}
+
+/* ---------- hero CTAs ----------
+   Primary and secondary, side by side under the copy: one solid forest
+   green, one outlined on the paper. Square-ish corners, not pills — they
+   pair with the nav pill above rather than echoing it. */
+.hero-cta{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:14px;
+  margin-top:34px;
+}
+.hero-cta .btn{
+  padding:15px 30px;
+  font-family:var(--sans);
+  font-size:.95rem;
+  font-weight:600;
+  border-radius:9px;
+}
+.btn-primary-green{
+  background:var(--green);
+  border:1px solid transparent;
+  color:#F5F3EC;
+}
+.btn-primary-green:hover{
+  background:var(--green-h);
+  border-color:transparent;
+}
+.btn-outline-ink{
+  background:rgba(255, 255, 255, 0.62);
+  border:1px solid rgba(20, 19, 16, 0.16);
+  color:#141310;
+  box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.btn-outline-ink:hover{
+  background:rgba(255, 255, 255, 0.9);
+  border-color:rgba(20, 19, 16, 0.34);
+  color:#141310;
+  box-shadow:0 14px 26px -18px rgba(23,21,15,.5);
 }
 
 
@@ -599,12 +642,23 @@ img,svg{ max-width:100%; display:block; }
 .voice-card{
   z-index:1;
   background:var(--h-card);
-  color:var(--h-fg);
-  border-radius:20px;
+  color:var(--c-fg);
+  border-radius:24px;
+  border-color:rgba(255, 255, 255, 0.1);
   overflow:hidden;           /* nothing inside can spill past the radius */
   padding:22px 22px 20px;
   transition:transform .5s var(--ease), box-shadow .5s var(--ease),
              opacity .8s var(--ease);
+}
+/* The utility's specular is tuned for glass over a light page. Over a
+   near-black card the 40% white corner reads as a smear, so the card takes
+   the same gradient at a tenth of the strength. */
+.voice-card::before{
+  background:linear-gradient(135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    transparent 32%,
+    transparent 70%,
+    rgba(255, 255, 255, 0.02) 100%);
 }
 .voice-card:hover{ transform:translateY(-4px); }
 
@@ -615,6 +669,17 @@ img,svg{ max-width:100%; display:block; }
   border-radius:980px;
   padding:4px;
   margin-bottom:20px;
+  background:rgba(255, 255, 255, 0.06);
+  border-color:rgba(255, 255, 255, 0.09);
+}
+/* the utility's 40% white corner is meant for glass over a light page; on
+   the dark card it washes the inactive label out */
+.vc-switch::before{
+  background:linear-gradient(135deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    transparent 34%,
+    transparent 70%,
+    rgba(255, 255, 255, 0.03) 100%);
 }
 .vc-thumb{
   position:absolute;
@@ -637,11 +702,12 @@ img,svg{ max-width:100%; display:block; }
   font-size:0.82rem;
   font-weight:500;
   letter-spacing:-0.01em;
-  color:rgba(20, 19, 16, 0.4);
+  color:var(--c-fg-mute);
   transition:color 180ms ease;
 }
-.vc-tab:hover{ color:rgba(20, 19, 16, 0.62); }
+.vc-tab:hover{ color:rgba(255, 255, 255, 0.66); }
 .vc-tab svg{ width:15px; height:15px; }
+/* the active side rides on the opaque white thumb, so its label goes ink */
 .vc-tab.on, .vc-tab.on:hover{ color:#141310; font-weight:600; }
 
 /* Hard height, not min-height: both panes measure exactly the same, so the
@@ -761,18 +827,18 @@ img,svg{ max-width:100%; display:block; }
 .vc-list{ display:flex; flex-direction:column; gap:11px; }
 .sample{
   display:flex; align-items:center; gap:13px;
-  background:transparent;
-  border:1px solid transparent;
-  border-radius:10px;
+  background:var(--c-row);
+  border:1px solid var(--c-row-line);
+  border-radius:12px;
   padding:14px 14px;
-  color:var(--h-fg);
+  color:var(--c-fg);
   text-align:left;
   transition:background 120ms ease, border-color 120ms ease;
 }
-.sample:hover{ background:rgba(0, 0, 0, 0.03); }
+.sample:hover{ background:rgba(255, 255, 255, 0.08); }
 .sample.on{
-  background:rgba(255, 255, 255, 0.6);
-  border-color:rgba(20, 19, 16, 0.28);
+  background:var(--c-row-on);
+  border-color:rgba(46, 158, 91, 0.5);
 }
 /* the one accent, at full strength */
 .s-play{
@@ -797,49 +863,48 @@ img,svg{ max-width:100%; display:block; }
   border-right:3px solid var(--h-play-fg, #ffffff);
 }
 .s-name{
-  font-family:var(--h-ui);
-  font-size:0.9rem;
-  font-weight:600;
+  font-family:var(--sans);
+  font-size:0.92rem;
+  font-weight:700;
   line-height:1.3;
-  color:#141310;
+  color:var(--c-fg);
 }
-/* Sentence case, in the headline's own face at the headline's quiet weight
-   and tone — the same treatment as "Chase every lead." These lines describe
-   what happened on the call; they are not system tags. */
+/* A system tag, not prose: tracked-out mono caps under the name, the same
+   register as the eyebrow above the headline and the status line below. */
 .s-sub{
   display:block;
-  font-family:var(--h-display);
-  font-size:0.76rem;
-  letter-spacing:0;
-  text-transform:none;
-  font-weight:500;
+  font-family:var(--monoF);
+  font-size:0.62rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  font-weight:400;
   line-height:1.35;
-  color:rgba(20, 19, 16, 0.55);
-  margin-top:3px;
+  color:var(--c-fg-mute);
+  margin-top:4px;
 }
 .s-meta{ margin-left:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
-.s-wave{ width:34px; height:13px; color:var(--h-accent); opacity:.75; }
+.s-wave{ width:34px; height:13px; color:var(--h-accent); opacity:.9; }
 .sample.on .s-wave{ opacity:1; }
 .s-dur{
-  font-family:var(--h-ui);
-  font-size:0.74rem;
+  font-family:var(--monoF);
+  font-size:0.7rem;
   font-weight:400;
-  letter-spacing:0;
+  letter-spacing:0.04em;
   text-transform:none;
   font-variant-numeric:tabular-nums;
-  color:rgba(20, 19, 16, 0.38);
+  color:var(--c-fg-mute);
   opacity:1;
 }
 
 .vc-status{
   flex:0 0 auto;
-  font-family:var(--h-display);
-  font-size:0.78rem;
-  letter-spacing:0;
-  font-weight:500;
-  text-transform:none;
+  font-family:var(--monoF);
+  font-size:0.64rem;
+  letter-spacing:0.14em;
+  font-weight:400;
+  text-transform:uppercase;
   text-align:center;
-  color:rgba(20, 19, 16, 0.45);
+  color:var(--c-fg-mute);
   opacity:1;
   /* margin-top:auto pins the status line to the bottom of the pane. Combined
      with overflow:hidden on the pane, the line can never overflow into the
@@ -1218,33 +1283,42 @@ img,svg{ max-width:100%; display:block; }
   transition:background 130ms ease-out, border-color 130ms ease-out,
              color 130ms ease-out, transform 100ms ease-out;
 }
-/* PRIMARY · Talk to AI — solid, the brightest thing in the card */
+/* Both are lit slabs rather than flat fills: a top inner highlight, a bottom
+   inner shade and a cast shadow underneath, so they sit ON the card instead
+   of being cut out of it. Only the tint separates primary from secondary. */
+.voice-card .vc-actions .btn,
+.voice-card .vc-actions .btn-ghost{
+  border-radius:12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 6px 16px -8px rgba(0, 0, 0, 0.7);
+}
+/* PRIMARY · Talk to AI — the card's one saturated surface */
 .voice-card .vc-actions .btn{
-  background:#141310;
-  border:1px solid transparent;
-  color:#ffffff;
-  box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
+  background:linear-gradient(160deg, #2A7F52 0%, var(--green) 100%);
+  border:1px solid rgba(255, 255, 255, 0.14);
+  color:#F5F3EC;
 }
 .voice-card .vc-actions .btn:hover{
-  background:#2a2722;
-  border-color:transparent;
+  background:linear-gradient(160deg, #35996A 0%, #21694A 100%);
+  border-color:rgba(255, 255, 255, 0.24);
+  color:#F5F3EC;
+  transform:none;
+}
+/* SECONDARY · Book a call — the same slab, tinted out of the card itself */
+.voice-card .vc-actions .btn-ghost{
+  background:rgba(255, 255, 255, 0.07);
+  border:1px solid rgba(255, 255, 255, 0.14);
+  color:var(--c-fg);
+}
+.voice-card .vc-actions .btn-ghost:hover{
+  background:rgba(255, 255, 255, 0.13);
+  border-color:rgba(255, 255, 255, 0.26);
   color:#ffffff;
   transform:none;
 }
-/* SECONDARY · Book a call — outline only, no fill */
-.voice-card .vc-actions .btn-ghost{
-  background:transparent;
-  border:1px solid rgba(0, 0, 0, 0.15);
-  color:rgba(20, 19, 16, 0.72);
-  box-shadow:none;
-}
-.voice-card .vc-actions .btn-ghost:hover{
-  background:rgba(0, 0, 0, 0.03);
-  border-color:rgba(0, 0, 0, 0.28);
-  color:rgba(20, 19, 16, 0.92);
-  transform:none;
-}
-.voice-card .vc-actions .btn-ghost .btn-arrow{ opacity:.45; }
+.voice-card .vc-actions .btn-arrow{ opacity:.6; }
 /* feedback lives on the press, not the release */
 .voice-card .vc-actions .btn:active,
 .voice-card .vc-actions .btn-ghost:active{
@@ -1321,17 +1395,15 @@ img,svg{ max-width:100%; display:block; }
 }
 .badge:hover{
 }
-/* Apple system green, in the hero only — the other live dot on the page
-   (the form's "Live" label) keeps the brand green it already had */
 .hero .live-dot{
   background:var(--h-accent);
-  box-shadow:0 0 0 0 rgba(0,122,255,.5);
+  box-shadow:0 0 0 0 rgba(46,158,91,.5);
   animation:pulseDotHero 2.4s var(--ease) infinite;
 }
 @keyframes pulseDotHero{
-  0%  { box-shadow:0 0 0 0 rgba(0,122,255,.45); opacity:1 }
-  70% { box-shadow:0 0 0 7px rgba(0,122,255,0); opacity:.75 }
-  100%{ box-shadow:0 0 0 0 rgba(0,122,255,0); opacity:1 }
+  0%  { box-shadow:0 0 0 0 rgba(46,158,91,.45); opacity:1 }
+  70% { box-shadow:0 0 0 7px rgba(46,158,91,0); opacity:.75 }
+  100%{ box-shadow:0 0 0 0 rgba(46,158,91,0); opacity:1 }
 }
 
 /* ==========================================================
@@ -1359,11 +1431,9 @@ img,svg{ max-width:100%; display:block; }
   --h-fg:          #ffffff;
   --h-fg-mute:     rgba(255, 255, 255, 0.4);
   --h-fg-soft:     rgba(255, 255, 255, 0.55);
-  /* Voice AI accent, dark. Nearly-white so the play button and waveform
-     stay legible against the near-black card. The triangle inside the
-     button flips back to black via --h-play-fg. */
-  --h-accent:      #f2f2f2;
-  --h-play-fg:     #0a0a0a;
+  /* The card is already dark in light mode, so the accent does not flip —
+     the same green carries the play buttons, the waveform and the row waves
+     in both themes. */
   --h-card:        rgba(255, 255, 255, 0.05);
   --h-fill:        rgba(255, 255, 255, 0.04);
   --h-line:        rgba(255, 255, 255, 0.08);
@@ -1435,34 +1505,28 @@ img,svg{ max-width:100%; display:block; }
 }
 
 /* ---------- type · inverted, nothing else touched ---------- */
-[data-theme="dark"] .hero-h1{ color:#ffffff; }
-[data-theme="dark"] .hero-h1 em{ color:rgba(255, 255, 255, 0.55); }
+[data-theme="dark"] .hero-h1,
+[data-theme="dark"] .hero-h1 em{ color:#ffffff; }
 [data-theme="dark"] .standfirst{ color:rgba(255, 255, 255, 0.72); }
-[data-theme="dark"] .kicker-badge{
-  background:rgba(255, 255, 255, 0.05);
-  border-color:rgba(255, 255, 255, 0.14);
-  color:rgba(255, 255, 255, 0.82);
-  box-shadow:none;
+[data-theme="dark"] .hero .kicker{ color:rgba(255, 255, 255, 0.45); }
+[data-theme="dark"] .btn-outline-ink{
+  background:rgba(255, 255, 255, 0.06);
+  border-color:rgba(255, 255, 255, 0.18);
+  color:#ffffff;
 }
-[data-theme="dark"] .s-sub{ color:rgba(255, 255, 255, 0.55); }
-[data-theme="dark"] .vc-status{ color:rgba(255, 255, 255, 0.45); }
+[data-theme="dark"] .btn-outline-ink:hover{
+  background:rgba(255, 255, 255, 0.12);
+  border-color:rgba(255, 255, 255, 0.34);
+  color:#ffffff;
+}
 
-/* ---------- card internals · the same inversion carried inward ---------- */
+/* The card internals are already dark-on-dark in light mode, so nothing
+   about them inverts here. Only the thumb needs toning: an opaque white
+   pill glares on a black page. */
 [data-theme="dark"] .vc-thumb{
-  background:rgba(255, 255, 255, 0.14);
+  background:rgba(255, 255, 255, 0.9);
   box-shadow:0 1px 3px rgba(0, 0, 0, 0.4);
 }
-[data-theme="dark"] .vc-tab{ color:rgba(255, 255, 255, 0.4); }
-[data-theme="dark"] .vc-tab:hover{ color:rgba(255, 255, 255, 0.62); }
-[data-theme="dark"] .vc-tab.on,
-[data-theme="dark"] .vc-tab.on:hover{ color:#ffffff; }
-
-[data-theme="dark"] .sample:hover{ background:rgba(255, 255, 255, 0.05); }
-[data-theme="dark"] .sample.on{ background:rgba(255, 255, 255, 0.06); }
-/* pure white for primary text — nothing muddy between #fff and #0a0a0a
-   except the deliberate secondary tiers below */
-[data-theme="dark"] .s-name{ color:#ffffff; }
-[data-theme="dark"] .s-dur{ color:rgba(255, 255, 255, 0.38); }
 
 /* iOS chrome · dark. Blue steps up to the system dark-mode tint, the
    FaceTime disc inverts, and the placeholder avatar lightens so the initial
@@ -1475,30 +1539,6 @@ img,svg{ max-width:100%; display:block; }
   border-color:rgba(0, 132, 255, 0.32);
   color:#9CC9FF;
 }
-/* PRIMARY · solid white on black — the brightest element in the card */
-[data-theme="dark"] .voice-card .vc-actions .btn{
-  background:#ffffff;
-  border-color:transparent;
-  color:#0a0a0a;
-}
-[data-theme="dark"] .voice-card .vc-actions .btn:hover{
-  background:rgba(255, 255, 255, 0.88);
-  color:#0a0a0a;
-}
-/* SECONDARY · outline only. The border is the specified 0.2; the label sits
-   a little above it at 0.7 — text at literal 0.2 on #0a0a0a is about 1.4:1
-   and simply cannot be read. Same intensity register, legible contrast. */
-[data-theme="dark"] .voice-card .vc-actions .btn-ghost{
-  background:transparent;
-  border-color:rgba(255, 255, 255, 0.2);
-  color:rgba(255, 255, 255, 0.7);
-}
-[data-theme="dark"] .voice-card .vc-actions .btn-ghost:hover{
-  background:rgba(255, 255, 255, 0.06);
-  border-color:rgba(255, 255, 255, 0.34);
-  color:#ffffff;
-}
-
 /* dark · the outer pill inverts, the inner dividers stay hairline-white */
 [data-theme="dark"] .badges{
   background:rgba(255, 255, 255, 0.04);
@@ -1514,7 +1554,7 @@ img,svg{ max-width:100%; display:block; }
   background:rgba(255, 255, 255, 0.06);
   color:#ffffff;
 }
-[data-theme="dark"] .badge-ico{ color:#0A84FF; }
+[data-theme="dark"] .badge-ico{ color:var(--gdk); }
 
 /* ---------- nav · only while it is over the hero ----------
    .stuck is left exactly as it was: it already paints itself near-black with
@@ -1527,14 +1567,6 @@ img,svg{ max-width:100%; display:block; }
 [data-theme="dark"] .nav:not(.stuck) .theme-toggle:hover{
   background:rgba(255, 255, 255, 0.12);
 }
-/* the one solid thing in the bar, so it stays the anchor point */
-[data-theme="dark"] .nav:not(.stuck) .btn-sm,
-[data-theme="dark"] .nav:not(.stuck) .btn-sm:hover{
-  background:#ffffff;
-  color:#000000;
-  border-color:transparent;
-}
-[data-theme="dark"] .nav:not(.stuck) .btn-sm:hover{ opacity:.88; }
 
 /* ---------- sections ---------- */
 .sec{
@@ -1648,13 +1680,22 @@ img,svg{ max-width:100%; display:block; }
   z-index:400;
   display:inline-flex; align-items:center; gap:9px;
   padding:14px 22px;
-  border:1px solid rgba(140,230,185,.28);
+  border:1px solid rgba(255, 255, 255, 0.22);
   border-radius:999px;
-  background:linear-gradient(135deg, #1a3d2b 0%, #2d6a4f 100%);
+  /* Glass, not a solid pill: a green-tinted pour over whatever it is
+     floating above, with the same inner highlight/shade pair the card's
+     buttons use so it reads as the same material. */
+  background:rgba(30, 91, 63, 0.62);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
   color:#F5F3EC;
   font-family:var(--sans);
   font-size:.92rem; font-weight:600;
-  box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0 rgba(52,199,89,.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    0 12px 30px -12px rgba(0,0,0,.6),
+    0 0 0 rgba(52,199,89,.4);
   /* Same breath as the hero waveform: the glow swells and settles rather
      than firing a ring outward. The lift shadow underneath is constant, so
      only the green halo moves. */
@@ -1662,7 +1703,8 @@ img,svg{ max-width:100%; display:block; }
   transition:transform .28s var(--spring), box-shadow .3s var(--ease), background .25s var(--ease);
 }
 .talk-fab:hover{
-  background:linear-gradient(135deg, #2d6a4f 0%, #3d8c65 100%);
+  background:rgba(45, 106, 79, 0.78);
+  border-color:rgba(255, 255, 255, 0.34);
   transform:translateY(-3px) scale(1.03);
   animation-play-state:paused;
 }
@@ -1676,8 +1718,20 @@ img,svg{ max-width:100%; display:block; }
 }
 .talk-fab svg{ width:17px; height:17px; flex:0 0 auto; }
 @keyframes fabGlow{
-  0%,100% { box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0    rgba(52,199,89,.4); }
-  50%     { box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 16px rgba(52,199,89,.5); }
+  0%,100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+      0 12px 30px -12px rgba(0,0,0,.6),
+      0 0 0 rgba(52,199,89,.4);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+      0 12px 30px -12px rgba(0,0,0,.6),
+      0 0 16px rgba(52,199,89,.5);
+  }
 }
 
 .talk-modal{
@@ -2544,16 +2598,10 @@ html.no-io .rv{ opacity:1; transform:none; }
   /* the card gets its own gutter inside the mobile shell, so bubbles don't
      touch the card edge and the CTAs sit inset from the pill's rim */
   .voice-card{ padding:22px 22px 20px; }
-  /* Kicker pill wraps on narrow screens rather than pushing horizontal
-     scroll; the badge is decorative so line-height matters more than the
-     stretched pill shape. */
-  .kicker-badge{
-    padding:11px 18px;
-    font-size:0.9rem;
-    white-space:normal;
-    text-align:left;
-    line-height:1.35;
-  }
+  /* the two hero CTAs go full width and stack — a side-by-side pair at
+     327px leaves each too narrow to hit comfortably */
+  .hero-cta{ flex-direction:column; align-items:stretch; gap:10px; margin-top:28px; }
+  .hero-cta .btn{ width:100%; }
 
   .phone{ width:286px; transform:none; }
   .hear-phone:hover .phone{ transform:translateY(-4px); }

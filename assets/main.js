@@ -767,17 +767,11 @@
     { from: 'us',   text: "Hey! Yes it is, I'm Lara, an AI Assistant for Parkview Dental. How can I help?" },
     { from: 'them', text: "I've been having some tooth pain for a few days, wanted to get it checked" },
     { from: 'us',   text: 'Sorry to hear that. Let me find you a slot, are mornings or afternoons better?' },
-    { from: 'them', text: 'Afternoons if possible' },
-    { from: 'us',   text: "I've got Thursday at 3pm or Friday at 4:30pm. Either work?" },
-    { from: 'them', text: 'Thursday 3pm works' },
-    { from: 'us',   text: "Before I lock that in, what's your name and email so I can send a confirmation?" },
-    { from: 'them', html: 'Kristi, and it\'s <span class="imsg-blur">kristiejonnah1996@gmail.com</span>' },
-    /* the calendar lands first and the confirmation reads underneath it, the
-       way a real thread shows the attachment then the note about it */
-    { from: 'image', src: 'assets/sms-booking.svg', alt: 'Calendar showing Thursday 3pm booked with Dr. Chen' },
     { from: 'us',   text: "Done! You're booked for Thursday 3pm with Dr. Chen. I'll send a reminder the day before." },
-    { from: 'us',   text: 'Take care Kristi!' },
-    { from: 'them', text: 'Aww, that honestly made my day. Thank you so much!' }
+    { from: 'them', text: 'Thank you so much, I was desperate for an appointment — I couldn’t find anywhere available.' },
+    { from: 'us',   text: "I'm glad I got the chance to help you out." },
+    { from: 'them', text: 'Aww, thank you!' },
+    { from: 'us',   text: 'Take care, Kristi.' }
   ];
 
   /* the frame never grows, so every new line scrolls the thread instead */
@@ -821,12 +815,31 @@
     return land(el);
   }
 
-  /* one day stamp at the head of the thread, as iMessage does it */
-  function stamp() {
+  /* The encryption notice, not a date stamp. It is the first item INSIDE the
+     scroll zone rather than fixed chrome, so it rises out of view with the
+     rest of the thread exactly as iOS does it. There is deliberately no
+     "Today"/time divider anywhere in this panel. */
+  function encNotice() {
     var el = document.createElement('p');
-    el.className = 'imsg-stamp';
-    el.innerHTML = '<b>Today</b> 9:41 AM';
+    el.className = 'imsg-enc-inline';
+    el.innerHTML =
+      '<span class="imsg-enc-row"><svg viewBox="0 0 10 13" fill="currentColor" aria-hidden="true">' +
+      '<path d="M5 0a3 3 0 00-3 3v2h1.6V3a1.4 1.4 0 012.8 0v2H8V3a3 3 0 00-3-3z"/>' +
+      '<rect x="0.6" y="5" width="8.8" height="8" rx="2.2"/></svg>iMessage</span>' +
+      '<span class="imsg-enc-row">Encrypted</span>';
     imsgBody.appendChild(el);
+  }
+
+  /* iMessage's read receipt, under the final outgoing bubble only */
+  function delivered() {
+    var el = document.createElement('p');
+    el.className = 'imsg-delivered';
+    el.textContent = 'Delivered';
+    imsgBody.appendChild(el);
+    toBottom();
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { el.classList.add('in'); toBottom(); });
+    });
   }
 
   function resetChat() {
@@ -839,7 +852,7 @@
   function playChat() {
     resetChat();
     if (!imsgBody) return;
-    stamp();
+    encNotice();
 
     /* reduced motion: show the finished thread, no timers, no loop */
     if (reduceMotion) {
@@ -847,6 +860,7 @@
         if (m.from === 'image') photo('us in', m);
         else bubble(m.from + ' in', m);
       });
+      delivered();
       chatDone = true;
       return;
     }
@@ -883,6 +897,7 @@
        of the page: every timer is cleared, chatDone stops the tab handler
        from ever starting or clearing it again, and the finished thread just
        sits there. No replay, no restart, no loop. */
+    after(420, delivered);
     after(500, function () {
       chatDone = true;
       chatTimers.forEach(clearTimeout);

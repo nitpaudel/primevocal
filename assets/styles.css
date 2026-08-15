@@ -89,7 +89,10 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 button{ font-family:inherit; cursor:pointer; }
 img,svg{ max-width:100%; display:block; }
 
-::selection{ background:var(--green); color:#F5F3EC; }
+/* Neutral system blue rather than the brand green — a green highlight over
+   body copy read as a rendering fault. The two dark sections below override
+   this for themselves and are out of scope here. */
+::selection{ background:rgba(0, 122, 255, 0.3); color:inherit; }
 :focus-visible{ outline:2px solid var(--green); outline-offset:3px; }
 
 .shell{ max-width:var(--shell); margin-inline:auto; padding-inline:32px; }
@@ -426,6 +429,11 @@ img,svg{ max-width:100%; display:block; }
 .hero{
   --h-bg:          #f5f0e8;
   --h-fg:          #141310;
+  /* One accent across both tabs: iMessage blue. Every play button, waveform
+     bar, active-tab tint, outgoing bubble and pill icon in this section
+     resolves here — there is no green left anywhere inside .hero. */
+  --h-accent:      #007AFF;
+  --h-accent-soft: rgba(0, 122, 255, 0.14);
   /* Everything in the hero that is not the headline — kicker, body, card
      labels, row names, buttons, badges — resolves to General Sans, so the
      section reads in one UI voice. Capped at 600: the face is loaded at
@@ -438,7 +446,7 @@ img,svg{ max-width:100%; display:block; }
 
   --h-fg-mute:     rgba(20, 19, 16, 0.4);
   --h-fg-soft:     rgba(20, 19, 16, 0.55);
-  --h-card:        #e8efe8;                  /* pale mint-green card fill */
+  --h-card:        #e8edf3;                  /* soft blue card fill */
   --h-fill:        rgba(255, 255, 255, 0.55);
   --h-line:        rgba(20, 19, 16, 0.08);
   --h-track:       rgba(0, 0, 0, 0.05);
@@ -449,7 +457,13 @@ img,svg{ max-width:100%; display:block; }
      runs under a genuinely transparent nav instead of leaving a strip of
      page paper above it. */
   margin-top:-84px;
-  padding:164px 0 76px;
+  padding:150px 0 68px;
+  /* min-height leaves slack once the content is shorter than the viewport.
+     Centring the column distributes that slack above and below instead of
+     dumping all of it under the trust pills. */
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
   /* The hero owns the first screen outright. Without this the next section's
      top strip — the sticky street stage and its "01 · The problem" label —
      sits a few dozen pixels below the hero's bottom edge and, once both
@@ -474,10 +488,13 @@ img,svg{ max-width:100%; display:block; }
   overflow:hidden;
   overflow:clip;
 }
+/* The card gives up 32px and the gap 20px, all of it handed to the copy
+   column — that is what pays for the larger headline without letting
+   "Answer every call." wrap. */
 .hero-grid{
   display:grid;
-  grid-template-columns:1fr 452px;
-  gap:72px;
+  grid-template-columns:1fr 420px;
+  gap:52px;
   align-items:center;
 }
 .hero-copy{ grid-area:1 / 1; position:relative; z-index:1; }
@@ -490,14 +507,18 @@ img,svg{ max-width:100%; display:block; }
    design. */
 .hero-h1{
   font-family:var(--h-display);
-  /* Measured to the largest that still holds two lines: at 74px "Answer
-     every call." runs 586px against a 612px column, and the vw term is set
-     so it clears the column at the narrow end of two-column layout too. */
-  font-size:clamp(2.5rem, 5vw, 4.6rem);
+  /* Measured, not guessed: the copy column is 664px at the 1200px shell, and
+     "Answer every call." is the longer line. The max below is the largest
+     size that still clears it on one line — go past it and the forced <br>
+     stops being the only break. */
+  /* The floor stays at 2.5rem: at 375px the column is 331px and 2.9rem
+     pushes "Answer every call." to 338px, which breaks it into four lines.
+     The growth is in the ceiling, where there is room for it. */
+  font-size:clamp(2.5rem, 5.7vw, 5.05rem);
   font-weight:800;
   font-style:normal;
   line-height:1.02;
-  letter-spacing:-0.03em;
+  letter-spacing:-0.032em;
   color:#141310;
   margin:0 0 26px;
 }
@@ -507,24 +528,43 @@ img,svg{ max-width:100%; display:block; }
   font-style:normal;
   color:rgba(20, 19, 16, 0.55);
 }
-/* eyebrow register */
+/* Eyebrow · a contained pill rather than a floating line of tracked caps.
+   Hairline edge, faint fill, and a five-bar level meter on the left so the
+   badge carries the product's own mark instead of a generic sparkle. */
 .hero .kicker{
-  font-family:var(--h-ui);
-  font-size:0.72rem;
-  letter-spacing:0.12em;
-  font-weight:500;
-  text-transform:uppercase;
-  color:rgba(20, 19, 16, 0.4);
-  margin:0 0 28px;
+  margin:0 0 26px;
+  line-height:1;
 }
-/* body register */
+.kicker-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  padding:8px 16px 8px 13px;
+  border-radius:980px;
+  border:1px solid rgba(20, 19, 16, 0.12);
+  background:rgba(255, 255, 255, 0.55);
+  font-family:var(--h-ui);
+  font-size:0.8rem;
+  font-weight:500;
+  letter-spacing:-0.005em;
+  text-transform:none;
+  line-height:1.2;
+  color:rgba(20, 19, 16, 0.78);
+  box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.kicker-ico{
+  width:15px; height:15px;
+  flex:0 0 auto;
+  color:var(--h-accent);
+}
+/* body register · a step up in size and presence from the old 0.6 grey */
 .standfirst{
   font-family:var(--h-ui);
-  font-size:0.98rem;
-  line-height:1.7;
+  font-size:1.03rem;
+  line-height:1.65;
   font-weight:400;
-  letter-spacing:0;
-  color:rgba(20, 19, 16, 0.6);
+  letter-spacing:-0.003em;
+  color:rgba(20, 19, 16, 0.72);
   max-width:46ch;
   margin:0;
 }
@@ -614,8 +654,8 @@ img,svg{ max-width:100%; display:block; }
   width:3px;
   height:28%;
   border-radius:2px;
-  background:#34c759;
-  filter:drop-shadow(0 0 3px rgba(52, 199, 89, 0.35));
+  background:var(--h-accent);
+  filter:drop-shadow(0 0 3px rgba(0, 122, 255, 0.35));
   transform-origin:50% 50%;
   animation:barIdle 3.6s ease-in-out infinite alternate;
 }
@@ -717,13 +757,13 @@ img,svg{ max-width:100%; display:block; }
 .sample:hover{ background:rgba(0, 0, 0, 0.03); }
 .sample.on{
   background:rgba(255, 255, 255, 0.6);
-  border-color:rgba(52, 199, 89, .4);
+  border-color:rgba(0, 122, 255, .45);
 }
-/* Apple system green, at full strength */
+/* the one accent, at full strength */
 .s-play{
   width:30px; height:30px; flex-shrink:0;
   border-radius:50%;
-  background:#34c759;
+  background:var(--h-accent);
   display:grid; place-items:center;
   transition:transform .3s var(--spring), filter .25s var(--ease);
 }
@@ -748,18 +788,22 @@ img,svg{ max-width:100%; display:block; }
   line-height:1.3;
   color:#141310;
 }
+/* Sentence case, in the headline's own face at the headline's quiet weight
+   and tone — the same treatment as "Chase every lead." These lines describe
+   what happened on the call; they are not system tags. */
 .s-sub{
   display:block;
-  font-family:var(--h-ui);
-  font-size:0.6rem;
-  letter-spacing:0.1em;
-  text-transform:uppercase;
-  font-weight:400;
-  color:rgba(20, 19, 16, 0.4);
-  margin-top:4px;
+  font-family:var(--h-display);
+  font-size:0.76rem;
+  letter-spacing:0;
+  text-transform:none;
+  font-weight:500;
+  line-height:1.35;
+  color:rgba(20, 19, 16, 0.55);
+  margin-top:3px;
 }
 .s-meta{ margin-left:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
-.s-wave{ width:34px; height:13px; color:#34c759; opacity:.75; }
+.s-wave{ width:34px; height:13px; color:var(--h-accent); opacity:.75; }
 .sample.on .s-wave{ opacity:1; }
 .s-dur{
   font-family:var(--h-ui);
@@ -773,13 +817,13 @@ img,svg{ max-width:100%; display:block; }
 }
 
 .vc-status{
-  font-family:var(--h-ui);
-  font-size:0.62rem;
-  letter-spacing:0.18em;
-  font-weight:400;
-  text-transform:uppercase;
+  font-family:var(--h-display);
+  font-size:0.76rem;
+  letter-spacing:0;
+  font-weight:500;
+  text-transform:none;
   text-align:center;
-  color:rgba(20, 19, 16, 0.3);
+  color:rgba(20, 19, 16, 0.45);
   opacity:1;
   margin:16px 0 0;
 }
@@ -886,85 +930,56 @@ img,svg{ max-width:100%; display:block; }
   color:var(--h-fg);
   font-variant-numeric:tabular-nums;
 }
-.ios-status-l,
-.ios-status-r{ display:flex; align-items:center; gap:5px; }
-.ios-time{ font-weight:600; }
-.ios-dnd{ width:9px; height:9px; opacity:.9; }
-.ios-cell{ width:12px; height:7.5px; }
-.ios-wifi{ width:11px; height:8px; }
-.ios-batt-pct{ font-size:.58rem; font-weight:500; margin-left:1px; }
-/* battery: rounded shell, hairline, filled from the left, nub on the right */
+.ios-status-l{ display:flex; align-items:center; gap:5px; }
+.ios-status-r{ display:flex; align-items:center; gap:5.5px; }
+.ios-time{ font-weight:600; font-size:.72rem; }
+.ios-dnd{ width:10px; height:10px; opacity:1; }
+/* four ascending bars, then the wifi arc — the reference's icon set and
+   relative sizes, not a generic approximation */
+.ios-cell{ width:13.5px; height:8.5px; }
+.ios-wifi{ width:12px; height:8.5px; }
+/* battery · the percentage sits INSIDE the shell, which is how the
+   reference draws it. Outlined pill, number centred, nub on the right. */
 .ios-batt{
   position:relative;
-  width:19px; height:9.5px;
-  border:1px solid currentColor;
-  border-radius:3px;
-  opacity:.5;
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:26px; height:13px;
+  padding:0 3px;
+  border:1.2px solid currentColor;
+  border-radius:4px;
   margin-left:1px;
 }
 .ios-batt::after{
   content:'';
-  position:absolute; right:-3px; top:50%;
+  position:absolute; right:-3.2px; top:50%;
   transform:translateY(-50%);
-  width:1.6px; height:3.6px;
-  border-radius:0 1px 1px 0;
+  width:1.8px; height:4.6px;
+  border-radius:0 1.4px 1.4px 0;
   background:currentColor;
 }
-.ios-batt-fill{
-  position:absolute; left:1px; top:1px; bottom:1px;
-  width:82%;
-  border-radius:1.5px;
-  background:currentColor;
+.ios-batt-pct{
+  font-size:.6rem;
+  font-weight:600;
+  line-height:1;
+  letter-spacing:-.02em;
 }
 
-/* nav row · back+count | contact | FaceTime */
+/* header · avatar over the number, centred, and nothing else. The back
+   chevron, the unread count and the FaceTime button are gone; the
+   encryption line moved into the thread. Bottom padding is deliberately
+   tight so the first bubble sits close under the number. */
 .imsg-head{
   flex:0 0 auto;
-  display:grid;
-  grid-template-columns:1fr auto 1fr;
-  align-items:start;
-  gap:6px;
-  padding:2px 12px 10px;
-  border-bottom:1px solid var(--h-line);
-}
-.imsg-back,
-.imsg-facetime{
-  background:none;
-  border:0;
-  padding:0;
-  cursor:default;
-  color:#007aff;
-  display:inline-flex; align-items:center;
-  align-self:center;
-}
-.imsg-back{ gap:4px; justify-self:start; }
-.imsg-back svg{ width:8px; height:13px; }
-.imsg-count{
-  font-family:var(--h-ui);
-  font-size:.78rem;
-  font-weight:400;
-  letter-spacing:-.01em;
-}
-.imsg-facetime{
-  justify-self:end;
-  width:28px; height:28px;
-  border-radius:50%;
-  background:rgba(0, 0, 0, 0.06);
-  display:grid; place-items:center;
-}
-.imsg-facetime svg{ width:14px; height:9.5px; }
-
-/* the centred contact stack: avatar, number, encryption line */
-.imsg-contact{
   display:flex; flex-direction:column; align-items:center;
-  gap:3px;
-  min-width:0;
+  gap:5px;
+  padding:2px 12px 8px;
+  border-bottom:1px solid var(--h-line);
 }
 /* solid fill, one bold initial — the iOS placeholder for a contact with no
    photo. Not a circle-cropped image any more. */
 .imsg-av{
-  width:36px; height:36px;
-  flex:0 0 36px;
+  width:38px; height:38px;
+  flex:0 0 38px;
   border-radius:50%;
   overflow:hidden;
   display:grid; place-items:center;
@@ -972,7 +987,7 @@ img,svg{ max-width:100%; display:block; }
 }
 .imsg-initial{
   font-family:var(--h-ui);
-  font-size:1.02rem;
+  font-size:1.08rem;
   font-weight:600;
   line-height:1;
   color:#ffffff;
@@ -980,37 +995,49 @@ img,svg{ max-width:100%; display:block; }
 }
 .imsg-num{
   font-family:var(--h-ui);
-  font-size:.76rem;
+  font-size:.8rem;
   font-weight:500;
   letter-spacing:-.01em;
   line-height:1.2;
   color:var(--h-fg);
   white-space:nowrap;
-  display:inline-flex; align-items:baseline;
 }
-/* only the last six digits are obscured — the country code and area code
-   stay fully legible, and the blurred run is unselectable so it cannot be
-   read back off the page by copying */
-.imsg-num .imsg-blur{
-  filter:blur(6px);
-  user-select:none;
-  -webkit-user-select:none;
-}
-.imsg-enc{
+
+/* The encryption notice, in the scroll zone as the thread's first item so
+   it scrolls away with everything else. */
+.imsg-enc-inline{
+  align-self:center;
+  flex:0 0 auto;
   display:flex; flex-direction:column; align-items:center;
   gap:0;
-  margin-top:1px;
+  margin:2px 0 8px;
 }
 .imsg-enc-row{
   display:inline-flex; align-items:center; gap:3px;
   font-family:var(--h-ui);
-  font-size:.56rem;
+  font-size:.58rem;
   font-weight:400;
   letter-spacing:0;
-  line-height:1.35;
+  line-height:1.4;
   color:var(--h-fg-mute);
 }
 .imsg-enc-row svg{ width:6px; height:7.5px; }
+
+/* iMessage's read receipt · under the last outgoing bubble, right-aligned */
+.imsg-delivered{
+  align-self:flex-end;
+  flex:0 0 auto;
+  margin:2px 2px 0;
+  font-family:var(--h-ui);
+  font-size:.56rem;
+  font-weight:500;
+  letter-spacing:.01em;
+  line-height:1.2;
+  color:var(--h-fg-mute);
+  opacity:0;
+  transition:opacity .3s var(--ease);
+}
+.imsg-delivered.in{ opacity:1; }
 
 .imsg-body{
   flex:1 1 auto;
@@ -1034,20 +1061,8 @@ img,svg{ max-width:100%; display:block; }
 .imsg-body::before{ content:""; margin-top:auto; }
 .imsg-body::-webkit-scrollbar{ width:0; height:0; }
 
-/* iMessage day stamp — one line at the head of the thread, nothing more */
-.imsg-stamp{
-  align-self:center;
-  flex:0 0 auto;
-  margin:2px 0 6px;
-  font-family:var(--monoF);
-  font-size:.52rem;
-  letter-spacing:.1em;
-  text-transform:uppercase;
-  color:var(--h-fg-mute);
-}
-.imsg-stamp b{ color:var(--h-fg-soft); font-weight:600; }
-/* The thread is five messages now rather than ten, so the type goes back up
-   to a size that actually reads like a phone screen. */
+/* No day stamp. The thread deliberately carries no date/time divider at
+   all — the encryption notice is the only thing above the first bubble. */
 .imsg-bub{
   max-width:81%;
   padding:7px 12px;
@@ -1067,14 +1082,6 @@ img,svg{ max-width:100%; display:block; }
   color:var(--h-bub-fg);
   border-bottom-left-radius:6px;
 }
-/* the caller's email, masked the way a shared screenshot would be. Inline so
-   the line still wraps around it, and unselectable so it cannot be read back
-   off the page by copying. */
-.imsg-blur{
-  filter:blur(4px);
-  user-select:none;
-  -webkit-user-select:none;
-}
 /* Sent · Lara, iMessage blue, right.
    Blue, not green: the header above this thread says "iMessage · Encrypted",
    and in iOS green means the message went as SMS. Green bubbles under an
@@ -1091,8 +1098,8 @@ img,svg{ max-width:100%; display:block; }
   align-self:stretch;
   max-width:100%;
   display:flex; align-items:center; justify-content:center; gap:8px;
-  background:rgba(52, 199, 89, .12);
-  border:1px solid rgba(52, 199, 89, .3);
+  background:rgba(0, 122, 255, .12);
+  border:1px solid rgba(0, 122, 255, .3);
   border-radius:10px;
   padding:7px 12px;
   text-align:center;
@@ -1238,46 +1245,52 @@ img,svg{ max-width:100%; display:block; }
   100%{ box-shadow:0 0 0 0 rgba(78,154,110,0); opacity:1 }
 }
 
-/* badges · stat pills. A hairline edge over a half-white wash, so they lift
-   off the cream without becoming another filled object. The figures are
-   data — spaced caps on tabular numerals, not body copy. */
+/* Trust pills · icon-led and cut to their content. Sized by the text plus
+   one icon and nothing else: no padded-out block, no tracked caps, and set
+   in the UI sans rather than anything decorative. */
 .badges{
   display:flex; gap:10px; flex-wrap:wrap;
-  margin-top:56px;
+  margin-top:40px;
 }
 .badge{
-  display:inline-flex; align-items:center; gap:10px;
-  padding:11px 20px 11px 18px;
+  display:inline-flex; align-items:center; gap:8px;
+  width:auto; flex:0 0 auto;
+  padding:8px 15px 8px 12px;
   border-radius:980px;
   font-family:var(--h-ui);
-  font-size:0.68rem;
-  font-weight:400;
-  letter-spacing:0.1em;
+  font-size:0.8rem;
+  font-weight:500;
+  letter-spacing:-0.005em;
+  line-height:1.2;
+  white-space:nowrap;
   font-variant-numeric:tabular-nums;
-  color:rgba(20, 19, 16, 0.55);
-  background:rgba(255, 255, 255, 0.5);
-  border:1px solid rgba(20, 19, 16, 0.1);
-  box-shadow:none;
+  color:rgba(20, 19, 16, 0.72);
+  background:rgba(255, 255, 255, 0.55);
+  border:1px solid rgba(20, 19, 16, 0.12);
+  box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
   transition:transform .3s var(--spring), background .25s var(--ease),
              border-color .25s var(--ease);
 }
-/* the live dot is optical, not metric — nudge it onto the cap height */
-.badge .live-dot{ margin-top:-1px; }
+.badge-ico{
+  width:15px; height:15px;
+  flex:0 0 auto;
+  color:var(--h-accent);
+}
 .badge:hover{
   transform:translateY(-3px);
-  background:rgba(255, 255, 255, 0.8);
+  background:rgba(255, 255, 255, 0.82);
 }
 /* Apple system green, in the hero only — the other live dot on the page
    (the form's "Live" label) keeps the brand green it already had */
 .hero .live-dot{
-  background:#34c759;
-  box-shadow:0 0 0 0 rgba(52,199,89,.5);
+  background:var(--h-accent);
+  box-shadow:0 0 0 0 rgba(0,122,255,.5);
   animation:pulseDotHero 2.4s var(--ease) infinite;
 }
 @keyframes pulseDotHero{
-  0%  { box-shadow:0 0 0 0 rgba(52,199,89,.45); opacity:1 }
-  70% { box-shadow:0 0 0 7px rgba(52,199,89,0); opacity:.75 }
-  100%{ box-shadow:0 0 0 0 rgba(52,199,89,0); opacity:1 }
+  0%  { box-shadow:0 0 0 0 rgba(0,122,255,.45); opacity:1 }
+  70% { box-shadow:0 0 0 7px rgba(0,122,255,0); opacity:.75 }
+  100%{ box-shadow:0 0 0 0 rgba(0,122,255,0); opacity:1 }
 }
 
 /* ==========================================================
@@ -1327,8 +1340,8 @@ img,svg{ max-width:100%; display:block; }
   z-index:-1;
   pointer-events:none;
   background:radial-gradient(ellipse 420px 350px at 72% 45%,
-    rgba(52, 199, 89, 0.05) 0%,
-    rgba(52, 199, 89, 0.028) 42%,
+    rgba(0, 122, 255, 0.055) 0%,
+    rgba(0, 122, 255, 0.03) 42%,
     transparent 68%);
 }
 
@@ -1369,10 +1382,17 @@ img,svg{ max-width:100%; display:block; }
 }
 
 /* ---------- type · inverted, nothing else touched ---------- */
-[data-theme="dark"] .hero .kicker{ color:rgba(255, 255, 255, 0.4); }
 [data-theme="dark"] .hero-h1{ color:#ffffff; }
 [data-theme="dark"] .hero-h1 em{ color:rgba(255, 255, 255, 0.55); }
-[data-theme="dark"] .standfirst{ color:rgba(255, 255, 255, 0.6); }
+[data-theme="dark"] .standfirst{ color:rgba(255, 255, 255, 0.72); }
+[data-theme="dark"] .kicker-badge{
+  background:rgba(255, 255, 255, 0.05);
+  border-color:rgba(255, 255, 255, 0.14);
+  color:rgba(255, 255, 255, 0.82);
+  box-shadow:none;
+}
+[data-theme="dark"] .s-sub{ color:rgba(255, 255, 255, 0.55); }
+[data-theme="dark"] .vc-status{ color:rgba(255, 255, 255, 0.45); }
 
 /* ---------- card internals · the same inversion carried inward ---------- */
 [data-theme="dark"] .vc-thumb{
@@ -1389,23 +1409,18 @@ img,svg{ max-width:100%; display:block; }
 /* pure white for primary text — nothing muddy between #fff and #0a0a0a
    except the deliberate secondary tiers below */
 [data-theme="dark"] .s-name{ color:#ffffff; }
-[data-theme="dark"] .s-sub{ color:rgba(255, 255, 255, 0.4); }
 [data-theme="dark"] .s-dur{ color:rgba(255, 255, 255, 0.38); }
-[data-theme="dark"] .vc-status{ color:rgba(255, 255, 255, 0.3); }
 
 /* iOS chrome · dark. Blue steps up to the system dark-mode tint, the
    FaceTime disc inverts, and the placeholder avatar lightens so the initial
    still reads. */
-[data-theme="dark"] .imsg-back,
-[data-theme="dark"] .imsg-facetime{ color:#0a84ff; }
-[data-theme="dark"] .imsg-facetime{ background:rgba(255, 255, 255, 0.1); }
 [data-theme="dark"] .imsg-av{ background:#6c6c70; }
 [data-theme="dark"] .imsg-bub.us,
 [data-theme="dark"] .imsg-typing.us{ background:#0A84FF; }
 [data-theme="dark"] .imsg-bub.card{
-  background:rgba(52, 199, 89, 0.14);
-  border-color:rgba(140, 230, 185, 0.32);
-  color:var(--glow);
+  background:rgba(0, 132, 255, 0.16);
+  border-color:rgba(0, 132, 255, 0.32);
+  color:#9CC9FF;
 }
 /* PRIMARY · solid white on black — the brightest element in the card */
 [data-theme="dark"] .voice-card .vc-actions .btn{
@@ -1432,11 +1447,14 @@ img,svg{ max-width:100%; display:block; }
 }
 
 [data-theme="dark"] .badge{
-  color:rgba(255, 255, 255, 0.55);
-  background:rgba(255, 255, 255, 0.04);
-  border-color:rgba(255, 255, 255, 0.1);
+  color:rgba(255, 255, 255, 0.8);
+  background:rgba(255, 255, 255, 0.05);
+  border-color:rgba(255, 255, 255, 0.14);
+  box-shadow:none;
 }
-[data-theme="dark"] .badge:hover{ background:rgba(255, 255, 255, 0.09); }
+[data-theme="dark"] .badge:hover{ background:rgba(255, 255, 255, 0.1); }
+[data-theme="dark"] .badge-ico,
+[data-theme="dark"] .kicker-ico{ color:#0A84FF; }
 
 /* ---------- nav · only while it is over the hero ----------
    .stuck is left exactly as it was: it already paints itself near-black with
@@ -2367,8 +2385,8 @@ html.no-io .rv{ opacity:1; transform:none; }
      card, just re-anchored. Nothing is added; both are the same layers. */
   [data-theme="dark"] .hero::before{
     background:radial-gradient(ellipse 392px 364px at 50% 62%,
-      rgba(52, 199, 89, 0.05) 0%,
-      rgba(52, 199, 89, 0.028) 42%,
+      rgba(0, 122, 255, 0.055) 0%,
+      rgba(0, 122, 255, 0.03) 42%,
       transparent 68%);
   }
   [data-theme="dark"] .hero::after{

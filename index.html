@@ -31,7 +31,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Instrument+Sans:wght@400;500;600;700;800&family=Poppins:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=53">
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css?v=54">
 </head>
 <body>
 
@@ -65,11 +67,11 @@
       <span class="wordmark-text">primevocal</span>
     </a>
     <div class="nav-right">
-      <button class="theme-toggle" id="themeToggle" aria-label="Switch color theme">
+      <button class="theme-toggle liquid-glass" id="themeToggle" aria-label="Switch color theme">
         <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M18.8 5.2l-1.7 1.7M6.9 17.1l-1.7 1.7"/></svg>
         <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></svg>
       </button>
-      <a class="btn btn-sm" href="https://cal.com/paudel" target="_blank" rel="noopener">Book a call</a>
+      <a class="btn btn-sm liquid-glass" href="https://cal.com/paudel" target="_blank" rel="noopener">Book a call</a>
     </div>
   </div>
 </header>
@@ -90,9 +92,9 @@
     </div>
 
     <!-- dark demo card -->
-    <div class="voice-card rv" id="voiceCard">
+    <div class="voice-card liquid-glass rv" id="voiceCard">
 
-      <div class="vc-switch" role="tablist" aria-label="Demo channel">
+      <div class="vc-switch liquid-glass" role="tablist" aria-label="Demo channel">
         <span class="vc-thumb" aria-hidden="true"></span>
         <button class="vc-tab on" role="tab" aria-selected="true" aria-controls="modeVoice" data-mode="voice">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4" stroke-linecap="round"/></svg>
@@ -164,11 +166,11 @@
       </div>
 
       <div class="vc-actions">
-        <button class="btn btn-block" type="button" id="talkToAi">
+        <button class="btn btn-block liquid-glass" type="button" id="talkToAi">
           Talk to AI
           <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
         </button>
-        <a class="btn btn-ghost btn-block" href="https://cal.com/paudel" target="_blank" rel="noopener">
+        <a class="btn btn-ghost btn-block liquid-glass" href="https://cal.com/paudel" target="_blank" rel="noopener">
           Book a call
           <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
         </a>
@@ -228,6 +230,12 @@
     <h2 class="h2 rv">While you sleep, <em>your phone still answers.</em></h2>
 
     <div class="clock-wrap rv">
+      <!-- The dial is a real pane of glass, not a painted circle: a 2px conic
+           rim underneath so light bends around the edge, the .liquid-glass
+           disc over it, and the SVG face on top with its own fill removed so
+           the material shows through. -->
+      <div class="clk-dial">
+        <span class="clk-rim" aria-hidden="true"><span class="clk-glass liquid-glass"></span></span>
       <svg class="clock-svg" viewBox="0 0 420 420" aria-hidden="true">
         <circle class="clk-halo" cx="210" cy="210" r="196"/>
         <circle class="clk-face" cx="210" cy="210" r="196"/>
@@ -253,6 +261,7 @@
         <circle class="clk-pin-in" cx="210" cy="210" r="2.2"/>
         <text class="clk-dig" id="clkDig" x="210" y="300" text-anchor="middle">2:00 AM</text>
       </svg>
+      </div>
 
       <!-- booking cards are injected here, random slot + random order -->
       <div class="clk-cards" id="clkCards"></div>
@@ -402,7 +411,7 @@
         <p class="fine mono roi-note">Assumes half of missed callers would have booked.</p>
       </div>
 
-      <div class="roi-out">
+      <div class="roi-out liquid-glass">
         <div class="ro">
           <span class="ro-n" id="roiM">$0</span>
           <span class="ro-c mono">walking out every month</span>
@@ -411,7 +420,7 @@
           <span class="ro-n" id="roiY">$0</span>
           <span class="ro-c mono">every year</span>
         </div>
-        <a class="btn" href="https://cal.com/paudel" target="_blank" rel="noopener">Stop the leak by Booking a call.</a>
+        <a class="btn liquid-glass" href="https://cal.com/paudel" target="_blank" rel="noopener">Stop the leak by Booking a call.</a>
       </div>
     </div>
   </div>
@@ -527,7 +536,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Primevocal","description":"AI voice receptionist that answers calls, books appointments, and follows up leads 24/7.","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://primevocal.ai","provider":{"@type":"Organization","name":"Primevocal","url":"https://primevocal.ai","email":"primevocal.ai@gmail.com"}}
 </script>
-<script src="assets/main.js?v=53"></script>
+<script src="assets/main.js?v=54"></script>
 
 <!-- Section 01's 3D street. Loads as an ES module, so the page must be served
      over http(s) — opening index.html straight off disk blocks module imports.

@@ -695,10 +695,22 @@
     var simTimer = null;
     var current = null;
 
+    /* Playback never snaps back to the idle breath. .settling runs a 700ms
+       damped ring-down between the two amplitudes, then hands the row back
+       to the idle animation. */
+    var settleTimer = null;
     stopPlayback = function () {
       audio.pause();
       if (simTimer) { clearTimeout(simTimer); simTimer = null; }
+      var wasPlaying = vcWave.classList.contains('playing');
       vcWave.classList.remove('playing');
+      if (wasPlaying && !reduceMotion) {
+        clearTimeout(settleTimer);
+        vcWave.classList.add('settling');
+        settleTimer = setTimeout(function () {
+          vcWave.classList.remove('settling');
+        }, 700);
+      }
       samples.forEach(function (s) { s.classList.remove('on'); });
       current = null;
       vcStatus.textContent = 'Pick a call to hear it';
@@ -710,6 +722,8 @@
         stopPlayback();
         current = sample;
         sample.classList.add('on');
+        clearTimeout(settleTimer);
+        vcWave.classList.remove('settling');
         vcWave.classList.add('playing');
         var label = sample.querySelector('.s-name').firstChild.textContent.trim();
         vcStatus.textContent = 'Playing: ' + label;
@@ -959,7 +973,7 @@
     var lastSlot = -1;
 
     var card = document.createElement('div');
-    card.className = 'clk-card';
+    card.className = 'clk-card liquid-glass';
     card.innerHTML =
       '<span class="clk-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
       'stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>' +
@@ -982,7 +996,7 @@
       var s;
       do { s = Math.floor(Math.random() * SLOTS.length); } while (s === lastSlot && SLOTS.length > 1);
       lastSlot = s;
-      card.className = 'clk-card ' + SLOTS[s];
+      card.className = 'clk-card liquid-glass ' + SLOTS[s];
     }
 
     function nextCard() {
@@ -1058,7 +1072,7 @@
       render(0);
       cardWho.textContent = BOOKINGS[0].who;
       cardSub.textContent = BOOKINGS[0].label + ' · ' + BOOKINGS[0].what + ' · Booked';
-      card.className = 'clk-card pos-ne show';
+      card.className = 'clk-card liquid-glass pos-ne show';
     } else if ('IntersectionObserver' in window) {
       render(0);
       new IntersectionObserver(function (entries) {
@@ -1127,10 +1141,12 @@
 
     var money = function (n) { return '$' + Math.round(n).toLocaleString('en-US'); };
 
+    /* backgroundImage, not background: the track's glass tint lives in
+       background-color, and the shorthand would wipe it out. */
     var paintRange = function (input) {
       var p = (input.value - input.min) / (input.max - input.min) * 100;
-      input.style.background =
-        'linear-gradient(to right, var(--green) ' + p + '%, var(--line-2) ' + p + '%)';
+      input.style.backgroundImage =
+        'linear-gradient(to right, var(--green) ' + p + '%, transparent ' + p + '%)';
     };
 
     var tween = function () {

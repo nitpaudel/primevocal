@@ -1160,6 +1160,155 @@ img,svg{ max-width:100%; display:block; }
   100%{ box-shadow:0 0 0 0 rgba(52,199,89,0); opacity:1 }
 }
 
+/* ==========================================================
+   HERO · DARK
+   Scoped to [data-theme="dark"] .hero and to the nav while it is sitting
+   over the hero. Nothing else on the page is reskinned by this block.
+
+   The whole section is built on ONE light source. Three layers, and the
+   order matters:
+
+     .hero            flat #0a0a0a — the canvas, no gradient on it at all
+     .hero::before    the single contained glow, z-index:-1
+     .hero::after     the grid texture, z-index:-1, masked to nothing
+
+   Both pseudos sit at z-index:-1 inside the hero's own stacking context
+   (.hero already carries isolation:isolate), which puts them above the
+   flat background and below every piece of content — including .badges,
+   which is not positioned and would otherwise be painted over.
+
+   Do not add a second glow. If the section needs more atmosphere the only
+   lever is the spread of the one below.
+   ========================================================== */
+[data-theme="dark"] .hero{
+  --h-bg:          #0a0a0a;
+  --h-fg:          #ffffff;
+  --h-fg-mute:     rgba(255, 255, 255, 0.4);
+  --h-fg-soft:     rgba(255, 255, 255, 0.55);
+  --h-card:        rgba(255, 255, 255, 0.05);
+  --h-fill:        rgba(255, 255, 255, 0.04);
+  --h-line:        rgba(255, 255, 255, 0.08);
+  --h-track:       rgba(255, 255, 255, 0.06);
+  --h-bub:         #3a3a3c;
+  --h-bub-fg:      #ffffff;
+  /* flat. the canvas stays truly black — every bit of light in this section
+     comes from the ::before below and nowhere else */
+  background:#0a0a0a;
+}
+
+/* THE light source. Static — no animation, ever. Sized and placed to sit
+   behind the card rather than to wash the viewport, and capped at 5% so it
+   registers as a presence rather than as a visible green patch. */
+[data-theme="dark"] .hero::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:radial-gradient(ellipse 600px 500px at 72% 45%,
+    rgba(52, 199, 89, 0.05) 0%, transparent 60%);
+}
+
+/* Grid texture · 2% white lines over the right side only, then masked with
+   a radial fade so there is no edge to find. The reading column on the left
+   is left as pure black — the mask is spent long before it reaches the
+   headline. */
+[data-theme="dark"] .hero::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:
+    linear-gradient(to right,  rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size:64px 64px;
+  /* Centred on the card and spent before it reaches the reading column: at
+     1280 the mask hits zero around x=697, and the headline block ends at
+     x=676. The copy side is genuinely untouched black, not faintly gridded. */
+  -webkit-mask-image:radial-gradient(ellipse 500px 460px at 78% 46%,
+    #000 0%, rgba(0, 0, 0, 0.6) 42%, transparent 58%);
+          mask-image:radial-gradient(ellipse 500px 460px at 78% 46%,
+    #000 0%, rgba(0, 0, 0, 0.6) 42%, transparent 58%);
+}
+
+/* ---------- material · same recipe, tuned for a black backdrop ----------
+   Blur, saturate and the shadow stack are byte-identical to light mode.
+   Only the edge changes: a quieter border so it does not glare, and a
+   brighter top specular so the lit edge still reads. */
+[data-theme="dark"] .hero .liquid-glass{
+  --lg-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.05),
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 32px 64px rgba(0, 0, 0, 0.12);
+  border-color:rgba(255, 255, 255, 0.15);
+}
+
+/* ---------- type · inverted, nothing else touched ---------- */
+[data-theme="dark"] .hero .kicker{ color:rgba(255, 255, 255, 0.4); }
+[data-theme="dark"] .hero-h1{ color:#ffffff; }
+[data-theme="dark"] .hero-h1 em{ color:rgba(255, 255, 255, 0.55); }
+[data-theme="dark"] .standfirst{ color:rgba(255, 255, 255, 0.6); }
+
+/* ---------- card internals · the same inversion carried inward ---------- */
+[data-theme="dark"] .vc-thumb{
+  background:rgba(255, 255, 255, 0.14);
+  box-shadow:0 1px 3px rgba(0, 0, 0, 0.4);
+}
+[data-theme="dark"] .vc-tab{ color:rgba(255, 255, 255, 0.4); }
+[data-theme="dark"] .vc-tab:hover{ color:rgba(255, 255, 255, 0.62); }
+[data-theme="dark"] .vc-tab.on,
+[data-theme="dark"] .vc-tab.on:hover{ color:#ffffff; }
+
+[data-theme="dark"] .sample:hover{ background:rgba(255, 255, 255, 0.05); }
+[data-theme="dark"] .sample.on{ background:rgba(255, 255, 255, 0.06); }
+[data-theme="dark"] .s-name{ color:rgba(255, 255, 255, 0.92); }
+[data-theme="dark"] .s-sub{ color:rgba(255, 255, 255, 0.4); }
+[data-theme="dark"] .s-dur{ color:rgba(255, 255, 255, 0.38); }
+[data-theme="dark"] .vc-status{ color:rgba(255, 255, 255, 0.3); }
+
+[data-theme="dark"] .imsg-head{ background:rgba(255, 255, 255, 0.04); }
+[data-theme="dark"] .imsg-bub.card{
+  background:rgba(52, 199, 89, 0.14);
+  border-color:rgba(140, 230, 185, 0.32);
+  color:var(--glow);
+}
+/* buttons keep the glass; hierarchy is still carried by tint depth alone */
+[data-theme="dark"] .voice-card .vc-actions .btn,
+[data-theme="dark"] .voice-card .vc-actions .btn-ghost{ color:#ffffff; }
+[data-theme="dark"] .voice-card .vc-actions .btn{ background:rgba(255, 255, 255, 0.18); }
+[data-theme="dark"] .voice-card .vc-actions .btn:hover{ background:rgba(255, 255, 255, 0.28); }
+[data-theme="dark"] .voice-card .vc-actions .btn-ghost{ background:rgba(255, 255, 255, 0.06); }
+[data-theme="dark"] .voice-card .vc-actions .btn-ghost:hover{ background:rgba(255, 255, 255, 0.14); }
+
+[data-theme="dark"] .badge{
+  color:rgba(255, 255, 255, 0.55);
+  background:rgba(255, 255, 255, 0.04);
+  border-color:rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .badge:hover{ background:rgba(255, 255, 255, 0.09); }
+
+/* ---------- nav · only while it is over the hero ----------
+   .stuck is left exactly as it was: it already paints itself near-black with
+   white type, which is correct in either theme. */
+[data-theme="dark"] .nav:not(.stuck){ --nav-fg:rgba(255, 255, 255, 0.9); }
+[data-theme="dark"] .nav:not(.stuck) .theme-toggle{
+  background:rgba(255, 255, 255, 0.06);
+  border-color:rgba(255, 255, 255, 0.15);
+}
+[data-theme="dark"] .nav:not(.stuck) .theme-toggle:hover{
+  background:rgba(255, 255, 255, 0.12);
+}
+/* the one solid thing in the bar, so it stays the anchor point */
+[data-theme="dark"] .nav:not(.stuck) .btn-sm,
+[data-theme="dark"] .nav:not(.stuck) .btn-sm:hover{
+  background:#ffffff;
+  color:#000000;
+  border-color:transparent;
+}
+[data-theme="dark"] .nav:not(.stuck) .btn-sm:hover{ opacity:.88; }
+
 /* ---------- sections ---------- */
 .sec{
   border-top:1px solid var(--line);
@@ -2206,6 +2355,19 @@ html.no-io .rv{ opacity:1; transform:none; }
      without the auto margins it hugs the left edge instead of sitting
      under the headline it belongs to */
   .voice-card{ grid-area:2 / 1; max-width:480px; margin-inline:auto; }
+  /* The card drops below the copy here, so the one light source and the grid
+     follow it down and across — still a single contained glow behind the
+     card, just re-anchored. Nothing is added; both are the same layers. */
+  [data-theme="dark"] .hero::before{
+    background:radial-gradient(ellipse 560px 520px at 50% 62%,
+      rgba(52, 199, 89, 0.05) 0%, transparent 60%);
+  }
+  [data-theme="dark"] .hero::after{
+    -webkit-mask-image:radial-gradient(ellipse 460px 440px at 50% 62%,
+      #000 0%, rgba(0, 0, 0, 0.6) 42%, transparent 62%);
+            mask-image:radial-gradient(ellipse 460px 440px at 50% 62%,
+      #000 0%, rgba(0, 0, 0, 0.6) 42%, transparent 62%);
+  }
   .hear-grid{ grid-template-columns:1fr; gap:52px; }
   .hear-phone{ justify-content:center; }
   .demo-box{ max-width:520px; margin-inline:auto; }

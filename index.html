@@ -33,7 +33,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
 <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=60">
+<link rel="stylesheet" href="assets/styles.css?v=63">
 </head>
 <body>
 
@@ -71,7 +71,7 @@
         <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M18.8 5.2l-1.7 1.7M6.9 17.1l-1.7 1.7"/></svg>
         <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></svg>
       </button>
-      <a class="btn btn-sm liquid-glass" href="https://cal.com/paudel" target="_blank" rel="noopener">Book a call</a>
+      <a class="btn btn-sm" href="https://cal.com/paudel" target="_blank" rel="noopener">Book a call</a>
     </div>
   </div>
 </header>
@@ -91,6 +91,12 @@
         It picks up in two rings, books the job into your calendar, and rings
         new leads back in under a minute.
       </p>
+      <!-- Hero CTAs · solid green primary, hairline-outline secondary. The
+           secondary jumps to the demo card rather than opening anything. -->
+      <div class="hero-cta rv">
+        <a class="btn hero-btn hero-btn-primary" href="https://cal.com/paudel" target="_blank" rel="noopener">Book a call</a>
+        <a class="btn hero-btn hero-btn-outline" href="#voiceCard">Hear it in action</a>
+      </div>
     </div>
 
     <!-- dark demo card -->
@@ -145,7 +151,7 @@
           </button>
         </div>
 
-        <p class="vc-status" id="vcStatus">Press play to hear it happen</p>
+        <p class="vc-status" id="vcStatus">Pick a call to hear it</p>
       </div>
 
       <!-- SMS · auto-playing conversation, no scrolling.
@@ -550,7 +556,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Primevocal","description":"AI voice receptionist that answers calls, books appointments, and follows up leads 24/7.","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://primevocal.ai","provider":{"@type":"Organization","name":"Primevocal","url":"https://primevocal.ai","email":"primevocal.ai@gmail.com"}}
 </script>
-<script src="assets/main.js?v=60"></script>
+<script src="assets/main.js?v=63"></script>
 
 <!-- Section 01's 3D street. Loads as an ES module, so the page must be served
      over http(s) — opening index.html straight off disk blocks module imports.

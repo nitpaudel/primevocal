@@ -557,16 +557,15 @@ img,svg{ max-width:100%; display:block; }
   align-items:center;
   gap:44px;
 }
-/* Capped at 600 so the width freed by the narrower card becomes GAP rather
-   than a longer measure. Without the cap the copy just grows to fill whatever
-   the card gives up and the two columns stay as close together as they were —
-   which is exactly what happened the last time the card was trimmed. 600 is
-   also what the headline is sized against; see .hero-h1. */
+/* 620 is the headline's measure. In the reference the headline is the widest
+   thing in the column and overhangs the paragraph slightly — 47.9% of the
+   content measure against the paragraph's 45.2% — so the column is sized to
+   the headline and .standfirst is capped just inside it. */
 .hero-copy{
   position:relative;
   z-index:1;
   flex:1 1 auto;
-  max-width:600px;
+  max-width:620px;
 }
 /* 470. The reference card is ~40% of the content measure and ~26% of the
    viewport; against the 1232 measure this is 38%, which is the same object.
@@ -605,7 +604,7 @@ img,svg{ max-width:100%; display:block; }
      fixed ~606px and the ceiling below is what fits it — the viewport can
      grow all it likes, the line cannot. Below 1020 the card drops away and
      the column doubles, so the responsive block hands the size back. */
-  font-size:clamp(2.5rem, 5.4vw, 4.5rem);
+  font-size:clamp(2.5rem, 5.4vw, 4.7rem);
   font-weight:700;
   font-style:normal;
   line-height:1.06;
@@ -652,7 +651,15 @@ img,svg{ max-width:100%; display:block; }
   font-weight:400;
   letter-spacing:-0.002em;
   color:rgba(20, 19, 16, 0.72);
-  max-width:46ch;
+  /* 580px, not 46ch. 46ch measured 474px, which left the paragraph ending
+     300px short of the card — a void down the middle of the hero that made
+     the card look far bigger than it actually is. The cap is not the ink:
+     at 580 the copy breaks with a longest line of 574, which is 45.7% of the
+     content measure against the reference's 45.2%. 570 would have been the
+     arithmetically "right" cap but the line breaks fall badly there and the
+     longest line drops to 532. Below ~1300 the column is narrower than this
+     and takes over. */
+  max-width:580px;
   margin:0;
 }
 

@@ -37,10 +37,17 @@
   --display-serif: "Playfair Display", Georgia, serif;
 
   --shell: 1200px;
-  /* The nav and the hero share a wider measure than the sections below, so
-     the logo, the headline, the card and the trust pills all hang off the
-     same two edges. Sections 02–05 keep --shell. */
-  --shell-wide: 1500px;
+  /* The nav and the hero share ONE measure, so the logo, the headline, the
+     card and the trust strip all hang off the same two edges. Sections 02–05
+     keep --shell.
+
+     1180, not the old 1500: at 1500 the hero ran nearly edge to edge on a
+     large display and the gutters read as an accident rather than a margin.
+     Capping the measure here is what buys the side air — past 1180 every
+     extra pixel of viewport goes into the gutters, so a 1600px screen shows
+     ~17% on each side and a 1440px one ~13%, which is the proportion a
+     premium SaaS hero holds. */
+  --shell-wide: 1180px;
   --ease: cubic-bezier(.25,.9,.3,1);
   --spring: cubic-bezier(.18,1.42,.4,1);
 
@@ -101,9 +108,18 @@ img,svg{ max-width:100%; display:block; }
 
 .shell{ max-width:var(--shell); margin-inline:auto; padding-inline:32px; }
 /* one measure for the nav and every row inside the hero — the headline
-   block, the demo card and the trust pills all resolve to these edges */
+   block, the demo card and the trust pills all resolve to these edges.
+
+   The gutter is a percentage, not the global 32px: below the 1180 cap the
+   margin has to stay proportional to the screen or it collapses back to a
+   hairline on a laptop. 5.5% of the shell holds ~6% at the narrow end and
+   tops out at 68px, after which the auto margins take over and the gutters
+   keep growing on their own. */
 .nav .shell,
-.hero .shell{ max-width:var(--shell-wide); }
+.hero .shell{
+  max-width:var(--shell-wide);
+  padding-inline:clamp(24px, 5.5%, 68px);
+}
 /* .hero is a column flex container, and margin-inline:auto on a flex item
    overrides the default stretch — without an explicit width the shell
    shrink-wraps its content and the rows come out narrower than the nav. */
@@ -519,31 +535,30 @@ img,svg{ max-width:100%; display:block; }
   overflow:hidden;
   overflow:clip;
 }
-/* Copy hard left, card hard right, and everything left over becomes the gap
-   in the middle. The copy is capped so it cannot sprawl across the wider
-   measure and close that gap back up. */
-/* Text hard left, card hard right. Copy fills the leftover up to a 60%
-   cap; the card is a fixed 460px working panel — sizing it larger just
-   leaves dead space inside it. `margin-left:auto` on the card pushes it
-   to the right edge of the row and hands any surplus back to the gap,
-   which measures ~7–9% at 1440+ and holds a 40px minimum below that. */
+/* Text hard left, card hard right, and everything left over becomes the copy
+   column. The card is a fixed 400px working panel; `margin-left:auto` pins it
+   to the right edge of the row. Nothing caps the copy any more — the shell
+   above does that job now, so any surplus width shows up as gutters outside
+   the row rather than as a hole inside it. */
 .hero-grid{
   display:flex;
   align-items:center;
-  gap:32px;
+  gap:44px;
 }
-/* 64%, not 60%: past ~1500px the shell stops growing but the cap kept the
-   copy column short, and the surplus went straight into the gap. Four points
-   of extra measure closes ~57px of that at 1920 and lets the headline run
-   longer before it has to wrap. */
+/* The copy takes whatever the card and the gap leave. No percentage cap any
+   more: the shell itself is capped at 1180 now, so the column can never
+   sprawl, and a cap on top of that would only hand width back to the gap. */
 .hero-copy{
   position:relative;
   z-index:1;
   flex:1 1 auto;
-  max-width:64%;
 }
+/* 400, down from 460. The card was reading as the subject of the hero rather
+   than as evidence for it; at 400 it is ~38% of the measure, which is the
+   proportion it holds in the reference. Everything inside it is stepped down
+   to match — see the card block below. */
 .voice-card{
-  flex:0 0 460px;
+  flex:0 0 400px;
   margin-left:auto;
 }
 
@@ -562,13 +577,13 @@ img,svg{ max-width:100%; display:block; }
      pushes "Answer every call." to 338px, which breaks it into four lines.
      The growth is in the ceiling, where there is room for it.
 
-     This size is for wide desktop ONLY — see the two overrides in the
-     responsive block. "Answer every call." runs about 7.96x the font size,
-     and it has to clear the copy column on one line or the forced <br> stops
-     being the only break. Between 1020 and 1260 the column is squeezed
-     between the shell edge and the fixed 460px card, so it cannot take this;
-     below 1020 the card drops away and it can take more. */
-  font-size:clamp(2.5rem, 6.6vw, 6.2rem);
+     "Answer every call." runs about 7.9x the font size, and it has to clear
+     the copy column on one line or the forced <br> stops being the only
+     break. The shell now caps at 1180, so above that width the column is a
+     fixed ~606px and the ceiling below is what fits it — the viewport can
+     grow all it likes, the line cannot. Below 1020 the card drops away and
+     the column doubles, so the responsive block hands the size back. */
+  font-size:clamp(2.5rem, 5.4vw, 4.5rem);
   font-weight:700;
   font-style:normal;
   line-height:1.06;
@@ -605,9 +620,11 @@ img,svg{ max-width:100%; display:block; }
   color:rgba(20, 19, 16, 0.45);
   box-shadow:none;
 }
-/* body register · the site serif, sized for reading rather than for presence */
+/* body register · Inter, sized for reading rather than for presence. This is
+   the ONE place on the page set in Inter — the serif (--h-body) still carries
+   every other body register, so do not promote this to a token. */
 .standfirst{
-  font-family:var(--h-body);
+  font-family:"Inter", -apple-system, "Segoe UI", sans-serif;
   font-size:1.02rem;
   line-height:1.7;
   font-weight:400;
@@ -617,60 +634,12 @@ img,svg{ max-width:100%; display:block; }
   margin:0;
 }
 
-/* ---------- hero CTAs ----------
-   The pair under the standfirst: a solid green primary and a hairline
-   outline secondary, both square-ish rather than pills so they sit under
-   the serif headline without reading as chips. */
-.hero-cta{
-  display:flex;
-  flex-wrap:wrap;
-  gap:14px;
-  margin-top:24px;
-}
-.hero-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:16px 30px;
-  border-radius:10px;
-  font-family:var(--h-body);
-  font-size:0.98rem;
-  font-weight:600;
-  letter-spacing:-0.004em;
-  text-decoration:none;
-  transition:background 160ms ease-out, border-color 160ms ease-out,
-             color 160ms ease-out, transform 140ms var(--spring),
-             box-shadow 200ms var(--ease);
-}
-/* PRIMARY · solid green, flat. No gradient — the page-wide .btn gradient is
-   overridden here so the hero pair reads as one weight of ink. */
-.hero-btn-primary{
-  background:var(--green);
-  border:1px solid transparent;
-  color:#F7F5EE;
-  box-shadow:0 8px 20px -14px rgba(23, 21, 15, 0.7);
-}
-.hero-btn-primary:hover{
-  background:var(--green-h);
-  border-color:transparent;
-  transform:translateY(-2px);
-  box-shadow:0 16px 28px -16px rgba(30, 91, 63, 0.6);
-}
-/* SECONDARY · hairline outline on the paper, no fill until hover */
-.hero-btn-outline{
-  background:transparent;
-  border:1px solid rgba(20, 19, 16, 0.18);
-  color:#141310;
-  box-shadow:none;
-}
-.hero-btn-outline:hover{
-  background:rgba(255, 255, 255, 0.5);
-  border-color:rgba(20, 19, 16, 0.34);
-  color:#141310;
-  transform:translateY(-2px);
-  box-shadow:none;
-}
-.hero-btn:active{ transform:translateY(0) scale(0.985); }
+/* ---------- hero CTAs · removed ----------
+   The "Book a call" / "Hear it in action" pair that used to sit under the
+   standfirst is gone, and its rules went with it rather than being left as
+   dead weight. The copy column now ends on the paragraph. The nav's own
+   "Book a call" and the two buttons inside the demo card carry the actions;
+   .btn / .btn-sm / .btn-ghost are untouched and still serve them. */
 
 
 /* ---------- hero demo card · a lit object ----------
@@ -684,9 +653,9 @@ img,svg{ max-width:100%; display:block; }
   z-index:1;
   background:var(--h-card);
   color:var(--h-fg);
-  border-radius:20px;
+  border-radius:18px;
   overflow:hidden;           /* nothing inside can spill past the radius */
-  padding:22px 22px 20px;
+  padding:16px 16px 15px;
   transition:transform .5s var(--ease), box-shadow .5s var(--ease),
              opacity .8s var(--ease);
 }
@@ -762,14 +731,14 @@ img,svg{ max-width:100%; display:block; }
 .vc-switch{
   display:flex;
   border-radius:980px;
-  padding:4px;
-  margin-bottom:20px;
+  padding:3px;
+  margin-bottom:15px;
 }
 .vc-thumb{
   position:absolute;
-  top:4px; left:4px;
-  width:calc(50% - 4px);
-  height:calc(100% - 8px);
+  top:3px; left:3px;
+  width:calc(50% - 3px);
+  height:calc(100% - 6px);
   border-radius:980px;
   background:#ffffff;
   box-shadow:0 1px 3px rgba(0, 0, 0, 0.12);
@@ -781,16 +750,16 @@ img,svg{ max-width:100%; display:block; }
   flex:1;
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   background:none; border:0; border-radius:980px;
-  padding:9px 0;
+  padding:8px 0;
   font-family:var(--h-ui);
-  font-size:0.82rem;
+  font-size:0.76rem;
   font-weight:500;
   letter-spacing:-0.01em;
   color:rgba(20, 19, 16, 0.4);
   transition:color 180ms ease;
 }
 .vc-tab:hover{ color:rgba(20, 19, 16, 0.62); }
-.vc-tab svg{ width:15px; height:15px; }
+.vc-tab svg{ width:13px; height:13px; }
 .vc-tab.on, .vc-tab.on:hover{ color:#141310; font-weight:600; }
 
 /* Hard height, not min-height: both panes measure exactly the same, so the
@@ -799,13 +768,13 @@ img,svg{ max-width:100%; display:block; }
    overflows into the CTA row below. overflow:hidden is a safety net if a
    future edit adds content that would exceed the pane.
 
-   416px, down from 440: the Voice pane's own content — waveform, three rows
-   and the status line — measures 407px, so this is the tightest the box can
-   be without clipping it, and the 24px it gives back comes straight out of
-   the card's height. The SMS pane scrolls, so it takes any height. */
+   Stepped down again with the rest of the card: every element inside the
+   Voice pane shrank, so its natural content is ~328px and this is the
+   tightest the box can be without clipping it. The SMS pane scrolls, so it
+   takes any height. Re-measure before lowering it further. */
 .vc-pane{
   display:none;
-  height:416px;
+  height:342px;
   flex-direction:column;
   overflow:hidden;
 }
@@ -818,9 +787,9 @@ img,svg{ max-width:100%; display:block; }
    row instead of every bar lifting together. The drop-shadow is a hair of
    green light off the bars, nothing more. */
 .vc-wave{
-  display:flex; align-items:center; justify-content:center; gap:3px;
-  height:96px;
-  margin:8px 0 26px;
+  display:flex; align-items:center; justify-content:center; gap:2.5px;
+  height:80px;
+  margin:6px 0 18px;
 }
 /* The silhouette is static and it does not repeat.
    Each bar's resting height is the sum of four sine layers at deliberately
@@ -912,13 +881,13 @@ img,svg{ max-width:100%; display:block; }
 }
 
 /* samples · the row is unlit until you point at it */
-.vc-list{ display:flex; flex-direction:column; gap:11px; }
+.vc-list{ display:flex; flex-direction:column; gap:9px; }
 .sample{
-  display:flex; align-items:center; gap:13px;
+  display:flex; align-items:center; gap:11px;
   background:transparent;
   border:1px solid transparent;
-  border-radius:10px;
-  padding:14px 14px;
+  border-radius:9px;
+  padding:11px 11px;
   color:var(--h-fg);
   text-align:left;
   transition:background 120ms ease, border-color 120ms ease;
@@ -930,7 +899,7 @@ img,svg{ max-width:100%; display:block; }
 }
 /* the one accent, at full strength */
 .s-play{
-  width:30px; height:30px; flex-shrink:0;
+  width:26px; height:26px; flex-shrink:0;
   border-radius:50%;
   background:var(--h-accent);
   display:grid; place-items:center;
@@ -941,43 +910,43 @@ img,svg{ max-width:100%; display:block; }
   width:0; height:0;
   margin-left:2px;
   border-style:solid;
-  border-width:5px 0 5px 8px;
+  border-width:4.5px 0 4.5px 7px;
   border-color:transparent transparent transparent var(--h-play-fg, #ffffff);
 }
 .sample.on .s-play i{
   border:0; margin-left:0;
-  width:9px; height:10px;
-  border-left:3px solid var(--h-play-fg, #ffffff);
-  border-right:3px solid var(--h-play-fg, #ffffff);
+  width:8px; height:9px;
+  border-left:2.5px solid var(--h-play-fg, #ffffff);
+  border-right:2.5px solid var(--h-play-fg, #ffffff);
 }
 .s-name{
   font-family:var(--h-ui);
-  font-size:0.9rem;
+  font-size:0.82rem;
   font-weight:600;
   line-height:1.3;
   color:#141310;
 }
 /* System tag, not prose: tracked-out mono caps under the bold row name, so
    the two lines read as label-over-title rather than as a sentence that
-   wrapped. Sized down and tracked out to hold one line in the 460px card. */
+   wrapped. Sized down and tracked out to hold one line in the 400px card. */
 .s-sub{
   display:block;
   font-family:var(--monoF);
-  font-size:0.6rem;
-  letter-spacing:0.1em;
+  font-size:0.55rem;
+  letter-spacing:0.09em;
   text-transform:uppercase;
   font-weight:400;
   line-height:1.4;
   color:rgba(20, 19, 16, 0.5);
-  margin-top:4px;
+  margin-top:3px;
 }
 .voice-card .s-sub{ color:rgba(255, 255, 255, 0.45); }
-.s-meta{ margin-left:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
-.s-wave{ width:34px; height:13px; color:var(--h-accent); opacity:.75; }
+.s-meta{ margin-left:auto; display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.s-wave{ width:29px; height:11px; color:var(--h-accent); opacity:.75; }
 .sample.on .s-wave{ opacity:1; }
 .s-dur{
   font-family:var(--h-ui);
-  font-size:0.74rem;
+  font-size:0.68rem;
   font-weight:400;
   letter-spacing:0;
   text-transform:none;
@@ -989,8 +958,8 @@ img,svg{ max-width:100%; display:block; }
 .vc-status{
   flex:0 0 auto;
   font-family:var(--monoF);
-  font-size:0.62rem;
-  letter-spacing:0.14em;
+  font-size:0.57rem;
+  letter-spacing:0.13em;
   font-weight:400;
   text-transform:uppercase;
   text-align:center;
@@ -1000,7 +969,7 @@ img,svg{ max-width:100%; display:block; }
      with overflow:hidden on the pane, the line can never overflow into the
      CTA row below the card. */
   margin:auto 0 0;
-  padding-top:14px;
+  padding-top:11px;
 }
 .vc-list{ flex:0 0 auto; }
 .vc-wave{ flex:0 0 auto; }
@@ -1085,7 +1054,7 @@ img,svg{ max-width:100%; display:block; }
 .imsg{
   background:var(--h-fill);
   border:1px solid var(--h-line);
-  border-radius:16px;
+  border-radius:14px;
   overflow:hidden;
   display:flex; flex-direction:column;
   height:100%;              /* fills the fixed pane — never sized by content */
@@ -1106,14 +1075,14 @@ img,svg{ max-width:100%; display:block; }
   flex:0 0 auto;
   display:flex; flex-direction:column; align-items:center;
   gap:4px;
-  padding:13px 12px 8px;
+  padding:11px 10px 7px;
   border-bottom:1px solid var(--h-line);
 }
 /* solid fill, one bold initial — the iOS placeholder for a contact with no
    photo. Not a circle-cropped image any more. */
 .imsg-av{
-  width:38px; height:38px;
-  flex:0 0 38px;
+  width:33px; height:33px;
+  flex:0 0 33px;
   border-radius:50%;
   overflow:hidden;
   display:grid; place-items:center;
@@ -1121,7 +1090,7 @@ img,svg{ max-width:100%; display:block; }
 }
 .imsg-initial{
   font-family:var(--h-ui);
-  font-size:1.08rem;
+  font-size:0.95rem;
   font-weight:600;
   line-height:1;
   color:#ffffff;
@@ -1129,7 +1098,7 @@ img,svg{ max-width:100%; display:block; }
 }
 .imsg-num{
   font-family:var(--h-ui);
-  font-size:.8rem;
+  font-size:.73rem;
   font-weight:500;
   letter-spacing:-.01em;
   line-height:1.2;
@@ -1149,7 +1118,7 @@ img,svg{ max-width:100%; display:block; }
 .imsg-enc-row{
   display:inline-flex; align-items:center; gap:3px;
   font-family:var(--h-ui);
-  font-size:.58rem;
+  font-size:.54rem;
   font-weight:400;
   letter-spacing:0;
   line-height:1.4;
@@ -1163,7 +1132,7 @@ img,svg{ max-width:100%; display:block; }
   flex:0 0 auto;
   margin:2px 2px 0;
   font-family:var(--h-ui);
-  font-size:.56rem;
+  font-size:.52rem;
   font-weight:500;
   letter-spacing:.01em;
   line-height:1.2;
@@ -1178,7 +1147,7 @@ img,svg{ max-width:100%; display:block; }
   min-height:0;             /* without this a flex item refuses to shrink
                                below its content and the thread pushes out */
   display:flex; flex-direction:column; gap:4px;
-  padding:10px 11px 12px;
+  padding:8px 9px 10px;
   overflow-y:auto;
   overscroll-behavior:contain;
   /* scrolls, but the bar is hidden the way iOS hides its own — a 4px grey
@@ -1199,9 +1168,9 @@ img,svg{ max-width:100%; display:block; }
    all — the encryption notice is the only thing above the first bubble. */
 .imsg-bub{
   max-width:81%;
-  padding:7px 12px;
-  border-radius:18px;
-  font-size:.78rem;
+  padding:6px 10px;
+  border-radius:16px;
+  font-size:.72rem;
   line-height:1.4;
   opacity:0;
   transform:translateY(10px) scale(.96);
@@ -1257,8 +1226,8 @@ img,svg{ max-width:100%; display:block; }
 .imsg-img{
   align-self:flex-end;
   flex:0 0 auto;
-  max-width:220px;
-  border-radius:12px;
+  max-width:188px;
+  border-radius:10px;
   overflow:hidden;
   line-height:0;
   margin-top:1px;
@@ -1272,10 +1241,10 @@ img,svg{ max-width:100%; display:block; }
 
 .imsg-typing{
   align-self:flex-start;
-  display:flex; gap:4px; align-items:center;
+  display:flex; gap:3.5px; align-items:center;
   background:var(--h-bub);
-  padding:9px 13px;
-  border-radius:15px;
+  padding:8px 11px;
+  border-radius:14px;
   border-bottom-left-radius:6px;
   opacity:0;
   transform:translateY(6px);
@@ -1301,11 +1270,11 @@ img,svg{ max-width:100%; display:block; }
 .imsg-typing i:nth-child(3){ animation-delay:.36s; }
 
 .vc-actions{
-  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+  display:grid; grid-template-columns:1fr 1fr; gap:10px;
   /* explicit clearance from the pane above — the status line sits at the
      pane's bottom edge, and this keeps a hairline of air between it and
      the CTA row so nothing can ever visually overlap */
-  margin-top:22px;
+  margin-top:18px;
   position:relative;
   z-index:1;
 }
@@ -1323,11 +1292,11 @@ img,svg{ max-width:100%; display:block; }
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  gap:7px;
-  padding:0.85rem 1.5rem;
-  border-radius:12px;
+  gap:6px;
+  padding:0.72rem 1rem;
+  border-radius:10px;
   font-family:var(--h-ui);
-  font-size:0.86rem;
+  font-size:0.78rem;
   font-weight:600;
   letter-spacing:0;
   background:rgba(255, 255, 255, 0.1);
@@ -1366,7 +1335,7 @@ img,svg{ max-width:100%; display:block; }
 }
 /* the north-east arrow that marks both as "this takes you somewhere" */
 .btn-arrow{
-  width:14px; height:14px;
+  width:12px; height:12px;
   flex:0 0 auto;
   opacity:.55;
   transition:transform .28s var(--spring), opacity .25s var(--ease);
@@ -1392,16 +1361,22 @@ img,svg{ max-width:100%; display:block; }
 
 /* Trust strip · ONE pill spanning the row, divided into three equal
    segments by 1px rules. Reads as a single horizontal bar with real
-   visual weight, not as three chips floating in space. */
+   visual weight, not as three chips floating in space.
+
+   Flat and opaque, deliberately. It used to be a 55%-white translucent
+   panel over the hero's radial highlight, which frosted it — the paper and
+   the light source read straight through the bar. #FAF8F5 is that exact
+   frosted colour resolved against the hero background, so the strip looks
+   the same and simply stops being glass. The lift shadow went with it. */
 .badges{
   display:flex;
   align-items:stretch;
   margin-top:36px;
   border-radius:980px;
   border:1px solid rgba(20, 19, 16, 0.12);
-  background:rgba(255, 255, 255, 0.55);
+  background:#FAF8F5;
   overflow:hidden;                     /* keeps the ends clipped to the pill */
-  box-shadow:0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow:none;
   transition:background .25s var(--ease), border-color .25s var(--ease);
 }
 .badge{
@@ -1591,23 +1566,11 @@ img,svg{ max-width:100%; display:block; }
 /* The two card CTAs are glass in both themes — see the shared rule in the
    light section. Nothing to override here. */
 
-/* ---------- hero CTAs · on the black page ----------
-   The green primary carries over unchanged. The outline secondary cannot:
-   its hairline and its label are both near-black, which is invisible on
-   #0a0a0a. Both flip to white at the same weights. */
-[data-theme="dark"] .hero-btn-outline{
-  border-color:rgba(255, 255, 255, 0.22);
-  color:rgba(255, 255, 255, 0.9);
-}
-[data-theme="dark"] .hero-btn-outline:hover{
-  background:rgba(255, 255, 255, 0.07);
-  border-color:rgba(255, 255, 255, 0.38);
-  color:#ffffff;
-}
-
-/* dark · the outer pill inverts, the inner dividers stay hairline-white */
+/* dark · the outer pill inverts, the inner dividers stay hairline-white.
+   Opaque here too — #141414 is the old 4%-white translucent fill resolved
+   against the #0a0a0a page, so the tone is unchanged and the frost is gone. */
 [data-theme="dark"] .badges{
-  background:rgba(255, 255, 255, 0.04);
+  background:#141414;
   border-color:rgba(255, 255, 255, 0.12);
   box-shadow:none;
 }
@@ -2560,15 +2523,6 @@ html.no-io .rv{ opacity:1; transform:none; }
 
 /* ---------- responsive ---------- */
 
-/* The headline's ceiling is the copy column, not the viewport, and between
-   1020 and 1260 that column is whatever is left after the fixed 460px card
-   and the gap — around 460px at the low end. 6.6vw would run "Answer every
-   call." past it and break the line, so this band keeps the size the layout
-   was originally measured against. */
-@media (max-width:1260px){
-  .hero-h1{ font-size:clamp(2.5rem, 5.4vw, 4.7rem); }
-}
-
 @media (max-width:1020px){
   /* the grid is flex now; stacking is just flex-direction:column */
   .hero-grid{
@@ -2582,7 +2536,7 @@ html.no-io .rv{ opacity:1; transform:none; }
      denies it */
   .hero-h1{ font-size:clamp(2.5rem, 7vw, 4.6rem); }
   /* full-width in the stacked layout, but capped so it does not sprawl */
-  .voice-card{ width:100%; max-width:480px; align-self:center; }
+  .voice-card{ width:100%; max-width:420px; align-self:center; }
   /* The card drops below the copy here, so the grid follows it down and
      across. The edge light rides on the card itself and needs no move. */
   [data-theme="dark"] .hero::after{
@@ -2674,7 +2628,11 @@ html.no-io .rv{ opacity:1; transform:none; }
 
   /* the card gets its own gutter inside the mobile shell, so bubbles don't
      touch the card edge and the CTAs sit inset from the pill's rim */
-  .voice-card{ padding:22px 22px 20px; }
+  .voice-card{ padding:16px 16px 15px; }
+  /* The card is only ~327px wide here, so each row's mono subtitle wraps to
+     two lines where it holds one at 400px. That is 12px per row the desktop
+     pane does not have to find, hence the taller box on mobile only. */
+  .vc-pane{ height:366px; }
   /* The eyebrow wraps on narrow screens rather than pushing horizontal
      scroll. Tracking comes in a touch so the caps line fits in fewer rows. */
   .kicker-badge{
@@ -2700,10 +2658,6 @@ html.no-io .rv{ opacity:1; transform:none; }
      them — a horizontal pair at 285px card width would leave each button
      too small to hit comfortably. */
   .vc-actions{ grid-template-columns:1fr; gap:10px; margin-top:24px; }
-  /* Same reasoning for the hero pair: side by side they overflow the column
-     and wrap to two ragged rows, so stack them full-width instead. */
-  .hero-cta{ flex-direction:column; align-items:stretch; gap:12px; margin-top:28px; }
-  .hero-btn{ width:100%; }
   /* the FAB stays out of the way of anything in the card while the hero is
      visible; this is the physical clearance baseline main.js enforces */
   .talk-fab{ right:16px; bottom:16px; }

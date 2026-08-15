@@ -1458,29 +1458,57 @@ img,svg{ max-width:100%; display:block; }
    Scoped to [data-theme="dark"] .hero and to the nav while it is sitting
    over the hero. Nothing else on the page is reskinned by this block.
 
-   The whole section is built on ONE light source. Three layers, and the
-   order matters:
+   The section is built on ONE light source — a green ambience behind the
+   demo card — in four layers, and the order matters:
 
-     .hero            flat #0a0a0a — the canvas, no gradient on it at all
-     .hero::before    the single contained glow, z-index:-1
-     .hero::after     the grid texture, z-index:-1, masked to nothing
+     .hero            flat #0a0a0a canvas
+     .hero::before    the ambience: core glow + wide haze, z-index:-1
+     .hero::after     the grid texture, z-index:-1, masked to the glow
+     .voice-card      frosted glass sitting IN that light
 
    Both pseudos sit at z-index:-1 inside the hero's own stacking context
    (.hero already carries isolation:isolate), which puts them above the
    flat background and below every piece of content — including .badges,
    which is not positioned and would otherwise be painted over.
 
-   Do not add a second glow. If the section needs more atmosphere the only
-   lever is the spread of the one below.
+   ── THE CONTROL PANEL ──────────────────────────────────────
+   Every value the atmosphere depends on is a variable on [data-theme="dark"]
+   .hero below. Nothing downstream hard-codes a green; they all read these.
+   Change one number here and the glow, the grid mask, the card tint, the
+   card's outer bloom, the play buttons, the row waveforms and the button
+   glints all move together. That coherence is the whole point — the old
+   build had greens hard-coded in six places and they drifted apart, which
+   is exactly what reads as cheap.
+
+   The dials, and what each one actually does:
+
+     --glow-rgb      the hue of the whole section. One triplet, no hex, so
+                     it can be poured into rgba() at any opacity.
+     --glow-x/y      where the light source sits. Keep x above ~68% or the
+                     glow crosses under the headline and greys the type.
+     --glow-w/h      how far it spreads before falling off.
+     --glow-core     brightness at the centre.  ~.10 subtle → ~.30 heavy.
+     --glow-mid      the shoulder. Keep it near a third of --glow-core or
+                     the falloff develops a visible ring.
+     --glow-edge     where it reaches zero, as a % of --glow-w/h.
+     --haze-rgb/-a   a second, far wider and much darker wash that lifts the
+                     whole right half off pure black. This is what stops the
+                     glow reading as a spotlight stuck on a flat backdrop.
+     --card-*        the glass itself: two tint stops, the edge, the blur
+                     depth, and how hard it blooms into the air around it.
+     --card-accent-rgb  the green INSIDE the card — play discs, row
+                     waveforms, active row. Separate from --glow-rgb on
+                     purpose: the ambience can be pushed cool or warm
+                     without dragging the UI accents with it.
    ========================================================== */
 [data-theme="dark"] .hero{
   --h-bg:          #0a0a0a;
   --h-fg:          #ffffff;
   --h-fg-mute:     rgba(255, 255, 255, 0.4);
   --h-fg-soft:     rgba(255, 255, 255, 0.55);
-  /* Voice AI accent, dark. Nearly-white so the play button and waveform
-     stay legible against the near-black card. The triangle inside the
-     button flips back to black via --h-play-fg. */
+  /* Voice AI accent, dark. Nearly-white so the waveform stays legible
+     against the near-black card. The play discs are the exception and
+     carry --card-accent-rgb instead. */
   --h-accent:      #f2f2f2;
   --h-play-fg:     #0a0a0a;
   --h-card:        rgba(255, 255, 255, 0.05);
@@ -1489,19 +1517,59 @@ img,svg{ max-width:100%; display:block; }
   --h-track:       rgba(255, 255, 255, 0.06);
   --h-bub:         #3a3a3c;
   --h-bub-fg:      #ffffff;
+
+  /* ── ambience ── */
+  --glow-rgb:      74, 222, 142;
+  --glow-x:        74%;
+  --glow-y:        43%;
+  --glow-w:        1020px;
+  --glow-h:        840px;
+  --glow-core:     0.17;
+  --glow-mid:      0.06;
+  --glow-edge:     66%;
+  --haze-rgb:      28, 86, 60;
+  --haze-a:        0.26;
+
+  /* ── the glass ── */
+  --card-tint-top: rgba(34, 62, 47, 0.52);
+  --card-tint-bot: rgba(9, 13, 11, 0.74);
+  --card-edge:     rgba(150, 235, 190, 0.17);
+  --card-blur:     28px;
+  --card-bloom:    0.22;
+
+  /* ── accents inside the glass ── */
+  --card-accent-rgb: 61, 200, 122;
+
   /* flat. the canvas stays truly black — every bit of light in this section
      comes from the ::before below and nowhere else */
   background:#0a0a0a;
 }
 
-/* The broad radial wash that used to sit behind the card is GONE. It was
-   centred on the card, which meant the light was landing on the tab row and
-   the top of the thread — on exactly the content that has to stay readable.
-   The replacement lives on the card itself (see .voice-card below): a tight
-   edge light on the top-right corner that bleeds just outside the border and
-   never crosses onto anything you have to read.
+/* The ambience. Two stacked radials, both driven entirely by the panel
+   above: a defined core centred behind the card, and a much wider, much
+   darker haze underneath it that keeps the right half from ever reaching
+   flat black. The card then sits IN this light rather than on top of it,
+   which is what makes the frost read as glass instead of as grey fill.
 
-   Do not put a radial gradient back on .hero. */
+   It is deliberately spent before the reading column — at --glow-x:74% the
+   core is at zero well right of the headline, so the copy is still on true
+   black and nothing greys out. */
+[data-theme="dark"] .hero::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse var(--glow-w) var(--glow-h) at var(--glow-x) var(--glow-y),
+      rgba(var(--glow-rgb), var(--glow-core)) 0%,
+      rgba(var(--glow-rgb), var(--glow-mid)) 34%,
+      transparent var(--glow-edge)),
+    radial-gradient(ellipse 1500px 1100px at var(--glow-x) 60%,
+      rgba(var(--haze-rgb), var(--haze-a)) 0%,
+      rgba(var(--haze-rgb), calc(var(--haze-a) * 0.35)) 40%,
+      transparent 72%);
+}
 
 /* Grid texture · 2% white lines over the right side only, then masked with
    a radial fade so there is no edge to find. The reading column on the left
@@ -1517,12 +1585,13 @@ img,svg{ max-width:100%; display:block; }
     linear-gradient(to right,  rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size:64px 64px;
-  /* Centred on the card and spent before it reaches the reading column: at
-     1280 the mask hits zero around x=697, and the headline block ends at
-     x=676. The copy side is genuinely untouched black, not faintly gridded. */
-  -webkit-mask-image:radial-gradient(ellipse 500px 460px at 78% 46%,
+  /* Masked to the SAME point the glow is centred on, so moving --glow-x/y
+     carries the texture with it instead of leaving it stranded. Spent well
+     before the reading column, so the copy side is genuinely untouched
+     black, not faintly gridded. */
+  -webkit-mask-image:radial-gradient(ellipse 520px 470px at var(--glow-x) var(--glow-y),
     #000 0%, rgba(0, 0, 0, 0.6) 42%, transparent 58%);
-          mask-image:radial-gradient(ellipse 500px 460px at 78% 46%,
+          mask-image:radial-gradient(ellipse 520px 470px at var(--glow-x) var(--glow-y),
     #000 0%, rgba(0, 0, 0, 0.6) 42%, transparent 58%);
 }
 
@@ -1538,19 +1607,48 @@ img,svg{ max-width:100%; display:block; }
     0 32px 64px rgba(0, 0, 0, 0.12);
   border-color:rgba(255, 255, 255, 0.15);
 }
-/* The section's only light source, and it is an edge light rather than a
-   wash: two outward shadow layers thrown up and to the right, both pulled
-   back hard by a negative spread so they die within ~40px of the corner.
-   Nothing lands inside the card, so the tabs and the thread keep their full
-   contrast. Blur stays under the 80px ceiling. */
+/* ---------- the card · frosted glass in the green light ----------
+   The light-mode block up the page paints this near-black and opaque, which
+   on a black page left it invisible — a rectangle you could only find by its
+   1px border. Here it becomes actual glass: translucent enough that the
+   ambience behind it tints the panel, with a real backdrop blur so what
+   shows through is diffused rather than simply darker.
+
+   Three things make it read as glass rather than as a grey box:
+     · the fill is a GRADIENT, lighter at the lit top-left corner
+     · the backdrop blur has something behind it to work on (the ::before)
+     · it blooms — the last shadow layer throws the card's own green back
+       into the air around it, so the object and its light agree
+
+   Every value comes from the control panel at the top of this block. */
 [data-theme="dark"] .hero .voice-card{
-  --lg-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.6),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.05),
-    0 8px 24px rgba(0, 0, 0, 0.08),
-    0 32px 64px rgba(0, 0, 0, 0.12),
-    18px -16px 60px -22px rgba(255, 255, 255, 0.07),
-    34px -28px 78px -40px rgba(0, 132, 255, 0.12);
+  background:
+    linear-gradient(158deg,
+      var(--card-tint-top) 0%,
+      var(--card-tint-bot) 58%),
+    rgba(10, 13, 11, 0.55);
+  border:1px solid var(--card-edge);
+  backdrop-filter:blur(var(--card-blur)) saturate(165%);
+  -webkit-backdrop-filter:blur(var(--card-blur)) saturate(165%);
+  box-shadow:
+    /* lit top edge, shadowed bottom edge — the thickness of the glass */
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+    /* the weight that lifts it off the page */
+    0 24px 60px -26px rgba(0, 0, 0, 0.85),
+    /* the bloom · the card's own light spilling into the air around it */
+    0 0 100px -34px rgba(var(--glow-rgb), var(--card-bloom));
+}
+/* the utility kills its specular on this card (it would fog a near-black
+   panel). On glass it is the opposite — the sheen is what sells the
+   material — so it comes back, warmed with a hint of the section's green in
+   the far corner. */
+[data-theme="dark"] .hero .voice-card.liquid-glass::before{
+  background:linear-gradient(152deg,
+    rgba(255, 255, 255, 0.13) 0%,
+    rgba(255, 255, 255, 0.02) 28%,
+    transparent 58%,
+    rgba(var(--glow-rgb), 0.07) 100%);
 }
 
 /* ---------- type · inverted, nothing else touched ---------- */
@@ -1570,15 +1668,81 @@ img,svg{ max-width:100%; display:block; }
 [data-theme="dark"] .s-sub{ color:rgba(255, 255, 255, 0.55); }
 [data-theme="dark"] .vc-status{ color:rgba(255, 255, 255, 0.45); }
 
-/* ---------- card internals ----------
-   The card is dark in BOTH themes now (see the .voice-card token block up in
-   the light section), so the switch, the tabs and the action buttons are
-   already correct here and are deliberately NOT re-specified — a dark-only
-   override would only fight the shared treatment. What remains below is the
-   handful of things the black PAGE changes, not the black card. */
+/* ---------- card internals · dark only ----------
+   In light mode the card is a near-black panel and its contents are already
+   correct. On glass they are not: a transparent row on a translucent panel
+   has nothing to sit on, and the one neutral accent that worked on black
+   reads as dead grey inside green light. Everything below is scoped to the
+   dark card and pulls its colour from --card-accent-rgb. */
 
-[data-theme="dark"] .sample:hover{ background:rgba(255, 255, 255, 0.05); }
-[data-theme="dark"] .sample.on{ background:rgba(255, 255, 255, 0.06); }
+/* rows · faint glass panels at rest, so the list reads as three objects on
+   the sheet rather than as text floating on it, then they take the accent
+   on hover and hold it when playing */
+[data-theme="dark"] .hero .voice-card .sample{
+  background:rgba(255, 255, 255, 0.04);
+  border-color:rgba(255, 255, 255, 0.07);
+}
+[data-theme="dark"] .hero .voice-card .sample:hover{
+  background:rgba(var(--card-accent-rgb), 0.10);
+  border-color:rgba(var(--card-accent-rgb), 0.22);
+}
+[data-theme="dark"] .hero .voice-card .sample.on{
+  background:rgba(var(--card-accent-rgb), 0.14);
+  border-color:rgba(var(--card-accent-rgb), 0.32);
+}
+/* play discs · the brightest thing in the card, and the only saturated
+   colour in it. Lit from the top-left like the card itself, with a short
+   throw of their own light underneath. */
+[data-theme="dark"] .hero .voice-card .s-play{
+  background:linear-gradient(150deg,
+    rgb(var(--card-accent-rgb)) 0%,
+    rgba(var(--card-accent-rgb), 0.72) 100%);
+  box-shadow:0 4px 14px -6px rgba(var(--card-accent-rgb), 0.65);
+}
+/* the per-row waveform glyphs pick up the same green, a step quieter */
+[data-theme="dark"] .hero .voice-card .s-wave{
+  color:rgb(var(--card-accent-rgb));
+  opacity:0.85;
+}
+[data-theme="dark"] .hero .voice-card .sample.on .s-wave{ opacity:1; }
+/* the switch trough takes a hint of the tint so it belongs to the glass */
+[data-theme="dark"] .hero .voice-card .vc-switch{
+  background:rgba(255, 255, 255, 0.06);
+  border-color:rgba(var(--card-accent-rgb), 0.14);
+}
+
+/* ---------- the two CTAs · one solid, one glass ----------
+   On glass a matched pair of translucent tiles has no hierarchy — both
+   dissolve into the panel. The primary goes solid white, which is the one
+   opaque object in the whole section and reads instantly as the thing to
+   press; the secondary stays glass and takes a green edge. */
+[data-theme="dark"] .hero .voice-card .vc-actions .btn:not(.btn-ghost){
+  background:#ffffff;
+  border-color:transparent;
+  color:#0b100d;
+  box-shadow:
+    0 8px 22px -12px rgba(0, 0, 0, 0.8),
+    0 0 34px -16px rgba(var(--glow-rgb), 0.55);
+}
+[data-theme="dark"] .hero .voice-card .vc-actions .btn:not(.btn-ghost):hover{
+  background:#f4fdf7;
+  border-color:transparent;
+  color:#0b100d;
+  box-shadow:
+    0 10px 26px -12px rgba(0, 0, 0, 0.85),
+    0 0 42px -14px rgba(var(--glow-rgb), 0.7);
+}
+[data-theme="dark"] .hero .voice-card .vc-actions .btn:not(.btn-ghost) .btn-arrow{ opacity:0.5; }
+[data-theme="dark"] .hero .voice-card .vc-actions .btn-ghost{
+  background:rgba(255, 255, 255, 0.06);
+  border-color:rgba(var(--card-accent-rgb), 0.20);
+  color:#ffffff;
+}
+[data-theme="dark"] .hero .voice-card .vc-actions .btn-ghost:hover{
+  background:rgba(var(--card-accent-rgb), 0.12);
+  border-color:rgba(var(--card-accent-rgb), 0.34);
+  color:#ffffff;
+}
 /* pure white for primary text — nothing muddy between #fff and #0a0a0a
    except the deliberate secondary tiers below */
 [data-theme="dark"] .s-name{ color:#ffffff; }

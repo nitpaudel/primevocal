@@ -37,6 +37,10 @@
   --display-serif: "Playfair Display", Georgia, serif;
 
   --shell: 1200px;
+  /* The nav and the hero share a wider measure than the sections below, so
+     the logo, the headline, the card and the trust pills all hang off the
+     same two edges. Sections 02–05 keep --shell. */
+  --shell-wide: 1500px;
   --ease: cubic-bezier(.25,.9,.3,1);
   --spring: cubic-bezier(.18,1.42,.4,1);
 
@@ -96,6 +100,14 @@ img,svg{ max-width:100%; display:block; }
 :focus-visible{ outline:2px solid var(--green); outline-offset:3px; }
 
 .shell{ max-width:var(--shell); margin-inline:auto; padding-inline:32px; }
+/* one measure for the nav and every row inside the hero — the headline
+   block, the demo card and the trust pills all resolve to these edges */
+.nav .shell,
+.hero .shell{ max-width:var(--shell-wide); }
+/* .hero is a column flex container, and margin-inline:auto on a flex item
+   overrides the default stretch — without an explicit width the shell
+   shrink-wraps its content and the rows come out narrower than the nav. */
+.hero > .shell{ width:100%; }
 
 .mono{
   font-family:var(--monoF);
@@ -488,17 +500,24 @@ img,svg{ max-width:100%; display:block; }
   overflow:hidden;
   overflow:clip;
 }
-/* The card gives up 32px and the gap 20px, all of it handed to the copy
-   column — that is what pays for the larger headline without letting
-   "Answer every call." wrap. */
+/* Copy hard left, card hard right, and everything left over becomes the gap
+   in the middle. The copy is capped so it cannot sprawl across the wider
+   measure and close that gap back up. */
 .hero-grid{
   display:grid;
-  grid-template-columns:1fr 420px;
-  gap:52px;
+  grid-template-columns:minmax(0, 1fr) 420px;
+  justify-content:space-between;
+  gap:64px;
   align-items:center;
 }
-.hero-copy{ grid-area:1 / 1; position:relative; z-index:1; }
-.voice-card{ grid-area:1 / 2; }
+.hero-copy{
+  grid-area:1 / 1;
+  position:relative;
+  z-index:1;
+  max-width:700px;
+  justify-self:start;
+}
+.voice-card{ grid-area:1 / 2; justify-self:end; }
 
 /* ---------- hero type ----------
    Hierarchy is built out of weight, not out of a second typeface. One family
@@ -538,24 +557,18 @@ img,svg{ max-width:100%; display:block; }
 .kicker-badge{
   display:inline-flex;
   align-items:center;
-  gap:9px;
-  padding:8px 16px 8px 13px;
+  padding:11px 22px;
   border-radius:980px;
   border:1px solid rgba(20, 19, 16, 0.12);
   background:rgba(255, 255, 255, 0.55);
   font-family:var(--h-ui);
-  font-size:0.8rem;
+  font-size:0.96rem;
   font-weight:500;
-  letter-spacing:-0.005em;
+  letter-spacing:-0.008em;
   text-transform:none;
-  line-height:1.2;
-  color:rgba(20, 19, 16, 0.78);
+  line-height:1.25;
+  color:rgba(20, 19, 16, 0.8);
   box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-}
-.kicker-ico{
-  width:15px; height:15px;
-  flex:0 0 auto;
-  color:var(--h-accent);
 }
 /* body register · a step up in size and presence from the old 0.6 grey */
 .standfirst{
@@ -922,7 +935,7 @@ img,svg{ max-width:100%; display:block; }
 .ios-status{
   flex:0 0 auto;
   display:flex; align-items:center; justify-content:space-between;
-  padding:7px 15px 3px;
+  padding:6px 15px 0;
   font-family:var(--h-ui);
   font-size:.62rem;
   font-weight:600;
@@ -932,12 +945,8 @@ img,svg{ max-width:100%; display:block; }
 }
 .ios-status-l{ display:flex; align-items:center; gap:5px; }
 .ios-status-r{ display:flex; align-items:center; gap:5.5px; }
-.ios-time{ font-weight:600; font-size:.72rem; }
 .ios-dnd{ width:10px; height:10px; opacity:1; }
-/* four ascending bars, then the wifi arc — the reference's icon set and
-   relative sizes, not a generic approximation */
 .ios-cell{ width:13.5px; height:8.5px; }
-.ios-wifi{ width:12px; height:8.5px; }
 /* battery · the percentage sits INSIDE the shell, which is how the
    reference draws it. Outlined pill, number centred, nub on the right. */
 .ios-batt{
@@ -971,8 +980,8 @@ img,svg{ max-width:100%; display:block; }
 .imsg-head{
   flex:0 0 auto;
   display:flex; flex-direction:column; align-items:center;
-  gap:5px;
-  padding:2px 12px 8px;
+  gap:4px;
+  padding:0 12px 6px;
   border-bottom:1px solid var(--h-line);
 }
 /* solid fill, one bold initial — the iOS placeholder for a contact with no
@@ -1010,7 +1019,7 @@ img,svg{ max-width:100%; display:block; }
   flex:0 0 auto;
   display:flex; flex-direction:column; align-items:center;
   gap:0;
-  margin:2px 0 8px;
+  margin:0 0 6px;
 }
 .imsg-enc-row{
   display:inline-flex; align-items:center; gap:3px;
@@ -1248,23 +1257,31 @@ img,svg{ max-width:100%; display:block; }
 /* Trust pills · icon-led and cut to their content. Sized by the text plus
    one icon and nothing else: no padded-out block, no tracked caps, and set
    in the UI sans rather than anything decorative. */
+/* The row spans the container, so the first pill sits on the left edge and
+   the last on the right — the same two edges as the headline and the card.
+   The pills grow with it, but stay cut to their own text rather than being
+   stretched into three equal blocks. */
 .badges{
-  display:flex; gap:10px; flex-wrap:wrap;
-  margin-top:40px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+  margin-top:44px;
 }
 .badge{
-  display:inline-flex; align-items:center; gap:8px;
+  display:inline-flex; align-items:center; gap:10px;
   width:auto; flex:0 0 auto;
-  padding:8px 15px 8px 12px;
+  padding:13px 26px 13px 21px;
   border-radius:980px;
   font-family:var(--h-ui);
-  font-size:0.8rem;
+  font-size:0.94rem;
   font-weight:500;
-  letter-spacing:-0.005em;
+  letter-spacing:-0.008em;
   line-height:1.2;
   white-space:nowrap;
   font-variant-numeric:tabular-nums;
-  color:rgba(20, 19, 16, 0.72);
+  color:rgba(20, 19, 16, 0.75);
   background:rgba(255, 255, 255, 0.55);
   border:1px solid rgba(20, 19, 16, 0.12);
   box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
@@ -1272,7 +1289,7 @@ img,svg{ max-width:100%; display:block; }
              border-color .25s var(--ease);
 }
 .badge-ico{
-  width:15px; height:15px;
+  width:18px; height:18px;
   flex:0 0 auto;
   color:var(--h-accent);
 }
@@ -1329,21 +1346,14 @@ img,svg{ max-width:100%; display:block; }
   background:#0a0a0a;
 }
 
-/* THE light source. Static — no animation, ever.
-   Radius pulled in ~30% (600x500 → 420x350) and the falloff steepened, so it
-   is one contained pocket of light with a readable edge instead of a haze
-   spreading across the frame. Peak stays at 5%. */
-[data-theme="dark"] .hero::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  z-index:-1;
-  pointer-events:none;
-  background:radial-gradient(ellipse 420px 350px at 72% 45%,
-    rgba(0, 122, 255, 0.055) 0%,
-    rgba(0, 122, 255, 0.03) 42%,
-    transparent 68%);
-}
+/* The broad radial wash that used to sit behind the card is GONE. It was
+   centred on the card, which meant the light was landing on the tab row and
+   the top of the thread — on exactly the content that has to stay readable.
+   The replacement lives on the card itself (see .voice-card below): a tight
+   edge light on the top-right corner that bleeds just outside the border and
+   never crosses onto anything you have to read.
+
+   Do not put a radial gradient back on .hero. */
 
 /* Grid texture · 2% white lines over the right side only, then masked with
    a radial fade so there is no edge to find. The reading column on the left
@@ -1379,6 +1389,20 @@ img,svg{ max-width:100%; display:block; }
     0 8px 24px rgba(0, 0, 0, 0.08),
     0 32px 64px rgba(0, 0, 0, 0.12);
   border-color:rgba(255, 255, 255, 0.15);
+}
+/* The section's only light source, and it is an edge light rather than a
+   wash: two outward shadow layers thrown up and to the right, both pulled
+   back hard by a negative spread so they die within ~40px of the corner.
+   Nothing lands inside the card, so the tabs and the thread keep their full
+   contrast. Blur stays under the 80px ceiling. */
+[data-theme="dark"] .hero .voice-card{
+  --lg-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.05),
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 32px 64px rgba(0, 0, 0, 0.12),
+    18px -16px 60px -22px rgba(255, 255, 255, 0.07),
+    34px -28px 78px -40px rgba(0, 132, 255, 0.12);
 }
 
 /* ---------- type · inverted, nothing else touched ---------- */
@@ -1453,8 +1477,7 @@ img,svg{ max-width:100%; display:block; }
   box-shadow:none;
 }
 [data-theme="dark"] .badge:hover{ background:rgba(255, 255, 255, 0.1); }
-[data-theme="dark"] .badge-ico,
-[data-theme="dark"] .kicker-ico{ color:#0A84FF; }
+[data-theme="dark"] .badge-ico{ color:#0A84FF; }
 
 /* ---------- nav · only while it is over the hero ----------
    .stuck is left exactly as it was: it already paints itself near-black with
@@ -2380,15 +2403,8 @@ html.no-io .rv{ opacity:1; transform:none; }
      without the auto margins it hugs the left edge instead of sitting
      under the headline it belongs to */
   .voice-card{ grid-area:2 / 1; max-width:480px; margin-inline:auto; }
-  /* The card drops below the copy here, so the one light source and the grid
-     follow it down and across — still a single contained glow behind the
-     card, just re-anchored. Nothing is added; both are the same layers. */
-  [data-theme="dark"] .hero::before{
-    background:radial-gradient(ellipse 392px 364px at 50% 62%,
-      rgba(0, 122, 255, 0.055) 0%,
-      rgba(0, 122, 255, 0.03) 42%,
-      transparent 68%);
-  }
+  /* The card drops below the copy here, so the grid follows it down and
+     across. The edge light rides on the card itself and needs no move. */
   [data-theme="dark"] .hero::after{
     -webkit-mask-image:radial-gradient(ellipse 460px 440px at 50% 62%,
       #000 0%, rgba(0, 0, 0, 0.6) 42%, transparent 62%);

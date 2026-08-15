@@ -768,7 +768,7 @@
     { from: 'them', text: "I've been having some tooth pain for a few days, wanted to get it checked" },
     { from: 'us',   text: 'Sorry to hear that. Let me find you a slot, are mornings or afternoons better?' },
     { from: 'us',   text: "Done! You're booked for Thursday 3pm with Dr. Chen. I'll send a reminder the day before." },
-    { from: 'them', text: 'Thank you so much, I was desperate for an appointment — I couldn’t find anywhere available.' },
+    { from: 'them', text: 'Thank you so much, I was desperate for an appointment. I couldn’t find anywhere available.' },
     { from: 'us',   text: "I'm glad I got the chance to help you out." },
     { from: 'them', text: 'Aww, thank you!' },
     { from: 'us',   text: 'Take care, Kristi.' }

@@ -33,7 +33,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
 <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=57">
+<link rel="stylesheet" href="assets/styles.css?v=58">
 </head>
 <body>
 
@@ -83,10 +83,7 @@
   <div class="shell hero-grid">
     <div class="hero-copy">
       <p class="kicker rv">
-        <span class="kicker-badge">
-          <svg class="kicker-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 11v2M8.5 7.5v9M13 4v16M17.5 8.5v7M22 11v2"/></svg>
-          AI voice receptionists for service businesses
-        </span>
+        <span class="kicker-badge">AI voice receptionists for service businesses</span>
       </p>
       <h1 class="hero-h1 rv">Answer every call.<br><em>Chase every lead.</em></h1>
       <p class="standfirst rv">
@@ -159,17 +156,14 @@
       <div class="vc-pane" id="modeSms" data-pane="sms" role="tabpanel" hidden>
         <div class="imsg" id="imsg">
 
-          <!-- iOS status bar · time + DND left, signal / wifi / battery right.
-               The battery carries its percentage inside the shell, which is
-               how the reference screenshot draws it. -->
+          <!-- iOS status bar · DND left, signal + battery right. No clock and
+               no wifi glyph: both were removed deliberately. -->
           <div class="ios-status" aria-hidden="true">
             <span class="ios-status-l">
-              <span class="ios-time">7:26</span>
               <svg class="ios-dnd" viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 14.9A8.5 8.5 0 019.1 3.7a8.5 8.5 0 1011.2 11.2z"/></svg>
             </span>
             <span class="ios-status-r">
               <svg class="ios-cell" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7.4" width="3" height="3.6" rx="1"/><rect x="4.6" y="5.1" width="3" height="5.9" rx="1"/><rect x="9.2" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.8" y="0" width="3" height="11" rx="1"/></svg>
-              <svg class="ios-wifi" viewBox="0 0 16 11.5" fill="currentColor"><path d="M8 11.5l1.85-2.3a2.85 2.85 0 00-3.7 0L8 11.5zM8 6.2c1.32 0 2.55.5 3.48 1.36l1.5-1.86A7.55 7.55 0 008 3.75c-1.9 0-3.63.7-4.98 1.95l1.5 1.86A5.06 5.06 0 018 6.2zM8 1.2c2.2 0 4.22.83 5.75 2.2l1.45-1.8A10.9 10.9 0 008 0C5.06 0 2.37 1.05.8 1.6l1.45 1.8A8.72 8.72 0 018 1.2z"/></svg>
               <span class="ios-batt" role="img"><span class="ios-batt-pct">69</span></span>
             </span>
           </div>
@@ -556,7 +550,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Primevocal","description":"AI voice receptionist that answers calls, books appointments, and follows up leads 24/7.","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://primevocal.ai","provider":{"@type":"Organization","name":"Primevocal","url":"https://primevocal.ai","email":"primevocal.ai@gmail.com"}}
 </script>
-<script src="assets/main.js?v=57"></script>
+<script src="assets/main.js?v=58"></script>
 
 <!-- Section 01's 3D street. Loads as an ES module, so the page must be served
      over http(s) — opening index.html straight off disk blocks module imports.

@@ -33,7 +33,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
 <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=63">
+<link rel="stylesheet" href="assets/styles.css?v=64">
 </head>
 <body>
 
@@ -155,28 +155,16 @@
       </div>
 
       <!-- SMS · auto-playing conversation, no scrolling.
-           The chrome above the thread is a literal iOS Messages header:
-           status bar, back chevron with unread count, centred contact avatar,
-           FaceTime button, then the number and the encryption line. Only the
-           chrome is a screenshot — the bubbles below are the site's own. -->
+           No fake OS chrome above the thread. The status bar — signal bars,
+           battery, time — was removed deliberately: the panel is the site's
+           own component, not a screenshot of someone's phone. What is left is
+           the contact block and the thread. -->
       <div class="vc-pane" id="modeSms" data-pane="sms" role="tabpanel" hidden>
         <div class="imsg" id="imsg">
 
-          <!-- iOS status bar · DND left, signal + battery right. No clock and
-               no wifi glyph: both were removed deliberately. -->
-          <div class="ios-status" aria-hidden="true">
-            <span class="ios-status-l">
-              <svg class="ios-dnd" viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 14.9A8.5 8.5 0 019.1 3.7a8.5 8.5 0 1011.2 11.2z"/></svg>
-            </span>
-            <span class="ios-status-r">
-              <svg class="ios-cell" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7.4" width="3" height="3.6" rx="1"/><rect x="4.6" y="5.1" width="3" height="5.9" rx="1"/><rect x="9.2" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.8" y="0" width="3" height="11" rx="1"/></svg>
-              <span class="ios-batt" role="img"><span class="ios-batt-pct">69</span></span>
-            </span>
-          </div>
-
-          <!-- header · avatar and number only. No back chevron, no unread
-               count, no FaceTime button: the encryption line moved down into
-               the thread itself. -->
+          <!-- header · avatar and number only. No status bar, no back
+               chevron, no unread count, no FaceTime button: the encryption
+               line moved down into the thread itself. -->
           <div class="imsg-head">
             <span class="imsg-av" aria-hidden="true"><span class="imsg-initial">K</span></span>
             <span class="imsg-num">+1 (420) 999-9999</span>

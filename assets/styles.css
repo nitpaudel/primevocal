@@ -501,10 +501,20 @@ img,svg{ max-width:100%; display:block; }
      page paper above it. */
   margin-top:-84px;
   /* Top padding is measured against the nav, not picked by eye: the bar is
-     ~85px tall and the section is pulled 84px up behind it, so 116px leaves a
-     32px gap between the bar's bottom edge and the top of the demo card. The
-     old 150px left 86px there, which read as a band of dead paper. */
-  padding:116px 0 60px;
+     ~85px tall and the section is pulled 84px up behind it, so 152px leaves a
+     ~68px gap between the bar's bottom edge and the top of the demo card.
+
+     This is the FLOOR, not the resting value. Once the viewport is tall
+     enough that the content does not fill it, justify-content:center hands
+     the surplus out evenly and the gap opens further — ~92px at 900px tall,
+     ~182px at 1080. The floor is what matters: on a short laptop window
+     there is no surplus to distribute, and at the old 116px the card sat
+     32px under the bar and read as flush with it.
+
+     Bottom is deliberately ~64px lighter than the top. The section is pulled
+     84px up behind the nav, so its geometric centre sits above the
+     viewport's; the asymmetry is what makes centred content look centred. */
+  padding:152px 0 88px;
   /* min-height leaves slack once the content is shorter than the viewport.
      Centring the column distributes that slack above and below instead of
      dumping all of it under the trust pills. */
@@ -545,20 +555,27 @@ img,svg{ max-width:100%; display:block; }
   align-items:center;
   gap:44px;
 }
-/* The copy takes whatever the card and the gap leave. No percentage cap any
-   more: the shell itself is capped at 1180 now, so the column can never
-   sprawl, and a cap on top of that would only hand width back to the gap. */
+/* Capped at 600 so the width freed by the narrower card becomes GAP rather
+   than a longer measure. Without the cap the copy just grows to fill whatever
+   the card gives up and the two columns stay as close together as they were —
+   which is exactly what happened the last time the card was trimmed. 600 is
+   also what the headline is sized against; see .hero-h1. */
 .hero-copy{
   position:relative;
   z-index:1;
   flex:1 1 auto;
+  max-width:600px;
 }
-/* 400, down from 460. The card was reading as the subject of the hero rather
-   than as evidence for it; at 400 it is ~38% of the measure, which is the
-   proportion it holds in the reference. Everything inside it is stepped down
-   to match — see the card block below. */
+/* 348, down from 400 (and 460 before that). The card was reading as the
+   subject of the hero rather than as evidence for it. Paired with the 600px
+   cap on the copy above, every pixel taken off the card turns into the gap
+   between the two columns — 44px before, ~96px now — so the card sits in
+   open space instead of butting up against the paragraph.
+
+   Its right edge stays flush with the shell, which is what keeps it aligned
+   with the nav's own "Book a call" above it. */
 .voice-card{
-  flex:0 0 400px;
+  flex:0 0 348px;
   margin-left:auto;
 }
 
@@ -589,7 +606,7 @@ img,svg{ max-width:100%; display:block; }
   line-height:1.06;
   letter-spacing:-0.02em;
   color:#141310;
-  margin:0 0 20px;
+  margin:0 0 34px;
 }
 /* second line — same family, turned italic and dropped to the book weight.
    Same colour as the first line: the italic is what steps it back. */
@@ -602,7 +619,7 @@ img,svg{ max-width:100%; display:block; }
    fill, no padding — it sits on the paper as a label above the headline and
    nothing about it competes for the eye. */
 .hero .kicker{
-  margin:0 0 18px;
+  margin:0 0 30px;
   line-height:1;
 }
 .kicker-badge{
@@ -768,13 +785,15 @@ img,svg{ max-width:100%; display:block; }
    overflows into the CTA row below. overflow:hidden is a safety net if a
    future edit adds content that would exceed the pane.
 
-   Stepped down again with the rest of the card: every element inside the
-   Voice pane shrank, so its natural content is ~328px and this is the
-   tightest the box can be without clipping it. The SMS pane scrolls, so it
-   takes any height. Re-measure before lowering it further. */
+   At the 348px card the three row subtitles each wrap to two lines — the
+   longest needs 279px and the row gives it 184 — so the list is taller than
+   it was at 400px even though everything in it got smaller. The waveform
+   above was trimmed to pay for that; natural content is ~346px and this is
+   the tightest the box can be without clipping it. The SMS pane scrolls, so
+   it takes any height. Re-measure before lowering it further. */
 .vc-pane{
   display:none;
-  height:342px;
+  height:348px;
   flex-direction:column;
   overflow:hidden;
 }
@@ -788,8 +807,8 @@ img,svg{ max-width:100%; display:block; }
    green light off the bars, nothing more. */
 .vc-wave{
   display:flex; align-items:center; justify-content:center; gap:2.5px;
-  height:80px;
-  margin:6px 0 18px;
+  height:72px;
+  margin:6px 0 16px;
 }
 /* The silhouette is static and it does not repeat.
    Each bar's resting height is the sum of four sine layers at deliberately
@@ -1371,7 +1390,7 @@ img,svg{ max-width:100%; display:block; }
 .badges{
   display:flex;
   align-items:stretch;
-  margin-top:36px;
+  margin-top:60px;
   border-radius:980px;
   border:1px solid rgba(20, 19, 16, 0.12);
   background:#FAF8F5;
@@ -2536,7 +2555,7 @@ html.no-io .rv{ opacity:1; transform:none; }
      denies it */
   .hero-h1{ font-size:clamp(2.5rem, 7vw, 4.6rem); }
   /* full-width in the stacked layout, but capped so it does not sprawl */
-  .voice-card{ width:100%; max-width:420px; align-self:center; }
+  .voice-card{ width:100%; max-width:380px; align-self:center; }
   /* The card drops below the copy here, so the grid follows it down and
      across. The edge light rides on the card itself and needs no move. */
   [data-theme="dark"] .hero::after{
@@ -2597,12 +2616,12 @@ html.no-io .rv{ opacity:1; transform:none; }
      accounts for the sticky nav's height plus a real breathing gap; padding
      at the bottom leaves room for the FAB without letting it collide with
      the trust strip. */
-  .hero{ padding:104px 0 72px; }
-  .hero-grid{ gap:28px; }
-  .hero .kicker{ margin:0 0 16px; }
-  .hero-h1{ margin:0 0 18px; }
+  .hero{ padding:124px 0 84px; }
+  .hero-grid{ gap:40px; }
+  .hero .kicker{ margin:0 0 24px; }
+  .hero-h1{ margin:0 0 28px; }
   .hero .display{ margin-bottom:22px; }
-  .badges{ margin-top:36px; }
+  .badges{ margin-top:48px; }
   .sec{ padding:66px 0 72px; }
   .sec-tight{ padding:60px 0 64px; }
   .sec-label{ padding-bottom:30px; }

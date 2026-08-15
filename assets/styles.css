@@ -150,22 +150,24 @@ img,svg{ max-width:100%; display:block; }
 }
 .btn:active{ transform:translateY(-1px) scale(.995); }
 .btn-sm{ padding:10px 18px; font-size:.86rem; border-radius:7px; }
-/* nav pill · the hero CTA at a smaller size */
+/* the one solid element up here, deliberately — everything else in the bar
+   is transparent, so the pill is the only thing that reads as pressable */
 .nav .btn-sm{
-  background:var(--nav-fg);
-  color:var(--nav-bg);
+  background:#ffffff;
+  color:#000000;
   border:0;
   border-radius:980px;
   padding:0.5rem 1.2rem;
+  font-family:var(--h-ui, -apple-system, BlinkMacSystemFont, sans-serif);
   font-size:.86rem;
   font-weight:600;
   letter-spacing:-.01em;
   box-shadow:none;
-  transition:opacity 120ms ease-out;
+  transition:opacity 130ms ease-out;
 }
 .nav .btn-sm:hover{
-  background:var(--nav-fg);
-  color:var(--nav-bg);
+  background:#ffffff;
+  color:#000000;
   opacity:.85;
   transform:none;
   box-shadow:none;
@@ -199,17 +201,16 @@ img,svg{ max-width:100%; display:block; }
    than the page paper — a genuinely transparent bar would expose a strip of
    cream above a near-black hero and show as a band across the top. Once
    scrolled it keeps a blur so type stays legible over whatever passes under. */
+/* Genuinely transparent at rest — the hero is pulled up behind it, so what
+   shows through is the hero's own background. Once you scroll past the hero
+   it takes a tint, or white type would be sitting on whatever came next. */
 .nav{
   position:sticky; top:0; z-index:200;
-  --nav-bg:#f8f8f6;
-  --nav-fg:#0a0a0a;
-  background:var(--nav-bg);
-  border-bottom:1px solid transparent;
-  transition:border-color .3s var(--ease), background .35s var(--ease);
-}
-[data-theme="dark"] .nav{
   --nav-bg:#080808;
   --nav-fg:#ffffff;
+  background:transparent;
+  border-bottom:1px solid transparent;
+  transition:border-color .3s var(--ease), background .35s var(--ease);
 }
 .nav.stuck{
   background:color-mix(in srgb, var(--nav-bg) 82%, transparent);
@@ -295,9 +296,9 @@ img,svg{ max-width:100%; display:block; }
   display:block;
   align-self:center;
   flex:0 0 auto;
-  color:var(--nav-fg);
+  color:#ffffff;
   background:none;
-  -webkit-text-fill-color:var(--nav-fg);
+  -webkit-text-fill-color:#ffffff;
 }
 
 .nav.stuck .wordmark{ --logo-h:30px; }
@@ -355,16 +356,16 @@ img,svg{ max-width:100%; display:block; }
   --h-bub:         #3A3A3C;
   --h-bub-fg:      #ffffff;
 
-  /* Pulled up behind the sticky header and padded back out, so the bloom
+  /* Pulled up behind the sticky header and padded back out, so the section
      runs under a genuinely transparent nav instead of leaving a strip of
      page paper above it. */
   margin-top:-84px;
   padding:164px 0 76px;
-  /* the bloom rises from behind the bottom-left corner and is spent by the
-     middle of the section; the top-right one is atmosphere only */
+  /* One light source, from behind the bottom-left corner, spent by the
+     middle of the section. It is barely visible on purpose — it exists to
+     give the black a floor, not to add colour. */
   background:
-    radial-gradient(85% 78% at 6% 104%, rgba(72, 32, 180, 0.45) 0%, transparent 62%),
-    radial-gradient(65% 58% at 96% -6%, rgba(40, 20, 120, 0.2) 0%, transparent 64%),
+    radial-gradient(90% 80% at 4% 106%, rgba(10, 45, 22, 0.55) 0%, transparent 58%),
     var(--h-bg);
   color:var(--h-fg);
   /* Own stacking context: the hero paints as one unit, so no later section —
@@ -392,11 +393,11 @@ img,svg{ max-width:100%; display:block; }
    else in the section is the system UI face, kept quiet underneath it. */
 .hero-h1{
   font-family:'Playfair Display', serif;
-  /* Held under the 5.5vw/5.4rem asked for: the copy column is 612px and
-     Playfair is wide, so "Answer every call." only holds as a single line up
-     to about 62px. Past that each sentence wraps and the two-line break
-     stops meaning anything. */
-  font-size:clamp(2.4rem, 4.1vw, 3.85rem);
+  /* Measured to the largest that still holds two lines: at 74px "Answer
+     every call." runs 586px against a 612px column, and the vw term is set
+     so it clears the column at the narrow end of two-column layout too. The
+     5.4rem asked for wraps every sentence and kills the line break. */
+  font-size:clamp(2.5rem, 5vw, 4.6rem);
   font-weight:700;
   font-style:normal;
   line-height:1.06;
@@ -407,7 +408,7 @@ img,svg{ max-width:100%; display:block; }
 .hero-h1 em{
   font-weight:400;
   font-style:italic;
-  color:rgba(255, 255, 255, 0.92);
+  color:rgba(255, 255, 255, 0.9);
 }
 .hero .kicker{
   font-family:var(--h-ui);
@@ -415,7 +416,7 @@ img,svg{ max-width:100%; display:block; }
   letter-spacing:0.16em;
   font-weight:400;
   text-transform:uppercase;
-  color:rgba(255, 255, 255, 0.36);
+  color:rgba(255, 255, 255, 0.35);
   margin:0 0 28px;
 }
 .standfirst{
@@ -437,16 +438,24 @@ img,svg{ max-width:100%; display:block; }
 .voice-card{
   position:relative;
   z-index:1;
-  background:rgba(255, 255, 255, 0.05);
-  backdrop-filter:blur(48px) saturate(160%);
-  -webkit-backdrop-filter:blur(48px) saturate(160%);
+  background:var(--h-glass);
+  backdrop-filter:blur(40px) saturate(180%);
+  -webkit-backdrop-filter:blur(40px) saturate(180%);
   color:var(--h-fg);
-  border:1px solid rgba(255, 255, 255, 0.09);
-  border-radius:22px;
+  /* Lit from the top-left: the two facing edges catch light, the two facing
+     away fall into shadow. That asymmetry is what makes it read as an object
+     with thickness rather than a flat translucent rectangle. */
+  border:1px solid rgba(255, 255, 255, 0);
+  border-top-color:rgba(255, 255, 255, 0.13);
+  border-left-color:rgba(255, 255, 255, 0.06);
+  border-right-color:rgba(0, 0, 0, 0.3);
+  border-bottom-color:rgba(0, 0, 0, 0.4);
+  border-radius:20px;
   overflow:hidden;           /* nothing inside can spill past the radius */
   padding:22px 22px 20px;
-  box-shadow:0 48px 96px rgba(0, 0, 0, 0.55),
-             inset 0 0 0 0.5px rgba(255, 255, 255, 0.05);
+  box-shadow:0 2px 8px rgba(0, 0, 0, 0.5),
+             0 24px 64px rgba(0, 0, 0, 0.7),
+             inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition:transform .5s var(--ease), box-shadow .5s var(--ease),
              opacity .8s var(--ease), background .4s var(--ease);
 }
@@ -474,8 +483,8 @@ img,svg{ max-width:100%; display:block; }
   width:calc(50% - 4px);
   height:calc(100% - 8px);
   border-radius:980px;
-  background:var(--h-track-on);
-  transition:transform .42s var(--spring);
+  background:rgba(255, 255, 255, 0.15);
+  transition:transform .42s var(--spring), background 200ms ease;
 }
 .vc-switch.sms .vc-thumb{ transform:translateX(100%); }
 .vc-tab{
@@ -488,8 +497,8 @@ img,svg{ max-width:100%; display:block; }
   font-size:0.82rem;
   font-weight:500;
   letter-spacing:-0.01em;
-  color:rgba(255, 255, 255, 0.38);
-  transition:color .3s var(--ease);
+  color:rgba(255, 255, 255, 0.4);
+  transition:color 200ms ease;
 }
 .vc-tab:hover{ color:rgba(255,255,255,.62); }
 .vc-tab svg{ width:15px; height:15px; }
@@ -511,21 +520,26 @@ img,svg{ max-width:100%; display:block; }
   margin-bottom:20px;
 }
 .vc-wave span{
-  width:3px; height:8px; border-radius:2px;
-  background:var(--h-fg);
-  opacity:.4;
-  animation:barBreathe 4.5s ease-in-out infinite;
-  transition:opacity .3s var(--ease);
+  width:3px;
+  height:30%;
+  border-radius:2px;
+  background:#34c759;
+  animation:barBreathe 2.4s ease-in-out infinite alternate;
 }
 @keyframes barBreathe{
-  0%,100% { height:8px;  opacity:.4 }
-  50%     { height:26px; opacity:1 }
+  from { height:30% }
+  to   { height:100% }
 }
-/* alternating offsets — the row reads as a waveform even at rest */
-.vc-wave span:nth-child(2n){ animation-delay:-.65s; }
-.vc-wave span:nth-child(3n){ animation-delay:-1.5s; }
-.vc-wave span:nth-child(5n){ animation-delay:-2.4s; }
-.vc-wave span:nth-child(7n){ animation-delay:-3.3s; }
+/* Stepped 0.15s apart and wrapped every eighth bar, so the swell travels
+   along the row rather than every bar rising together. */
+.vc-wave span:nth-child(8n+1){ animation-delay:0s; }
+.vc-wave span:nth-child(8n+2){ animation-delay:-.15s; }
+.vc-wave span:nth-child(8n+3){ animation-delay:-.30s; }
+.vc-wave span:nth-child(8n+4){ animation-delay:-.45s; }
+.vc-wave span:nth-child(8n+5){ animation-delay:-.60s; }
+.vc-wave span:nth-child(8n+6){ animation-delay:-.75s; }
+.vc-wave span:nth-child(8n+7){ animation-delay:-.90s; }
+.vc-wave span:nth-child(8n+8){ animation-delay:-1.05s; }
 .vc-wave.playing span{ opacity:1; animation:wv 1s ease-in-out infinite; }
 .vc-wave.playing span:nth-child(2n){ animation-duration:.72s; }
 .vc-wave.playing span:nth-child(3n){ animation-duration:1.24s; }
@@ -534,24 +548,21 @@ img,svg{ max-width:100%; display:block; }
 
 /* samples */
 .vc-list{ display:flex; flex-direction:column; gap:9px; }
+/* the row is unlit until you point at it */
 .sample{
   display:flex; align-items:center; gap:13px;
-  background:var(--h-fill);
-  border:1px solid var(--h-line);
-  border-radius:14px;
+  background:transparent;
+  border:1px solid transparent;
+  border-radius:10px;
   padding:12px 14px;
   color:var(--h-fg);
   text-align:left;
-  transition:background .25s var(--ease), border-color .25s var(--ease),
-             transform .3s var(--spring);
+  transition:background 120ms ease, border-color 120ms ease;
 }
-.sample:hover{
-  background:var(--h-fill-2);
-  transform:translateY(-2px);
-}
+.sample:hover{ background:rgba(255, 255, 255, 0.05); }
 .sample.on{
-  border-color:rgba(52,199,89,.5);
-  background:var(--h-fill-2);
+  background:rgba(255, 255, 255, 0.05);
+  border-color:rgba(52, 199, 89, .4);
 }
 /* Apple system green, at full strength */
 .s-play{
@@ -575,23 +586,45 @@ img,svg{ max-width:100%; display:block; }
   border-left:3px solid #F5F3EC;
   border-right:3px solid #F5F3EC;
 }
-.s-name{ font-size:.88rem; font-weight:600; line-height:1.3; }
+.s-name{
+  font-family:var(--h-ui);
+  font-size:0.9rem;
+  font-weight:500;
+  line-height:1.3;
+  color:rgba(255, 255, 255, 0.9);
+}
 .s-sub{
   display:block;
-  font-family:var(--monoF);
-  font-size:.63rem; letter-spacing:.07em; text-transform:uppercase;
+  font-family:var(--h-ui);
+  font-size:0.59rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
   font-weight:400;
-  color:var(--h-fg-mute);
-  margin-top:3px;
+  color:rgba(255, 255, 255, 0.35);
+  margin-top:4px;
 }
 .s-meta{ margin-left:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
-.s-wave{ width:34px; height:13px; color:rgba(52,199,89,1); opacity:.8; }
+.s-wave{ width:34px; height:13px; color:#34c759; opacity:.75; }
 .sample.on .s-wave{ opacity:1; }
-.s-dur{ color:var(--h-fg-mute); opacity:1; }
+.s-dur{
+  font-family:var(--h-ui);
+  font-size:0.74rem;
+  font-weight:400;
+  letter-spacing:0;
+  text-transform:none;
+  font-variant-numeric:tabular-nums;
+  color:rgba(255, 255, 255, 0.38);
+  opacity:1;
+}
 
 .vc-status{
+  font-family:var(--h-ui);
+  font-size:0.62rem;
+  letter-spacing:0.18em;
+  font-weight:400;
+  text-transform:uppercase;
   text-align:center;
-  color:var(--h-fg-mute);
+  color:rgba(255, 255, 255, 0.25);
   opacity:1;
   margin:16px 0 0;
 }
@@ -855,40 +888,35 @@ img,svg{ max-width:100%; display:block; }
    everywhere else on the page is untouched. The label stays dark: white type
    on a 20% white pill over pale colour is unreadable, and the card's own rule
    is that everything inside it reads dark. */
-/* One CTA and one ghost. The pill is the only solid thing in the hero, which
-   is what makes it the thing you press. */
-.voice-card .vc-actions .btn{
+/* Glass pills. Nothing inside the card is solid — both buttons are lit panes
+   of the same material as the card, just brighter. */
+.voice-card .vc-actions .btn,
+.voice-card .vc-actions .btn-ghost{
   display:inline-flex;
   align-items:center;
   justify-content:center;
   gap:7px;
-  padding:0.7rem 1.6rem;
+  padding:0.65rem 1.5rem;
   border-radius:980px;
-  border:0;
-  background:var(--h-cta-bg);
-  color:var(--h-cta-fg);
-  font-size:0.9rem;
-  font-weight:600;
-  letter-spacing:-0.01em;
+  background:rgba(255, 255, 255, 0.08);
+  border:1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  color:#ffffff;
+  font-family:var(--h-ui);
+  font-size:0.84rem;
+  font-weight:500;
+  letter-spacing:0;
   box-shadow:none;
-  transition:opacity 120ms ease-out;
-}
-.voice-card .vc-actions .btn:hover{
-  opacity:.85;
-  background:var(--h-cta-bg);
-  color:var(--h-cta-fg);
   transform:none;
+  transition:background 130ms ease-out;
 }
-/* the secondary one is an outline and nothing more */
-.voice-card .vc-actions .btn-ghost{
-  background:transparent;
-  color:var(--h-fg);
-  border:1px solid var(--h-ghost-line);
-}
+.voice-card .vc-actions .btn:hover,
 .voice-card .vc-actions .btn-ghost:hover{
-  background:transparent;
-  color:var(--h-fg);
-  opacity:.7;
+  background:rgba(255, 255, 255, 0.13);
+  border-color:rgba(255, 255, 255, 0.14);
+  color:#ffffff;
+  transform:none;
 }
 /* the north-east arrow that marks both as "this takes you somewhere" */
 .btn-arrow{
@@ -928,13 +956,14 @@ img,svg{ max-width:100%; display:block; }
   display:inline-flex; align-items:center; gap:10px;
   padding:11px 20px 11px 18px;
   border-radius:980px;
-  font-size:0.72rem;
-  font-weight:500;
+  font-family:var(--h-ui);
+  font-size:0.69rem;
+  font-weight:400;
   letter-spacing:0.12em;
   font-variant-numeric:tabular-nums;
-  color:var(--h-pill-fg);
-  background:var(--h-fill);
-  border:1px solid var(--h-line);
+  color:rgba(255, 255, 255, 0.52);
+  background:rgba(255, 255, 255, 0.07);
+  border:1px solid rgba(255, 255, 255, 0.1);
   box-shadow:none;
   transition:transform .3s var(--spring), background .25s var(--ease),
              border-color .25s var(--ease);
@@ -943,7 +972,7 @@ img,svg{ max-width:100%; display:block; }
 .badge .live-dot{ margin-top:-1px; }
 .badge:hover{
   transform:translateY(-3px);
-  background:var(--h-fill-2);
+  background:rgba(255, 255, 255, 0.11);
 }
 /* Apple system green, in the hero only — the other live dot on the page
    (the form's "Live" label) keeps the brand green it already had */

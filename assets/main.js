@@ -770,7 +770,8 @@
        way a real thread shows the attachment then the note about it */
     { from: 'image', src: 'assets/sms-booking.svg', alt: 'Calendar showing Thursday 3pm booked with Dr. Chen' },
     { from: 'us',   text: "Done! You're booked for Thursday 3pm with Dr. Chen. I'll send a reminder the day before." },
-    { from: 'us',   text: 'Take care Kristi!' }
+    { from: 'us',   text: 'Take care Kristi!' },
+    { from: 'them', text: 'Aww, that honestly made my day. Thank you so much!' }
   ];
 
   /* the frame never grows, so every new line scrolls the thread instead */

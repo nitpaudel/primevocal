@@ -215,19 +215,28 @@ img,svg{ max-width:100%; display:block; }
    is transparent, so the button is the only thing that reads as pressable.
    Solid brand green with light type, in both bar states: it is the CTA, and
    a white glass pill made it read as chrome rather than as an action. */
+/* Pill, and given room to breathe: the horizontal padding is up ~19% on the
+   old 1.3rem, which is what stops it reading as a compacted chip in the bar.
+   Carries the same north-east arrow as the two CTAs inside the demo card. */
 .nav .btn-sm{
   background:var(--green);
   color:#F7F5EE;
   border:1px solid transparent;
-  border-radius:8px;
-  padding:0.62rem 1.3rem;
+  border-radius:999px;
+  padding:0.7rem 1.55rem;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
   font-family:var(--serif);
   font-size:.88rem;
   font-weight:600;
   letter-spacing:-.006em;
+  white-space:nowrap;
   box-shadow:0 6px 16px -12px rgba(23, 21, 15, 0.7);
   transition:background 130ms ease-out, color .35s var(--ease);
 }
+.nav .btn-sm .btn-arrow{ width:13px; height:13px; opacity:.72; }
+.nav .btn-sm:hover .btn-arrow{ opacity:1; transform:translate(2px, -2px); }
 .nav .btn-sm:hover{
   background:var(--green-h);
   color:#F7F5EE;
@@ -432,23 +441,29 @@ img,svg{ max-width:100%; display:block; }
 .nav.stuck .wordmark{ --logo-h:30px; }
 .nav-right{ display:flex; align-items:center; gap:14px; }
 
-/* wears .liquid-glass; only the tint, the radius and the icon colour are
-   set here */
+/* A plain round button, NOT glass. It wore .liquid-glass and picked up the
+   blur, the specular corner and the four-layer shadow stack, which made a
+   38px utility control read as heavier material than the CTA beside it.
+   Now it is a fill and a hairline, nothing else. */
 .theme-toggle{
   border-radius:980px;
   width:38px; height:38px;
   display:grid; place-items:center;
+  background:rgba(255, 255, 255, 0.78);
+  border:1px solid rgba(20, 19, 16, 0.12);
+  box-shadow:none;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
   color:color-mix(in srgb, var(--nav-fg) 62%, transparent);
   transition:color .2s var(--ease), background .2s var(--ease),
-             transform .28s var(--spring);
+             border-color .2s var(--ease), transform .28s var(--spring);
 }
 .theme-toggle:hover{
   color:var(--nav-fg);
-  background:rgba(255, 255, 255, 0.26);
+  background:#ffffff;
+  border-color:rgba(20, 19, 16, 0.2);
   transform:translateY(-2px);
 }
-.nav:not(.stuck) .theme-toggle{ background:rgba(255, 255, 255, 0.5); }
-.nav:not(.stuck) .theme-toggle:hover{ background:rgba(255, 255, 255, 0.72); }
 .theme-toggle svg{ width:17px; height:17px; }
 .ico-moon{ display:none; }
 [data-theme="dark"] .ico-sun{ display:none; }
@@ -876,16 +891,22 @@ img,svg{ max-width:100%; display:block; }
 .vc-wave span:nth-child(34){ height:30.6%; }
 .vc-wave span:nth-child(35){ height:35.6%; }
 
-/* Idle · one shared 3.6s ease-in-out cycle across every bar — every bar
-   runs the SAME curve at the SAME duration. Fixed stagger delays step the
-   phase per bar so the swell travels the row, but the pattern repeats
-   exactly every 3.6s. No mixed durations, no drift, no drama — a slow
-   breath that loops predictably. Amplitude stays at 8% of travel so it
-   reads as alive rather than as attention-grabbing. */
+/* Idle · the row has to look like it is listening, not like a screenshot.
+   The old cycle moved each bar over 8% of its travel, which at 3px wide is
+   under a pixel and a half — invisible in practice, and the player read as
+   a static graphic. This runs 0.62 → 1.18, a swing you can actually see,
+   over a slower 4.2s so it still breathes rather than twitches.
+
+   Three durations are dealt across the row (see the nth-child rules below)
+   so neighbouring bars drift out of phase and the motion never resolves
+   into a travelling wave. */
 @keyframes barIdle{
-  from { transform:scaleY(0.92) }
-  to   { transform:scaleY(1) }
+  from { transform:scaleY(0.62) }
+  to   { transform:scaleY(1.18) }
 }
+.vc-wave span:nth-child(3n+1){ animation-duration:4.2s; }
+.vc-wave span:nth-child(3n+2){ animation-duration:3.3s; }
+.vc-wave span:nth-child(3n+3){ animation-duration:5.1s; }
 /* stepped delays, wrapped every eighth bar, so the swell travels the row */
 .vc-wave span:nth-child(8n+1){ animation-delay:-.10s; }
 .vc-wave span:nth-child(8n+2){ animation-delay:-.32s; }
@@ -1325,7 +1346,9 @@ img,svg{ max-width:100%; display:block; }
   justify-content:center;
   gap:7px;
   padding:0.8rem 1.2rem;
-  border-radius:10px;
+  /* full pill — the card's two CTAs, the nav CTA and the trust boxes all
+     resolve to the same radius so the section has one button language */
+  border-radius:999px;
   font-family:var(--h-ui);
   font-size:0.84rem;
   font-weight:600;
@@ -1399,29 +1422,37 @@ img,svg{ max-width:100%; display:block; }
    the light source read straight through the bar. #FAF8F5 is that exact
    frosted colour resolved against the hero background, so the strip looks
    the same and simply stops being glass. The lift shadow went with it. */
+/* THREE separate pills, not one divided bar. The container is now only a
+   flex row with a gap — it has no fill, no border and no radius of its own,
+   so each claim is its own object with air around it. */
 .badges{
   display:flex;
   align-items:stretch;
+  gap:14px;
   margin-top:60px;
-  border-radius:980px;
-  border:1px solid rgba(20, 19, 16, 0.12);
-  background:#FAF8F5;
-  overflow:hidden;                     /* keeps the ends clipped to the pill */
+  border:0;
+  background:none;
+  border-radius:0;
+  overflow:visible;
   box-shadow:none;
-  transition:background .25s var(--ease), border-color .25s var(--ease);
 }
+/* each one is glass: a translucent fill with a real blur behind it and a
+   hairline edge. The icon is the only colour. */
 .badge{
   display:flex;
   align-items:center;
   justify-content:center;
   gap:13px;
-  padding:18px 28px;
-  flex:1 1 0;                          /* equal-width segments */
-  border:0;
-  background:transparent;
-  border-radius:0;
-  box-shadow:none;
-  border-right:1px solid rgba(20, 19, 16, 0.10);
+  padding:18px 24px;
+  flex:1 1 0;                          /* equal-width boxes */
+  border:1px solid rgba(20, 19, 16, 0.10);
+  border-radius:999px;
+  background:rgba(255, 255, 255, 0.55);
+  backdrop-filter:blur(18px) saturate(165%);
+  -webkit-backdrop-filter:blur(18px) saturate(165%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 8px 22px -18px rgba(23, 21, 15, 0.35);
   font-family:var(--h-ui);
   font-size:1.02rem;
   font-weight:500;
@@ -1430,15 +1461,19 @@ img,svg{ max-width:100%; display:block; }
   white-space:nowrap;
   font-variant-numeric:tabular-nums;
   color:rgba(20, 19, 16, 0.78);
-  transition:background .2s var(--ease), color .2s var(--ease);
+  transition:background .2s var(--ease), border-color .2s var(--ease),
+             transform .28s var(--spring), color .2s var(--ease);
 }
-.badge:last-child{ border-right:0; }
+.badge:hover{
+  background:rgba(255, 255, 255, 0.72);
+  border-color:rgba(20, 19, 16, 0.16);
+  transform:translateY(-2px);
+}
+/* green in both themes — the one accent on the strip */
 .badge-ico{
   width:20px; height:20px;
   flex:0 0 auto;
-  color:var(--h-accent);
-}
-.badge:hover{
+  color:var(--green);
 }
 /* Apple system green, in the hero only — the other live dot on the page
    (the form's "Live" label) keeps the brand green it already had */
@@ -1518,24 +1553,37 @@ img,svg{ max-width:100%; display:block; }
   --h-bub:         #3a3a3c;
   --h-bub-fg:      #ffffff;
 
-  /* ── ambience ── */
+  /* ── ambience ──
+     CONTAINED. The glow is sized to the card plus a margin, not to the
+     section: at 640x620 it covers ~18% of a 1920x1000 viewport and the haze
+     behind it ~26%, and both are centred on the card, so the light reads as
+     coming from BEHIND that one object. The previous 1020x840 core with a
+     1500x1100 haze washed the entire right half and bled into the top-left
+     corner, which is the "gradient going everywhere" that read as cheap.
+     Keep --glow-w/h within ~1.3x the card's own 500x544 box. */
   --glow-rgb:      74, 222, 142;
-  --glow-x:        74%;
-  --glow-y:        43%;
-  --glow-w:        1020px;
-  --glow-h:        840px;
-  --glow-core:     0.17;
-  --glow-mid:      0.06;
-  --glow-edge:     66%;
+  --glow-x:        71%;
+  --glow-y:        46%;
+  --glow-w:        640px;
+  --glow-h:        620px;
+  --glow-core:     0.20;
+  --glow-mid:      0.07;
+  --glow-edge:     72%;
   --haze-rgb:      28, 86, 60;
-  --haze-a:        0.26;
+  --haze-a:        0.10;
+  --haze-w:        820px;
+  --haze-h:        740px;
 
-  /* ── the glass ── */
-  --card-tint-top: rgba(34, 62, 47, 0.52);
-  --card-tint-bot: rgba(9, 13, 11, 0.74);
-  --card-edge:     rgba(150, 235, 190, 0.17);
-  --card-blur:     28px;
-  --card-bloom:    0.22;
+  /* ── the glass ──
+     Less milky than the first pass. The top tint carried 0.52 alpha, which
+     made the upper half of the panel read as pale grey-green fill rather
+     than as something you are seeing THROUGH. At 0.34 the ambience behind
+     it does the colouring and the blur does the frosting. */
+  --card-tint-top: rgba(38, 68, 52, 0.34);
+  --card-tint-bot: rgba(8, 12, 10, 0.70);
+  --card-edge:     rgba(150, 235, 190, 0.14);
+  --card-blur:     30px;
+  --card-bloom:    0.20;
 
   /* ── accents inside the glass ── */
   --card-accent-rgb: 61, 200, 122;
@@ -1565,10 +1613,10 @@ img,svg{ max-width:100%; display:block; }
       rgba(var(--glow-rgb), var(--glow-core)) 0%,
       rgba(var(--glow-rgb), var(--glow-mid)) 34%,
       transparent var(--glow-edge)),
-    radial-gradient(ellipse 1500px 1100px at var(--glow-x) 60%,
+    radial-gradient(ellipse var(--haze-w) var(--haze-h) at var(--glow-x) calc(var(--glow-y) + 6%),
       rgba(var(--haze-rgb), var(--haze-a)) 0%,
       rgba(var(--haze-rgb), calc(var(--haze-a) * 0.35)) 40%,
-      transparent 72%);
+      transparent 74%);
 }
 
 /* Grid texture · 2% white lines over the right side only, then masked with
@@ -1710,6 +1758,19 @@ img,svg{ max-width:100%; display:block; }
   background:rgba(255, 255, 255, 0.06);
   border-color:rgba(var(--card-accent-rgb), 0.14);
 }
+/* The active tab is a GLASS pill, not the opaque white one the light card
+   uses. A solid white slab on a frosted panel is the single thing that most
+   broke the material — it read as a sticker laid on the glass rather than as
+   part of it. Lit top edge, faint fill, white label. */
+[data-theme="dark"] .hero .voice-card .vc-thumb{
+  background:rgba(255, 255, 255, 0.10);
+  border:1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 2px 8px -4px rgba(0, 0, 0, 0.6);
+}
+[data-theme="dark"] .hero .voice-card .vc-tab.on,
+[data-theme="dark"] .hero .voice-card .vc-tab.on:hover{ color:#ffffff; }
 
 /* ---------- the two CTAs · one solid, one glass ----------
    On glass a matched pair of translucent tiles has no hierarchy — both
@@ -1761,24 +1822,27 @@ img,svg{ max-width:100%; display:block; }
 /* The two card CTAs are glass in both themes — see the shared rule in the
    light section. Nothing to override here. */
 
-/* dark · the outer pill inverts, the inner dividers stay hairline-white.
-   Opaque here too — #141414 is the old 4%-white translucent fill resolved
-   against the #0a0a0a page, so the tone is unchanged and the frost is gone. */
+/* dark · the container carries nothing; each pill is glass in its own right,
+   edged with the section's accent so the strip belongs to the card above it */
 [data-theme="dark"] .badges{
-  background:#141414;
-  border-color:rgba(255, 255, 255, 0.12);
+  background:none;
+  border:0;
   box-shadow:none;
 }
 [data-theme="dark"] .badge{
-  color:rgba(255, 255, 255, 0.82);
-  background:transparent;
-  border-right-color:rgba(255, 255, 255, 0.1);
+  color:rgba(255, 255, 255, 0.85);
+  background:rgba(255, 255, 255, 0.05);
+  border-color:rgba(var(--card-accent-rgb), 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 10px 30px -22px rgba(0, 0, 0, 0.9);
 }
 [data-theme="dark"] .badge:hover{
-  background:rgba(255, 255, 255, 0.06);
+  background:rgba(var(--card-accent-rgb), 0.10);
+  border-color:rgba(var(--card-accent-rgb), 0.28);
   color:#ffffff;
 }
-[data-theme="dark"] .badge-ico{ color:#0A84FF; }
+[data-theme="dark"] .badge-ico{ color:rgb(var(--card-accent-rgb)); }
 
 /* ---------- nav · only while it is over the hero ----------
    .stuck is left exactly as it was: it already paints itself near-black with
@@ -2815,23 +2879,19 @@ html.no-io .rv{ opacity:1; transform:none; }
   .sec-label{ padding-bottom:30px; }
   .street-label{ top:18px; font-size:.6rem; right:18px; }
 
-  /* Trust strip goes vertical on mobile — three horizontal segments in a
-     ~330px viewport would compress the text to nothing. Same rounded
-     container, same 1px dividers, just rotated to row-per-segment. */
+  /* Trust strip stacks on mobile — three boxes side by side in a ~330px
+     viewport would compress the text to nothing. Still three separate
+     pills, just one per row. */
   .badges{
     flex-direction:column;
     align-items:stretch;
-    border-radius:22px;
+    gap:10px;
   }
   .badge{
     justify-content:flex-start;
-    padding:16px 22px;
-    border-right:0;
-    border-bottom:1px solid rgba(20, 19, 16, 0.10);
+    padding:15px 22px;
     font-size:0.98rem;
   }
-  .badge:last-child{ border-bottom:0; }
-  [data-theme="dark"] .badge{ border-bottom-color:rgba(255, 255, 255, 0.1); border-right-color:transparent; }
 
   /* the card gets its own gutter inside the mobile shell, so bubbles don't
      touch the card edge and the CTAs sit inset from the pill's rim */

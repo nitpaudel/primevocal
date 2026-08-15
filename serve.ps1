@@ -7,7 +7,7 @@
 # Stop it with Ctrl+C.
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$port = 3000
+$port = if ($env:PORT) { [int]$env:PORT } else { 3000 }
 
 $mime = @{
   '.html'  = 'text/html; charset=utf-8'

@@ -151,10 +151,12 @@ img,svg{ max-width:100%; display:block; }
 .btn:active{ transform:translateY(-1px) scale(.995); }
 .btn-sm{ padding:10px 18px; font-size:.86rem; border-radius:7px; }
 /* the one solid element up here, deliberately — everything else in the bar
-   is transparent, so the pill is the only thing that reads as pressable */
+   is transparent, so the pill is the only thing that reads as pressable.
+   It inverts with the bar: ink on the cream hero, white once the bar itself
+   has gone dark on scroll. */
 .nav .btn-sm{
-  background:#ffffff;
-  color:#000000;
+  background:#141310;
+  color:#ffffff;
   border:0;
   border-radius:980px;
   padding:0.5rem 1.2rem;
@@ -163,14 +165,19 @@ img,svg{ max-width:100%; display:block; }
   font-weight:600;
   letter-spacing:-.01em;
   box-shadow:none;
-  transition:opacity 130ms ease-out;
+  transition:opacity 130ms ease-out, background .35s var(--ease), color .35s var(--ease);
 }
 .nav .btn-sm:hover{
-  background:#ffffff;
-  color:#000000;
+  background:#141310;
+  color:#ffffff;
   opacity:.85;
   transform:none;
   box-shadow:none;
+}
+.nav.stuck .btn-sm,
+.nav.stuck .btn-sm:hover{
+  background:#ffffff;
+  color:#000000;
 }
 .btn-block{ width:100%; display:block; }
 
@@ -207,12 +214,15 @@ img,svg{ max-width:100%; display:block; }
 .nav{
   position:sticky; top:0; z-index:200;
   --nav-bg:#080808;
-  --nav-fg:#ffffff;
+  /* at rest the bar sits on the cream hero, so its type is ink; once .stuck
+     paints the bar near-black the same token flips to white */
+  --nav-fg:#141310;
   background:transparent;
   border-bottom:1px solid transparent;
   transition:border-color .3s var(--ease), background .35s var(--ease);
 }
 .nav.stuck{
+  --nav-fg:#ffffff;
   background:color-mix(in srgb, var(--nav-bg) 82%, transparent);
   backdrop-filter:saturate(180%) blur(14px);
   -webkit-backdrop-filter:saturate(180%) blur(14px);
@@ -296,9 +306,10 @@ img,svg{ max-width:100%; display:block; }
   display:block;
   align-self:center;
   flex:0 0 auto;
-  color:#ffffff;
+  color:var(--nav-fg);
   background:none;
-  -webkit-text-fill-color:#ffffff;
+  -webkit-text-fill-color:var(--nav-fg);
+  transition:color .35s var(--ease), -webkit-text-fill-color .35s var(--ease);
 }
 
 .nav.stuck .wordmark{ --logo-h:30px; }
@@ -325,47 +336,42 @@ img,svg{ max-width:100%; display:block; }
 [data-theme="dark"] .ico-moon{ display:block; }
 
 /* ==========================================================
-   HERO
-   Two skins off one markup: the light one is the default, the dark one
-   rides the site's existing theme toggle. Every colour the hero uses is a
-   token declared here and re-declared under [data-theme="dark"], so the
-   whole section — background, type, glass, pills — flips together and
-   nothing outside .hero is touched.
+   HERO · light / cream
+   Reverted from the dark rebuild back to the cream skin: warm paper base,
+   black headline, pale mint-green demo card. Every colour the section uses
+   is a token declared here, so nothing outside .hero is touched.
+
+   The card is treated as a physical object lit from the upper-left: the two
+   facing edges catch light, the two facing away fall into shadow, and a
+   near + far shadow pair holds it above the page.
    ========================================================== */
 .hero{
-  --h-bg:          #08080f;
-  --h-fg:          #ffffff;
+  --h-bg:          #f5f0e8;
+  --h-fg:          #141310;
   /* SF on Apple hardware; Instrument Sans keeps Windows and Android off the
      generic (which resolves to Arial) without displacing SF anywhere */
   --h-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
           "Instrument Sans", sans-serif;
 
-  --h-eyebrow:     rgba(255, 255, 255, 0.36);
-  --h-body:        rgba(255, 255, 255, 0.5);
-  --h-fg-mute:     rgba(255, 255, 255, 0.36);
-  --h-fg-soft:     rgba(255, 255, 255, 0.55);
-  --h-glass:       rgba(255, 255, 255, 0.05);
-  --h-glass-line:  rgba(255, 255, 255, 0.09);
-  --h-fill:        rgba(255, 255, 255, 0.06);
-  --h-fill-2:      rgba(255, 255, 255, 0.1);
-  --h-line:        rgba(255, 255, 255, 0.1);
-  --h-track:       rgba(255, 255, 255, 0.07);
-  --h-track-on:    rgba(255, 255, 255, 0.16);
-  --h-glass-pill:  rgba(255, 255, 255, 0.08);
-  --h-glass-pill-line: rgba(255, 255, 255, 0.15);
-  --h-bub:         #3A3A3C;
-  --h-bub-fg:      #ffffff;
+  --h-fg-mute:     rgba(20, 19, 16, 0.4);
+  --h-fg-soft:     rgba(20, 19, 16, 0.55);
+  --h-card:        #e8efe8;                  /* pale mint-green card fill */
+  --h-fill:        rgba(255, 255, 255, 0.55);
+  --h-line:        rgba(20, 19, 16, 0.08);
+  --h-track:       rgba(0, 0, 0, 0.05);
+  --h-bub:         #e9e9eb;                  /* iMessage grey, light skin */
+  --h-bub-fg:      #141310;
 
   /* Pulled up behind the sticky header and padded back out, so the section
      runs under a genuinely transparent nav instead of leaving a strip of
      page paper above it. */
   margin-top:-84px;
   padding:164px 0 76px;
-  /* One light source, from behind the bottom-left corner, spent by the
-     middle of the section. It is barely visible on purpose — it exists to
-     give the black a floor, not to add colour. */
+  /* One light source, anchored top-right behind the card, spent well before
+     the section edges. It is barely perceptible on purpose — it exists so
+     the eye reads depth, not as decoration. */
   background:
-    radial-gradient(90% 80% at 4% 106%, rgba(10, 45, 22, 0.55) 0%, transparent 58%),
+    radial-gradient(ellipse 900px 700px at 78% 25%, rgba(255, 255, 255, 0.9) 0%, transparent 65%),
     var(--h-bg);
   color:var(--h-fg);
   /* Own stacking context: the hero paints as one unit, so no later section —
@@ -388,91 +394,82 @@ img,svg{ max-width:100%; display:block; }
 .voice-card{ grid-area:1 / 2; }
 
 /* ---------- hero type ----------
-   The two lines are deliberately not the same: a bold roman declaration,
-   then an italic at book weight. That contrast is the design — everything
-   else in the section is the system UI face, kept quiet underneath it. */
+   Hierarchy is built out of weight, not out of a second typeface. One family
+   across both lines: the declaration lands at 800, the follow-through drops
+   to 500 and steps back in tone. No serif, no italic — the contrast is the
+   design. */
 .hero-h1{
-  font-family:'Playfair Display', serif;
+  font-family:var(--h-ui);
   /* Measured to the largest that still holds two lines: at 74px "Answer
      every call." runs 586px against a 612px column, and the vw term is set
-     so it clears the column at the narrow end of two-column layout too. The
-     5.4rem asked for wraps every sentence and kills the line break. */
+     so it clears the column at the narrow end of two-column layout too. */
   font-size:clamp(2.5rem, 5vw, 4.6rem);
-  font-weight:700;
+  font-weight:800;
   font-style:normal;
-  line-height:1.06;
-  letter-spacing:-0.02em;
-  color:#ffffff;
+  line-height:1.02;
+  letter-spacing:-0.03em;
+  color:#141310;
   margin:0 0 26px;
 }
+/* second line — same family, quiet weight, stepped-back tone */
 .hero-h1 em{
-  font-weight:400;
-  font-style:italic;
-  color:rgba(255, 255, 255, 0.9);
+  font-weight:500;
+  font-style:normal;
+  color:rgba(20, 19, 16, 0.55);
 }
 .hero .kicker{
   font-family:var(--h-ui);
-  font-size:0.67rem;
-  letter-spacing:0.16em;
+  font-size:0.7rem;
+  letter-spacing:0.14em;
   font-weight:400;
   text-transform:uppercase;
-  color:rgba(255, 255, 255, 0.35);
+  color:rgba(20, 19, 16, 0.4);
   margin:0 0 28px;
 }
 .standfirst{
   font-family:var(--h-ui);
-  font-size:0.97rem;
-  line-height:1.75;
+  font-size:0.98rem;
+  line-height:1.7;
   font-weight:400;
   letter-spacing:0;
-  color:rgba(255, 255, 255, 0.5);
+  color:rgba(20, 19, 16, 0.6);
   max-width:46ch;
   margin:0;
 }
 
 
-/* ---------- hero demo card · floating glass ----------
-   Barely-there fill, one hairline edge, and a deep soft shadow underneath so
-   it reads as a pane suspended in front of the hero rather than a panel
-   pasted onto it. */
+/* ---------- hero demo card · a lit object ----------
+   Pale mint fill, edges lit from the upper-left, and two shadows: a tight
+   near one that pins it to the surface and a deep diffuse one that lifts it
+   off. Nothing hard-edged anywhere. */
 .voice-card{
   position:relative;
   z-index:1;
-  background:var(--h-glass);
-  backdrop-filter:blur(40px) saturate(180%);
-  -webkit-backdrop-filter:blur(40px) saturate(180%);
+  background:var(--h-card);
   color:var(--h-fg);
-  /* Lit from the top-left: the two facing edges catch light, the two facing
-     away fall into shadow. That asymmetry is what makes it read as an object
-     with thickness rather than a flat translucent rectangle. */
-  border:1px solid rgba(255, 255, 255, 0);
-  border-top-color:rgba(255, 255, 255, 0.13);
-  border-left-color:rgba(255, 255, 255, 0.06);
-  border-right-color:rgba(0, 0, 0, 0.3);
-  border-bottom-color:rgba(0, 0, 0, 0.4);
+  /* light catches the top and left edges; the right and bottom are the
+     shadow side. That asymmetry is what gives the panel thickness. */
+  border:1px solid transparent;
+  border-top-color:rgba(255, 255, 255, 0.7);
+  border-left-color:rgba(255, 255, 255, 0.4);
+  border-right-color:rgba(0, 0, 0, 0.04);
+  border-bottom-color:rgba(0, 0, 0, 0.06);
   border-radius:20px;
   overflow:hidden;           /* nothing inside can spill past the radius */
   padding:22px 22px 20px;
-  box-shadow:0 2px 8px rgba(0, 0, 0, 0.5),
-             0 24px 64px rgba(0, 0, 0, 0.7),
-             inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow:0 2px 6px rgba(0, 0, 0, 0.04),
+             0 24px 60px rgba(0, 0, 0, 0.10);
   transition:transform .5s var(--ease), box-shadow .5s var(--ease),
-             opacity .8s var(--ease), background .4s var(--ease);
+             opacity .8s var(--ease);
 }
 .voice-card:hover{ transform:translateY(-4px); }
-/* No backdrop-filter (old Safari, blur disabled for battery): a 4-6% fill
-   with nothing frosted behind it leaves the type on raw background. */
-@supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
-  .voice-card{ background:rgba(255,255,255,.72); }
-  [data-theme="dark"] .voice-card{ background:rgba(28,30,29,.88); }
-}
 
-/* pill toggle · quiet track, brighter pill for the active side */
+/* pill toggle · iOS segmented control — quiet trough, one lifted white pill */
 .vc-switch{
   position:relative;
   display:flex;
   background:var(--h-track);
-  border:1px solid var(--h-line);
+  border:0;
   border-radius:980px;
   padding:4px;
   margin-bottom:20px;
@@ -483,8 +480,9 @@ img,svg{ max-width:100%; display:block; }
   width:calc(50% - 4px);
   height:calc(100% - 8px);
   border-radius:980px;
-  background:rgba(255, 255, 255, 0.15);
-  transition:transform .42s var(--spring), background 200ms ease;
+  background:#ffffff;
+  box-shadow:0 1px 3px rgba(0, 0, 0, 0.12);
+  transition:transform 180ms ease, background 180ms ease;
 }
 .vc-switch.sms .vc-thumb{ transform:translateX(100%); }
 .vc-tab{
@@ -497,12 +495,12 @@ img,svg{ max-width:100%; display:block; }
   font-size:0.82rem;
   font-weight:500;
   letter-spacing:-0.01em;
-  color:rgba(255, 255, 255, 0.4);
-  transition:color 200ms ease;
+  color:rgba(20, 19, 16, 0.4);
+  transition:color 180ms ease;
 }
-.vc-tab:hover{ color:rgba(255,255,255,.62); }
+.vc-tab:hover{ color:rgba(20, 19, 16, 0.62); }
 .vc-tab svg{ width:15px; height:15px; }
-.vc-tab.on, .vc-tab.on:hover{ color:#ffffff; }
+.vc-tab.on, .vc-tab.on:hover{ color:#141310; font-weight:600; }
 
 /* Hard height, not min-height: both panes measure exactly the same, so the
    card cannot change size when the tab switches or as messages arrive. */
@@ -511,9 +509,10 @@ img,svg{ max-width:100%; display:block; }
 .vc-pane[hidden]{ display:none; }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
 
-/* Waveform · a slow breath rather than a bounce. Height and opacity move
-   together over four and a half seconds, and the negative delays stagger
-   neighbouring bars so the row swells in a wave instead of in unison. */
+/* Waveform · breathing, not vibrating. Every bar runs the same 2.2s swell
+   between 35% and 100%, stepped 0.12s apart so the rise travels along the
+   row instead of every bar lifting together. The drop-shadow is a hair of
+   green light off the bars, nothing more. */
 .vc-wave{
   display:flex; align-items:center; justify-content:center; gap:3px;
   height:66px;
@@ -521,34 +520,35 @@ img,svg{ max-width:100%; display:block; }
 }
 .vc-wave span{
   width:3px;
-  height:30%;
+  height:35%;
   border-radius:2px;
   background:#34c759;
-  animation:barBreathe 2.4s ease-in-out infinite alternate;
+  filter:drop-shadow(0 0 3px rgba(52, 199, 89, 0.35));
+  animation:barBreathe 2.2s ease-in-out infinite alternate;
 }
 @keyframes barBreathe{
-  from { height:30% }
+  from { height:35% }
   to   { height:100% }
 }
-/* Stepped 0.15s apart and wrapped every eighth bar, so the swell travels
+/* Stepped 0.12s apart and wrapped every eighth bar, so the swell travels
    along the row rather than every bar rising together. */
 .vc-wave span:nth-child(8n+1){ animation-delay:0s; }
-.vc-wave span:nth-child(8n+2){ animation-delay:-.15s; }
-.vc-wave span:nth-child(8n+3){ animation-delay:-.30s; }
-.vc-wave span:nth-child(8n+4){ animation-delay:-.45s; }
-.vc-wave span:nth-child(8n+5){ animation-delay:-.60s; }
-.vc-wave span:nth-child(8n+6){ animation-delay:-.75s; }
-.vc-wave span:nth-child(8n+7){ animation-delay:-.90s; }
-.vc-wave span:nth-child(8n+8){ animation-delay:-1.05s; }
+.vc-wave span:nth-child(8n+2){ animation-delay:-.12s; }
+.vc-wave span:nth-child(8n+3){ animation-delay:-.24s; }
+.vc-wave span:nth-child(8n+4){ animation-delay:-.36s; }
+.vc-wave span:nth-child(8n+5){ animation-delay:-.48s; }
+.vc-wave span:nth-child(8n+6){ animation-delay:-.60s; }
+.vc-wave span:nth-child(8n+7){ animation-delay:-.72s; }
+.vc-wave span:nth-child(8n+8){ animation-delay:-.84s; }
+/* live playback is a different gesture — faster, uneven, clearly reactive */
 .vc-wave.playing span{ opacity:1; animation:wv 1s ease-in-out infinite; }
 .vc-wave.playing span:nth-child(2n){ animation-duration:.72s; }
 .vc-wave.playing span:nth-child(3n){ animation-duration:1.24s; }
 .vc-wave.playing span:nth-child(5n){ animation-duration:.58s; }
 @keyframes wv{ 0%,100%{height:7px} 50%{height:46px} }
 
-/* samples */
+/* samples · the row is unlit until you point at it */
 .vc-list{ display:flex; flex-direction:column; gap:9px; }
-/* the row is unlit until you point at it */
 .sample{
   display:flex; align-items:center; gap:13px;
   background:transparent;
@@ -559,16 +559,16 @@ img,svg{ max-width:100%; display:block; }
   text-align:left;
   transition:background 120ms ease, border-color 120ms ease;
 }
-.sample:hover{ background:rgba(255, 255, 255, 0.05); }
+.sample:hover{ background:rgba(0, 0, 0, 0.03); }
 .sample.on{
-  background:rgba(255, 255, 255, 0.05);
+  background:rgba(255, 255, 255, 0.6);
   border-color:rgba(52, 199, 89, .4);
 }
 /* Apple system green, at full strength */
 .s-play{
   width:30px; height:30px; flex-shrink:0;
   border-radius:50%;
-  background:rgba(52, 199, 89, 1);
+  background:#34c759;
   display:grid; place-items:center;
   transition:transform .3s var(--spring), filter .25s var(--ease);
 }
@@ -578,29 +578,29 @@ img,svg{ max-width:100%; display:block; }
   margin-left:2px;
   border-style:solid;
   border-width:5px 0 5px 8px;
-  border-color:transparent transparent transparent #F5F3EC;
+  border-color:transparent transparent transparent #ffffff;
 }
 .sample.on .s-play i{
   border:0; margin-left:0;
   width:9px; height:10px;
-  border-left:3px solid #F5F3EC;
-  border-right:3px solid #F5F3EC;
+  border-left:3px solid #ffffff;
+  border-right:3px solid #ffffff;
 }
 .s-name{
   font-family:var(--h-ui);
   font-size:0.9rem;
-  font-weight:500;
+  font-weight:600;
   line-height:1.3;
-  color:rgba(255, 255, 255, 0.9);
+  color:#141310;
 }
 .s-sub{
   display:block;
   font-family:var(--h-ui);
-  font-size:0.59rem;
+  font-size:0.6rem;
   letter-spacing:0.1em;
   text-transform:uppercase;
   font-weight:400;
-  color:rgba(255, 255, 255, 0.35);
+  color:rgba(20, 19, 16, 0.4);
   margin-top:4px;
 }
 .s-meta{ margin-left:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
@@ -613,7 +613,7 @@ img,svg{ max-width:100%; display:block; }
   letter-spacing:0;
   text-transform:none;
   font-variant-numeric:tabular-nums;
-  color:rgba(255, 255, 255, 0.38);
+  color:rgba(20, 19, 16, 0.38);
   opacity:1;
 }
 
@@ -624,17 +624,17 @@ img,svg{ max-width:100%; display:block; }
   font-weight:400;
   text-transform:uppercase;
   text-align:center;
-  color:rgba(255, 255, 255, 0.25);
+  color:rgba(20, 19, 16, 0.3);
   opacity:1;
   margin:16px 0 0;
 }
 
-/* chat */
+/* chat · legacy markup, superseded by the .imsg pane below */
 .chat{ display:flex; flex-direction:column; }
 .chat-head{
   display:flex; align-items:center; gap:10px;
   padding-bottom:14px;
-  border-bottom:1px solid rgba(245,243,236,.1);
+  border-bottom:1px solid var(--h-line);
   margin-bottom:14px;
 }
 .chat-av{
@@ -647,10 +647,10 @@ img,svg{ max-width:100%; display:block; }
   color:#F5F3EC;
 }
 .chat-av .mark{ height:18px; }
-/* green disc only comes back if lara-avatar.png is missing */
+/* green disc only comes back if lara-avatar.jpg is missing */
 .chat-av.avatar-missing{ background:linear-gradient(150deg, #4E9A6E, #1E5B3F); }
 .chat-who{ font-size:.9rem; font-weight:600; }
-.chat-who .mono{ color:var(--dark-mut); font-weight:400; }
+.chat-who .mono{ color:var(--h-fg-mute); font-weight:400; }
 
 .chat-body{
   display:flex; flex-direction:column; gap:8px;
@@ -673,8 +673,8 @@ img,svg{ max-width:100%; display:block; }
 .bub.in{ opacity:1; transform:none; }
 .bub.them{
   align-self:flex-start;
-  background:rgba(245,243,236,.1);
-  color:var(--dark-fg);
+  background:var(--h-bub);
+  color:var(--h-bub-fg);
   border-bottom-left-radius:5px;
 }
 .bub.us{
@@ -686,28 +686,26 @@ img,svg{ max-width:100%; display:block; }
 .bub.typing{
   align-self:flex-start;
   display:flex; gap:4px; align-items:center;
-  background:rgba(245,243,236,.1);
+  background:var(--h-bub);
   padding:12px 14px;
   border-bottom-left-radius:5px;
 }
 .bub.typing i{
   width:6px; height:6px; border-radius:50%;
-  background:var(--dark-fg); opacity:.55;
+  background:var(--h-bub-fg); opacity:.55;
   animation:dots 1.2s ease-in-out infinite;
 }
 .bub.typing i:nth-child(2){ animation-delay:.18s; }
 .bub.typing i:nth-child(3){ animation-delay:.36s; }
 @keyframes dots{ 0%,100%{transform:translateY(0); opacity:.35} 50%{transform:translateY(-4px); opacity:.9} }
-.chat-foot{ color:var(--dark-mut); text-align:center; margin:14px 0 0; }
+.chat-foot{ color:var(--h-fg-mute); text-align:center; margin:14px 0 0; }
 
 /* ---------- SMS pane · auto-playing conversation ----------
-   iMessage shape (rounded bubbles, tails, typing dots) in the site's own
-   palette: the card stays dark, Lara answers in green on the right, the
-   prospect writes in slate grey on the left. It never scrolls — the column
-   is bottom-anchored inside a fixed box and the top edge fades out, so the
+   iMessage shape (rounded bubbles, tails, typing dots) sitting inside the
+   mint card as its own lighter panel, so the thread reads as a screen rather
+   than as text floating on the sheet. It never scrolls — the column is
+   bottom-anchored inside a fixed box and the top edge fades out, so the
    thread rises on its own and the pane height never moves. */
-/* A second, slightly brighter pane of glass inside the card, so the thread
-   reads as a screen rather than as text floating on the sheet. */
 .imsg{
   background:var(--h-fill);
   border:1px solid var(--h-line);
@@ -720,7 +718,7 @@ img,svg{ max-width:100%; display:block; }
   display:flex; align-items:center; gap:11px;
   padding:11px 14px;
   border-bottom:1px solid var(--h-line);
-  background:var(--h-fill);
+  background:rgba(255, 255, 255, 0.5);
   flex:0 0 auto;
 }
 .imsg-av{
@@ -792,11 +790,10 @@ img,svg{ max-width:100%; display:block; }
   flex:0 0 auto;
 }
 .imsg-bub.in{ opacity:1; transform:none; }
-/* Received · iMessage grey, left. Opaque on purpose: a translucent bubble on
-   a glass card has nothing to sit against and the thread stops reading. */
+/* Received · iMessage grey, left */
 .imsg-bub.them{
   align-self:flex-start;
-  background:var(--h-bub);      /* iMessage grey, per skin */
+  background:var(--h-bub);
   color:var(--h-bub-fg);
   border-bottom-left-radius:6px;
 }
@@ -821,8 +818,8 @@ img,svg{ max-width:100%; display:block; }
   align-self:stretch;
   max-width:100%;
   display:flex; align-items:center; justify-content:center; gap:8px;
-  background:rgba(78,154,110,.14);
-  border:1px solid rgba(140,230,185,.32);
+  background:rgba(52, 199, 89, .12);
+  border:1px solid rgba(52, 199, 89, .3);
   border-radius:10px;
   padding:7px 12px;
   text-align:center;
@@ -830,7 +827,7 @@ img,svg{ max-width:100%; display:block; }
   font-size:.55rem; letter-spacing:.08em; text-transform:uppercase;
   font-weight:500;
   line-height:1.35;
-  color:var(--glow);
+  color:#1E5B3F;
   margin-top:3px;
 }
 /* photo attachment · no bubble chrome, the image is the message */
@@ -884,12 +881,10 @@ img,svg{ max-width:100%; display:block; }
   display:grid; grid-template-columns:1fr 1fr; gap:10px;
   margin-top:18px;
 }
-/* Both buttons become glass too, scoped to this card so the solid green CTA
-   everywhere else on the page is untouched. The label stays dark: white type
-   on a 20% white pill over pale colour is unreadable, and the card's own rule
-   is that everything inside it reads dark. */
-/* Glass pills. Nothing inside the card is solid — both buttons are lit panes
-   of the same material as the card, just brighter. */
+/* Two pills, scoped to this card so the solid green CTA everywhere else on
+   the page is untouched: one solid ink, one outlined. Both answer on press
+   rather than on release — the scale lands under the finger, not after it
+   lifts, which is the whole point of the gesture. */
 .voice-card .vc-actions .btn,
 .voice-card .vc-actions .btn-ghost{
   display:inline-flex;
@@ -898,34 +893,52 @@ img,svg{ max-width:100%; display:block; }
   gap:7px;
   padding:0.65rem 1.5rem;
   border-radius:980px;
-  background:rgba(255, 255, 255, 0.08);
-  border:1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  color:#ffffff;
   font-family:var(--h-ui);
   font-size:0.84rem;
-  font-weight:500;
+  font-weight:600;
   letter-spacing:0;
   box-shadow:none;
   transform:none;
-  transition:background 130ms ease-out;
+  transition:background 130ms ease-out, border-color 130ms ease-out,
+             transform 100ms ease-out;
 }
-.voice-card .vc-actions .btn:hover,
-.voice-card .vc-actions .btn-ghost:hover{
-  background:rgba(255, 255, 255, 0.13);
-  border-color:rgba(255, 255, 255, 0.14);
+.voice-card .vc-actions .btn{
+  background:#141310;
+  border:1px solid transparent;
+  color:#ffffff;
+}
+.voice-card .vc-actions .btn:hover{
+  background:#2a2722;
+  border-color:transparent;
   color:#ffffff;
   transform:none;
+}
+.voice-card .vc-actions .btn-ghost{
+  background:rgba(255, 255, 255, 0.6);
+  border:1px solid rgba(20, 19, 16, 0.12);
+  color:#141310;
+}
+.voice-card .vc-actions .btn-ghost:hover{
+  background:rgba(255, 255, 255, 0.85);
+  border-color:rgba(20, 19, 16, 0.2);
+  color:#141310;
+  transform:none;
+}
+/* feedback lives on the press, not the release */
+.voice-card .vc-actions .btn:active,
+.voice-card .vc-actions .btn-ghost:active{
+  transform:scale(0.97);
+  transition:transform 100ms ease-out;
 }
 /* the north-east arrow that marks both as "this takes you somewhere" */
 .btn-arrow{
   width:14px; height:14px;
   flex:0 0 auto;
-  opacity:.6;
+  opacity:.55;
   transition:transform .28s var(--spring), opacity .25s var(--ease);
 }
-.voice-card .vc-actions .btn:hover .btn-arrow{
+.voice-card .vc-actions .btn:hover .btn-arrow,
+.voice-card .vc-actions .btn-ghost:hover .btn-arrow{
   opacity:.9;
   transform:translate(2px, -2px);
 }
@@ -943,27 +956,25 @@ img,svg{ max-width:100%; display:block; }
   100%{ box-shadow:0 0 0 0 rgba(78,154,110,0); opacity:1 }
 }
 
-/* badges */
+/* badges · stat pills. A hairline edge over a half-white wash, so they lift
+   off the cream without becoming another filled object. The figures are
+   data — spaced caps on tabular numerals, not body copy. */
 .badges{
   display:flex; gap:10px; flex-wrap:wrap;
   margin-top:56px;
 }
-/* Stat pills. Frosted rather than tinted, so they belong to the same glass
-   family as the demo card, with the figures set in the mono face on tabular
-   numerals — "<30 SEC" and "24/7 · 365" are data, and they should read like
-   data rather than like body copy. */
 .badge{
   display:inline-flex; align-items:center; gap:10px;
   padding:11px 20px 11px 18px;
   border-radius:980px;
   font-family:var(--h-ui);
-  font-size:0.69rem;
+  font-size:0.68rem;
   font-weight:400;
-  letter-spacing:0.12em;
+  letter-spacing:0.1em;
   font-variant-numeric:tabular-nums;
-  color:rgba(255, 255, 255, 0.52);
-  background:rgba(255, 255, 255, 0.07);
-  border:1px solid rgba(255, 255, 255, 0.1);
+  color:rgba(20, 19, 16, 0.55);
+  background:rgba(255, 255, 255, 0.5);
+  border:1px solid rgba(20, 19, 16, 0.1);
   box-shadow:none;
   transition:transform .3s var(--spring), background .25s var(--ease),
              border-color .25s var(--ease);
@@ -972,12 +983,12 @@ img,svg{ max-width:100%; display:block; }
 .badge .live-dot{ margin-top:-1px; }
 .badge:hover{
   transform:translateY(-3px);
-  background:rgba(255, 255, 255, 0.11);
+  background:rgba(255, 255, 255, 0.8);
 }
 /* Apple system green, in the hero only — the other live dot on the page
    (the form's "Live" label) keeps the brand green it already had */
 .hero .live-dot{
-  background:rgba(52, 199, 89, 1);
+  background:#34c759;
   box-shadow:0 0 0 0 rgba(52,199,89,.5);
   animation:pulseDotHero 2.4s var(--ease) infinite;
 }
@@ -1120,8 +1131,11 @@ img,svg{ max-width:100%; display:block; }
   color:#F5F3EC;
   font-family:var(--sans);
   font-size:.92rem; font-weight:600;
-  box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0 0 rgba(45,106,79,.5);
-  animation:fabPulse 2.8s var(--ease) infinite;
+  box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0 rgba(52,199,89,.4);
+  /* Same breath as the hero waveform: the glow swells and settles rather
+     than firing a ring outward. The lift shadow underneath is constant, so
+     only the green halo moves. */
+  animation:fabGlow 3s ease-in-out infinite;
   transition:transform .28s var(--spring), box-shadow .3s var(--ease), background .25s var(--ease);
 }
 .talk-fab:hover{
@@ -1130,10 +1144,9 @@ img,svg{ max-width:100%; display:block; }
   animation-play-state:paused;
 }
 .talk-fab svg{ width:17px; height:17px; flex:0 0 auto; }
-@keyframes fabPulse{
-  0%   { box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0 0 rgba(78,154,110,.5); }
-  70%  { box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0 16px rgba(78,154,110,0); }
-  100% { box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0 0 rgba(78,154,110,0); }
+@keyframes fabGlow{
+  0%,100% { box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 0    rgba(52,199,89,.4); }
+  50%     { box-shadow:0 12px 30px -12px rgba(0,0,0,.6), 0 0 16px rgba(52,199,89,.5); }
 }
 
 .talk-modal{
